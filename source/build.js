@@ -1,7 +1,7 @@
 const fs = require('fs'), path = require('path');
 const SRC_DIR = process.env.SRC_DIR || 'src';       // (another tree of the sources can be built: SRC_DIR=src.bak_v20 node build.js)
 const src = f => fs.readFileSync(path.join(__dirname, SRC_DIR, f), 'utf8');
-const files = ['01_data.js', '02_map.js', '03_sim.js', '04_ai.js', '04n_net.js', '05a_gfx.js', '05b_world.js', '05c_models.js', '05d_fx.js', '05e_view.js', '06_ui.js', '07l_link.js', '07_net.js'].filter(f => fs.existsSync(path.join(__dirname, SRC_DIR, f)));       // (the first four are the sim: its fingerprint)
+const files = ['01_data.js', '02_map.js', '03_sim.js', '04_ai.js', '04n_net.js', '05a_gfx.js', '05b_world.js', '05c_models.js', '05d_fx.js', '05e_view.js', '06_ui.js', '07l_link.js', '07_net.js', '07c_chat.js'].filter(f => fs.existsSync(path.join(__dirname, SRC_DIR, f)));       // (the first four are the sim: its fingerprint)
 // a recording of a match only plays on the sim that made it: the sim files' fingerprint goes in as SIM_ID
 let fp = 0x811c9dc5; for (const f of files.slice(0, 4)) { const t = src(f); for (let i = 0; i < t.length; i++) { fp ^= t.charCodeAt(i); fp = Math.imul(fp, 0x01000193); } }
 const SITE = process.env.SITE_URL || (fs.existsSync(path.join(__dirname, 'site.url')) ? fs.readFileSync(path.join(__dirname, 'site.url'), 'utf8').trim() : '');       // where the page lives on the open web (said to those Claude's own room does not take)

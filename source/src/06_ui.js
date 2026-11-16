@@ -61,6 +61,7 @@ const ICONS = {
   pause: `<path ${F} d="M6 4h4v16H6zM14 4h4v16h-4z"/>`,
   play: `<path ${F} d="M7 4l13 8-13 8z"/>`,
   list: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  chat: '<path d="M4 5h16v11H10l-5 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/>',
   flag: `<path d="M5 21V3.500"/><path ${F} d="M5 4h13l-3 4 3 4H5z"/>`,
   x: '<path d="M5 5l14 14M19 5L5 19"/>',
   coin: `<circle ${F} cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.500" stroke="#7a5a10"/>`,
@@ -799,6 +800,8 @@ function bindInput() {
     if (UI.state === 'watch') { watchKey(e, e.key.length === 1 ? e.key.toLowerCase() : e.key); return; }
     if (UI.state === 'menu') { if (e.key === 'Escape') { if (!$('reps').hidden) closeModal('reps'); else if (!$('duel').hidden) $('duel').hidden = true; } return; }
     if (UI.state !== 'play') return; const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (e.target && e.target.tagName === 'INPUT') return;       // (typing a line to the others)
+    if (k === 'Enter' && chatOn() && !UI.ended && !RP.on && !e.repeat) { e.preventDefault(); chatType(e.shiftKey ? 1 : 0); return; }       // Enter: a line to the team (with Shift: to everyone)
     if (RP.on) { if (k === 'Escape' || k === ' ' || k === 'Enter') { e.preventDefault(); endReplay(); } return; }       // a replay only listens for "enough"
     if (k === 'Tab') { e.preventDefault(); if (!UI.boardHold && !UI.ended) { UI.boardHold = true; openModal('board'); } return; }
     if (k === 'Escape') { if (UI.aimKey >= 0) { UI.aimKey = -1; V.aim = null; return; } for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (!$(m).hidden) { closeModal(m); return; } if (!UI.ended) openModal('pause'); return; }

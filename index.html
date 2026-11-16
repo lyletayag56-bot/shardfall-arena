@@ -448,6 +448,21 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
 #app.h460 .mphead b { font-size: 18px; } #app.h460 .mphead span { display: none; } #app.h460 .mptm { padding: 6px; gap: 4px; } #app.h460 .mptm h3 { font-size: 16px; margin: 0; }
 #app.h460 #mp .stack, #app.h460 #duel .stack { gap: 10px; } #app.h460 #mp .btn, #app.h460 #duel .btn { min-height: 38px; padding: 3px 14px 0; font-size: 19px; } #app.h460 .mps { min-height: 36px; } #app.h460 .mps img { width: 28px; height: 28px; } #app.h460 #mp .meta, #app.h460 #duel .meta { font-size: 12.5px; }
 #app.w720 .mpteams { gap: 6px; } #app.w720 .mptm { padding: 6px; } #app.w720 .mplv .chip { padding: 2px 6px; font-size: 12px; } #app.h460 .mpgo .chip { min-height: 38px; }
+#btnChat { position: absolute; left: var(--gl); top: calc(8px + var(--mm) + 10px); z-index: 2; }
+#chatLog { position: absolute; left: calc(var(--gl) + 42px); top: calc(8px + var(--mm) + 10px); width: min(46%, 380px); display: grid; gap: 3px; justify-items: start; pointer-events: none; z-index: 1; }
+.cl { max-width: 100%; padding: 2px 8px; background: rgba(9,20,25,.74); font-size: 13.5px; line-height: 1.35; overflow-wrap: anywhere; }
+.cl i { font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin-right: 6px; }
+.cl b { margin-right: 6px; } .cl.a b { color: var(--ally); } .cl.e b { color: var(--enemy); }
+#chatBox { position: absolute; left: var(--gl); top: calc(8px + var(--mm) + 52px); width: min(calc(100% - 2 * var(--gl)), 400px); max-height: calc(100% - var(--mm) - 68px); overflow-y: auto; padding: 8px; display: grid; gap: 8px; z-index: 4; }
+#chatBox .ch { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; } #chatBox .ch .x { margin-left: auto; width: 36px; height: 36px; display: grid; place-items: center; } #chatBox .ch .x svg { width: 16px; height: 16px; }
+#chatBox .cq { display: flex; flex-wrap: wrap; gap: 6px; } #chatBox .chip { min-height: 36px; padding: 4px 12px; font-size: 14px; } #chatBox .chist { display: grid; gap: 3px; justify-items: start; max-height: 96px; overflow-y: auto; } #chatBox .meta { margin: 0; }
+#app.h460 #chatBox { left: calc(var(--gl) + var(--mm) + 8px); top: 8px; width: min(calc(100% - var(--gl) - var(--gr) - var(--mm) - 8px), 430px); max-height: calc(100% - 16px); }
+#app.rp #btnChat, #app.rp #chatLog, #app.rp #chatBox, #app.watch #btnChat, #app.watch #chatLog, #app.watch #chatBox { display: none !important; }
+#chatBar { position: fixed; left: 0; right: 0; top: 0; z-index: 60; display: flex; gap: 6px; align-items: center; padding: calc(6px + env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px)) 6px max(10px, env(safe-area-inset-left, 0px)); background: var(--panel); border-bottom: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.5); }
+#chatBar input { flex: 1; min-width: 0; min-height: 40px; padding: 4px 10px; background: var(--ink); border: 1px solid var(--line); color: var(--text); font: 500 16px var(--f-ui); border-radius: 0; -webkit-user-select: text; user-select: text; }
+#chatBar input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+#chatBar button { flex: none; min-height: 40px; min-width: 44px; padding: 0 12px; font: 700 13px var(--f-ui); letter-spacing: .1em; text-transform: uppercase; border: 1px solid var(--line); background: var(--panel2); color: var(--text); }
+#chatBar #chatTo.team { color: var(--ally); } #chatBar #chatTo.all { color: var(--gold); } #chatBar #chatSend { background: var(--gold); color: #1a1405; border-color: var(--gold); }
 #netWait { position: absolute; left: 50%; top: 62px; transform: translateX(-50%); padding: 6px 14px; font-weight: 600; font-size: 14px; white-space: nowrap; pointer-events: none; z-index: 3; }
 #app.h460 #netWait { top: 44px; font-size: 13px; padding: 4px 10px; } #app.rp #netWait { display: none !important; }
 .stack { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
@@ -581,6 +596,9 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
     <div id="dead" hidden><b>Respawning in</b><span id="deadT">0</span><em id="deadBy"></em><div class="dbtn"><button class="btn sm" id="btnRecap" aria-label="Death recap"><span class="lg">Death recap</span><span class="sh">Recap</span></button><button class="btn sm go" id="btnReplay">Replay</button></div></div>
     <div id="rpl" class="plate" hidden><b>Death replay</b><span id="rplT"></span><div class="trk"><i></i><u></u></div><button class="btn sm" id="btnSkip">Skip</button></div>
     <div id="netWait" class="plate" role="status" hidden></div>
+    <button id="btnChat" class="plate ibtn" aria-label="Chat" hidden></button>
+    <div id="chatLog" aria-live="polite" hidden></div>
+    <div id="chatBox" class="plate" hidden></div>
     <div id="status" class="plate">
       <div id="stPort"><img id="stImg" alt=""><div id="stLv">1</div><div id="stMood" role="img" hidden></div></div>
       <div class="bars">
@@ -642,6 +660,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
             <dt>Chains</dt><dd>Kaela's first skill, Triple Cadence, is three presses of one button: a step and a cut, another, and then a leap that comes down on the ground and throws whoever is in front of her into the air for a moment, unable to act. Each press has 3 seconds to follow the last; the three dots on the button show how far along you are, the icon shows what the next press does, and the cooldown starts when the chain ends. Aim each cut on its own: drag the button, or just tap and she turns on the nearest enemy. Each step stops at the first enemy in her way, so she cuts from in front of them. Her ultimate, Bloodrage, puts wings of light on her back for as long as the rage lasts: when they gutter and fold, it is over.</dd>
             <dt>Roles</dt><dd>Miel, the Amber Hivekeeper, can be played in two roles. Choose one under her name before the match: as a <b>Support</b> she goes to the bottom lane beside the carry and the shop recommends a build that keeps her team alive; as a <b>Mage</b> she holds the middle lane alone and the build is for damage. Your team's bots fill the other places around the one you take. Each of her skills does something for allies and something to enemies at once, and her passive follows the company she keeps: with an allied hero within reach of her she tends, and her heals and shields are 20% stronger (her bees turn pale and unhurried); with none near she stings, and her skills deal 20% more damage (they turn hot and quick). The badge on her portrait at the bottom of the screen says which: a heart while she tends, a sting while she stings. Bots play her in either role.</dd>
             <dt>Stings</dt><dd>Miel's first skill, Stinger Flight, leaves a sting in every enemy it goes through, shown as a bright mote circling them. A sting lasts 8 seconds, hurts every second and slows a little. Hit the same enemy again before it runs out and there are two, then three at the most: each flight that lands adds one and starts the time of all of them again, and the damage and the slow are as many times over. Keeping the swarm on one enemy is where her damage is. A sting is not a blow: it does not interrupt a recall.</dd>
+            <dt>Chat</dt><dd>In a match with other players the speech bubble under the minimap opens the chat: pick <b>Team</b> or <b>All</b>, then tap a ready-made line or <b>Type…</b> your own (on a keyboard: Enter for the team, Shift+Enter for everyone). <b>Mute</b> hides what the others say.</dd>
             <dt>Friends</dt><dd><b>Friends</b> opens a table that everyone who has this page open can join from their own Friends list. Each player picks a side, a hero and says they are ready; the host starts. All on one side is your team against bots; on both sides is friends against friends; bots fill the empty places. Inside Claude everyone must be signed in and have the page shared with them by name; on the open web anyone with the page can join, and a table has an invite link to send. Your own hero answers the stick at once; skills and attacks land a moment after the press, on every screen at the same time. The match cannot be paused, and if someone looks away for more than a few seconds a bot plays on for them.</dd>
             <dt>1v1</dt><dd><b>1v1</b> is one hero a side on the middle lane: two turrets, then the crystal, no jungle. Fight a bot of the level and hero you choose, or a friend at a 1v1 table. From the sixth minute the turrets and crystals take more and more damage, so it does not drag on.</dd>
             <dt>Level up</dt><dd>Tap the gold + over a skill, or press <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>. The ultimate unlocks at levels 4, 8 and 12.</dd>
@@ -707,6 +726,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
   </div></div></div>
   <div id="end" class="modal" hidden><div class="sheet"><div class="body stack"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2 id="endT"></h2><p class="meta" id="endM" style="margin:2px 0 0"></p></div><div class="row"><button class="btn go" id="btnAgain">Play again</button><button class="btn" id="btnRep" hidden>Watch replay</button><button class="btn" id="btnMenu">Change hero</button></div></div><div class="tblwrap" id="endTbl"></div></div></div></div>
 </div>
+<div id="chatBar" hidden><button id="chatTo" class="team" aria-label="Who hears it: tap to change">Team</button><input id="chatIn" maxlength="80" autocomplete="off" autocapitalize="sentences" spellcheck="false" enterkeyhint="send" aria-label="Your line"><button id="chatSend">Send</button><button id="chatX" aria-label="Close">✕</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -7718,6 +7738,7 @@ const ICONS = {
   pause: `<path ${F} d="M6 4h4v16H6zM14 4h4v16h-4z"/>`,
   play: `<path ${F} d="M7 4l13 8-13 8z"/>`,
   list: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  chat: '<path d="M4 5h16v11H10l-5 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/>',
   flag: `<path d="M5 21V3.500"/><path ${F} d="M5 4h13l-3 4 3 4H5z"/>`,
   x: '<path d="M5 5l14 14M19 5L5 19"/>',
   coin: `<circle ${F} cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.500" stroke="#7a5a10"/>`,
@@ -8456,6 +8477,8 @@ function bindInput() {
     if (UI.state === 'watch') { watchKey(e, e.key.length === 1 ? e.key.toLowerCase() : e.key); return; }
     if (UI.state === 'menu') { if (e.key === 'Escape') { if (!$('reps').hidden) closeModal('reps'); else if (!$('duel').hidden) $('duel').hidden = true; } return; }
     if (UI.state !== 'play') return; const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (e.target && e.target.tagName === 'INPUT') return;       // (typing a line to the others)
+    if (k === 'Enter' && chatOn() && !UI.ended && !RP.on && !e.repeat) { e.preventDefault(); chatType(e.shiftKey ? 1 : 0); return; }       // Enter: a line to the team (with Shift: to everyone)
     if (RP.on) { if (k === 'Escape' || k === ' ' || k === 'Enter') { e.preventDefault(); endReplay(); } return; }       // a replay only listens for "enough"
     if (k === 'Tab') { e.preventDefault(); if (!UI.boardHold && !UI.ended) { UI.boardHold = true; openModal('board'); } return; }
     if (k === 'Escape') { if (UI.aimKey >= 0) { UI.aimKey = -1; V.aim = null; return; } for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (!$(m).hidden) { closeModal(m); return; } if (!UI.ended) openModal('pause'); return; }
@@ -9271,7 +9294,7 @@ function lkFlush(R, force) {       // says this page's object in the room if it 
   if (!msg) { msg = (hello ? 'G' : 'F') + R.v + '\n' + json; R.fv = R.v; R.fobj = JSON.parse(json); R.fullT = now; R.ask = false; LK.stat.full++; } else must = false;
   R.said = true; R.pubT = now; lkSay(R, msg, must);
 }
-const lkLive = (L, now) => L.open && now - L.rxT <= LK_DQUIET && now >= L.doubtT;       // a direct line that is open and has not gone quiet
+const lkLive = (L, now) => L.open && now - L.rxT <= LK_DQUIET + Math.max(0, now - LK.tickT - 300) && now >= L.doubtT;       // a direct line that is open and has not gone quiet (a page that has itself been held up, its own clockwork overdue, has only not looked yet)
 function lkSay(R, msg, must) {       // by the direct lines where they are open; through the relays too unless everyone else at the table is heard from directly (must: through the relays in any case)
   let all = R.table && R.peers.size > 0 && LK.links.size > 0;
   if (R.table && LK.links.size > 0) { const now = performance.now(), dm = R.name + '\n' + msg; for (const P of R.peers.values()) { const L = LK.links.get(P.peer); if (!L || !L.open || !lkDirectSend(L, dm) || !lkLive(L, now)) all = false; } }
@@ -9558,8 +9581,9 @@ function netSay() {       // this page's place at the table, and during a match 
   if (!NET.chan) return; const h = UI.hero, M = NET.M, now = performance.now(); if (!M) netMine();
   const T = { v: NETV, sim: SIM_NAME, c: NET.code, nm: NET.nick, tm: NET.team, h, k: UI.skins[h] | 0, sp: UI.spell, r: roleIx(h), rd: NET.ready ? 1 : 0, pt: NET.pt, st: M ? 1 : 0, ln: NET.lastN };
   if (NET.hs) { T.hs = 1; T.ht = NET.ht; T.cfg = NET.cfg; if (NET.go && now - NET.goT < NET_GO_MS) T.go = NET.go; }
-  if (M) T.m = ncOut(M); else if (NET.quitN) T.m = { n: NET.quitN, q: 1 };
+  if (M) { T.m = ncOut(M); const ch = chatOut(now); if (ch) T.ch = ch; } else if (NET.quitN) T.m = { n: NET.quitN, q: 1 };
   if (T.go && T.m && netBytes(JSON.stringify(T)) > NET_BYTES) delete T.go;       // (cannot be while a match starts: what a match says only grows with trouble, later)
+  if (T.ch && netBytes(JSON.stringify(T)) > NET_BYTES) delete T.ch;       // (the turns come first)
   NET.pubT = now; netPut(NET.chan, { T });
 }
 function netTablePeers(peers) {
@@ -9578,7 +9602,7 @@ function netTablePeers(peers) {
   if (host && !host.me) { const c = host.T.cfg, df = c && Array.isArray(c.df) ? c.df : []; if (c && typeof c === 'object') { const md = c.md === 'duel' ? 'duel' : 'team'; if (md !== NET.cfg.md) { NET.cfg = { md, df: NET.cfg.df }; netLobbySay(); } NET.cfg = { md, df: [DIFFS[df[0]] ? df[0] : 1, DIFFS[df[1]] ? df[1] : 1] }; } }
   const go = host && host.T.go; if (go && typeof go === 'object' && (go.n | 0) > NET.lastN && !NET.M) netGo(go);
   const M = NET.M;
-  if (M) { for (let s = 0; s < M.seats; s++) { if (s === M.me) continue; const p = P.find(q => q.peer === NET.seats[s]); if (p && NET.prev.get(p.peer) !== p.raw) { NET.prev.set(p.peer, p.raw); if (p.T.m) ncIn(M, s, p.T.m, now); } } }
+  if (M) { for (let s = 0; s < M.seats; s++) { if (s === M.me) continue; const p = P.find(q => q.peer === NET.seats[s]); if (p && NET.prev.get(p.peer) !== p.raw) { NET.prev.set(p.peer, p.raw); if (p.T.m) ncIn(M, s, p.T.m, now); if (p.T.ch) chatIn(s, p.T.ch); } } }
   else netRender();
 }
 /* the seats as the table has them: for each side, who sits (in the order they sat down), and whose hero is already taken on that side */
@@ -9622,11 +9646,12 @@ function netGo(go) {
   if (!G.player) { NET.note = 'This page could not be seated in the match.'; startDemo(); netSay(); netRender(true); return; }
   const mine = humans.filter(h => h.team === humans[me].team).length, foes = humans.length - mine;
   NET.seats = peers; NET.M = ncNew(n, humans.length, me, performance.now());
-  if (NET.web) { let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) NET.M.D = Math.min(NC_D0, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / NC_TURN) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes) NET.abs = humans.map(() => 0); NET.prev = new Map(); NET.ready = false; NET.quitN = 0; NET.note = ''; NET.waitShown = false; NET.offT = 0; NET.say = { duel, df, n: humans.length, foes };
+  if (NET.web) { let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) NET.M.D = Math.min(NC_D0, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / NC_TURN) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes)
+  NET.abs = humans.map(() => 0); NET.prev = new Map(); NET.ready = false; NET.quitN = 0; NET.note = ''; NET.waitShown = false; NET.offT = 0; NET.say = { duel, df, n: humans.length, foes };
   UI.mode = 'net'; $('mp').hidden = true; enterPlay();
   banner(duel ? '1v1 · Mid lane' : foes ? 'Friends against friends' : 'Playing together', duel ? (foes ? 'Against ' + humans[1 - me].name : 'Break their turrets, then the crystal') : `${humans.length} ${humans.length === 1 ? 'player' : 'players'} · bots fill the other places`, '#f2c14e');
   hint((G.player.team === RED ? 'Your side starts at the top right this time: your own team is still the blue one on your screen. ' : '') + (duel ? 'One lane, two turrets and the crystal. ' : mine > 1 ? 'Your friends are on your side. ' : '') + 'Your hero answers the stick at once. Skills and attacks land a moment after the press, on every screen at the same time: that is what keeps everyone in the same match.', 11);
-  snd('horn'); netSay(); netLobbySay();
+  snd('horn'); chatReset(); netSay(); netLobbySay();
 }
 function netEndSay() { const s = NET.M && NET.say; return !s ? '' : s.duel ? (s.foes ? '1v1 against a friend' : '1v1') : `${s.n} ${s.n === 1 ? 'player' : 'players'}, ${wdSay(s.df)}`; }
 /* Where this player's own hero is about to be.
@@ -9677,6 +9702,7 @@ function netFrame(dt) {
   const off = NET.offT > 0 && now - NET.offT > 2000, w = M.waitMs > 700 ? ncWaitingFor(M) : -1, show = (w >= 0 || off) && !G.over && !M.out, key = off ? -2 : w;
   if (show !== NET.waitShown || (show && UI.last.nw !== key)) { NET.waitShown = show; UI.last.nw = key; const el = $('netWait'); el.hidden = !show; if (show) { const h = G.humans[w]; el.textContent = off ? 'Reconnecting…' : w === M.me || !h ? 'Waiting for the others…' : 'Waiting for ' + h.name + '…'; } }
   if (NET.web && now - NET.pingT > 1000) netPing(now);
+  chatTick(now);
   if (M.bad) netStop(`The match went out of step between the players at ${fmtTime(M.bad.turn / 15)} and could not go on. That should not happen: if it does again, everyone reloading the page is the first thing to try.`);
   else if (M.out) netStop(M.cut ? 'This device was without a connection for too long, and a bot has taken your hero.' : M.lost ? 'This device fell too far behind the match, and a bot has taken your hero.' : 'The others lost touch with this device for too long, and a bot has taken your hero.');
 }
@@ -9690,12 +9716,12 @@ function netPing(now) {
 }
 /* the match is over for this page (it ended, was left, or cannot go on): back to the menu, with the table open if it is still held */
 function netStop(msg, gone) {
-  const M = NET.M; NET.M = null; $('netWait').hidden = true; NET.waitShown = false; $('netPing').hidden = true; UI.last.np = ''; if (M && !G.over) NET.quitN = M.n; NET.ready = false; NET.note = msg || '';
+  const M = NET.M; NET.M = null; $('netWait').hidden = true; NET.waitShown = false; $('netPing').hidden = true; UI.last.np = ''; chatReset(); if (M && !G.over) NET.quitN = M.n; NET.ready = false; NET.note = msg || '';
   if (gone) netOff(gone === 2); else netSay();       // (2: the table's room has ended by itself, there is nothing left to say in it)
   netLobbySay(); if (UI.state === 'play') toMenu();
   if (msg || (NET.ok === 1 && NET.chan)) { $('mp').hidden = false; document.querySelectorAll('#mp .x').forEach(b => b.innerHTML = icon('x')); netRender(true); netLobbySay(); }
 }
-function netLeaveMatch() { const M = NET.M; if (!M) return; if (!G.over) NET.quitN = M.n; NET.M = null; $('netWait').hidden = true; NET.waitShown = false; $('netPing').hidden = true; UI.last.np = ''; NET.ready = false; netSay(); netLobbySay(); }       // (what it says from here on: that it has left that match)
+function netLeaveMatch() { const M = NET.M; if (!M) return; if (!G.over) NET.quitN = M.n; NET.M = null; $('netWait').hidden = true; NET.waitShown = false; $('netPing').hidden = true; UI.last.np = ''; chatReset(); NET.ready = false; netSay(); netLobbySay(); }       // (what it says from here on: that it has left that match)
 function netOff(dead) {
   for (const f of NET.off.splice(0)) try { f(); } catch (e) { /* gone already */ }
   const ch = NET.chan; NET.chan = null; NET.code = null; NET.P = []; NET.hs = 0; NET.go = null; NET.ready = false; NET.host = null; NET.M = null; NET.quitN = 0; netHashSet('');
@@ -9760,7 +9786,7 @@ function bindNet() {
   $('btnFriends').addEventListener('click', () => netOpen());
   $('btnDuel').addEventListener('click', () => { auInit(); snd('ui'); duelRender(); $('duel').hidden = false; document.querySelectorAll('#duel .x').forEach(b => b.innerHTML = icon('x')); });
   $('mpX').addEventListener('click', netClose);
-  window.addEventListener('hashchange', netFromLink);
+  window.addEventListener('hashchange', netFromLink); bindChat();
   const el = $('mpBody');
   el.addEventListener('input', e => { if (e.target.id === 'mpNick') { NET.nick = netNick(e.target.value); UI.nick = NET.nick; prefs(true); netLobbySay(); } });
   el.addEventListener('change', e => { if (e.target.id === 'mpNick') { e.target.value = NET.nick = netNick(e.target.value) || 'Player'; UI.nick = NET.nick; prefs(true); netLobbySay(); NET.sig = ''; } });
@@ -9807,6 +9833,93 @@ function startDuel() {
   enterPlay(); const foe = G.heroes.find(h => h.team !== G.player.team);
   banner('1v1 · Mid lane', 'Against ' + foe.name + ' · ' + DIFFS[G.diff].name, '#f2c14e');
   hint('One lane, one opponent. Break their two turrets, then the crystal. There is no jungle and there are no great beasts here.', 10); snd('horn');
+}
+
+/* ============================================================
+   Playing together, part four: a few words.
+
+   In a match with other players a line can be said to one's own side or to everyone. It travels with what a page says at the table
+   anyway (T.ch: its last few lines, each with the match's number, a number of its own, whom it is for and the words; kept there for
+   some seconds so that it cannot be missed), and every page shows the lines it has not shown yet. A line for one side goes to
+   every page and is shown only by that side: it keeps a plan off the other team's screens, it is not a secret.
+
+   What is typed is cut to 80 characters and loses whatever does not show; what arrives is read the same way and put on the page as
+   text, never as markup. Whoever would rather not read any of it can mute it.
+   ============================================================ */
+const CHAT_MAX = 80, CHAT_KEEP = 12000, CHAT_SHOW = 9000;       // characters to a line · ms a line stays in what its page says · ms it stays on the screen
+const CHAT_QUICK = [['Attack together!', 'Fall back!', 'Defend the turret', 'Take the beast', 'On my way', 'Careful, they are missing', 'Help me here', 'Well played!'], ['Good luck, have fun!', 'Well played!', 'Nice one', 'Good game!']];       // [for the team, for everyone]
+const CHAT = { n: 0, out: [], seen: [], lines: [], to: 0, open: false, mute: false, lastT: 0, burst: [], shown: 0, rT: 0 };
+const chatText = s => Array.from((typeof s === 'string' ? s : '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202f\u2060-\u206f\ufeff]/g, ' ').replace(/\s+/g, ' ').trim()).slice(0, CHAT_MAX).join('');
+const chatOn = () => !!NET.M && UI.state === 'play' && !!G.humans && G.humans.length > 1;       // there is someone to talk to
+function chatReset() {       // a match begins (or ends): nothing said, nothing shown
+  CHAT.out = []; CHAT.seen = (G.humans || []).map(() => 0); CHAT.lines = []; CHAT.open = false; CHAT.to = G.duel ? 1 : 0; CHAT.burst = [];
+  $('btnChat').hidden = !chatOn(); $('chatBox').hidden = true; $('chatBar').hidden = true; chatRender();
+}
+/* ---- saying ---- */
+function chatSay(to, text) {
+  const M = NET.M, now = performance.now(); text = chatText(text); if (!M || M.out || !text || !chatOn()) return false;
+  CHAT.burst = CHAT.burst.filter(t => now - t < 10000); if (now - CHAT.lastT < 700 || CHAT.burst.length >= 5) { snd('deny'); return false; }       // (not a flood)
+  CHAT.lastT = now; CHAT.burst.push(now); to = to === 1 || G.duel ? 1 : 0;
+  CHAT.out.push({ m: M.n, n: ++CHAT.n, to, text, until: now + CHAT_KEEP }); if (CHAT.out.length > 3) CHAT.out.shift();
+  chatLine(M.me, to, text); netSay(); return true;
+}
+function chatOut(now) { if (CHAT.out.length && now >= CHAT.out[0].until) CHAT.out = CHAT.out.filter(c => now < c.until); return CHAT.out.length ? CHAT.out.map(c => [c.m, c.n, c.to, c.text]) : null; }       // what goes into T.ch
+/* ---- hearing: the lines a page at the table says it has said, those not shown yet ---- */
+function chatIn(seat, ch) {
+  const M = NET.M; if (!M || !Array.isArray(ch) || seat === M.me || !(seat >= 0 && seat < CHAT.seen.length)) return; const me = G.humans[M.me], h = G.humans[seat]; if (!me || !h) return;
+  for (const q of ch.slice(0, 4)) {
+    if (!Array.isArray(q) || q[0] !== M.n) continue; const n = q[1] | 0; if (!(n > CHAT.seen[seat])) continue; CHAT.seen[seat] = n;
+    const text = chatText(q[3]), to = q[2] === 1 ? 1 : 0; if (text && (to === 1 || h.team === me.team) && !CHAT.mute) chatLine(seat, to, text);
+  }
+}
+/* ---- on the screen ---- */
+function chatLine(seat, to, text) {
+  const h = G.humans[seat], me = G.player, mine = !!NET.M && seat === NET.M.me; if (!h) return;
+  CHAT.lines.push({ t: performance.now(), who: mine ? 'You' : h.name, ally: !me || h.team === me.team, to, text }); if (CHAT.lines.length > 40) CHAT.lines.shift();
+  if (!mine) snd('ui'); chatRender();
+}
+function chatRows(el, rows) {
+  el.textContent = '';
+  for (const l of rows) { const d = document.createElement('div'), k = document.createElement('i'), w = document.createElement('b'); d.className = 'cl ' + (l.ally ? 'a' : 'e'); k.textContent = l.to ? 'All' : 'Team'; w.textContent = l.who; d.append(k, w, document.createTextNode(l.text)); el.appendChild(d); }
+}
+function chatRender() {
+  const log = $('chatLog'), now = performance.now(), recent = CHAT.lines.filter(l => now - l.t < CHAT_SHOW).slice(-5); CHAT.shown = recent.length;
+  if (CHAT.open) { log.hidden = true; const hist = $('chatBox').querySelector('.chist'); if (hist) { const rows = CHAT.lines.slice(-6); chatRows(hist, rows); hist.hidden = !rows.length; hist.scrollTop = 1e6; } }
+  else { chatRows(log, recent); log.hidden = !recent.length; }
+}
+function chatTick(now) { if (now - CHAT.rT < 500) return; CHAT.rT = now; if (!CHAT.open && CHAT.shown && CHAT.lines.filter(l => now - l.t < CHAT_SHOW).length !== CHAT.shown) chatRender(); }       // lines leave the screen after a while
+function chatPanel() {
+  const el = $('chatBox'), duel = !!G.duel; if (duel) CHAT.to = 1;
+  el.innerHTML = `<div class="ch"><div class="chips" role="group" aria-label="Who hears it">${duel ? '' : `<button class="chip plain a" data-to="0" aria-pressed="${CHAT.to === 0}">Team</button>`}<button class="chip plain" data-to="1" aria-pressed="${CHAT.to === 1}">All</button></div><button class="chip plain" data-type>Type…</button><button class="chip plain" data-mute aria-pressed="${CHAT.mute}">${CHAT.mute ? 'Muted' : 'Mute'}</button><button class="x" data-x aria-label="Close chat">${icon('x')}</button></div>`
+    + `<div class="chist" hidden></div><div class="cq">${CHAT_QUICK[CHAT.to].map((q, i) => `<button class="chip plain" data-q="${i}">${esc(q)}</button>`).join('')}</div>`
+    + (CHAT.mute ? `<p class="meta">Muted: what the others say is not shown. They still see what you say.</p>` : '');
+  el.hidden = false; chatRender();
+}
+function chatOpen() { if (!chatOn()) return; CHAT.open = true; chatPanel(); }
+function chatClose() { CHAT.open = false; $('chatBox').hidden = true; chatRender(); }
+/* typing: a bar across the top of the screen the way the device is held (the game's own frame may be turned), so the words read upright above the keyboard */
+function chatType(to) {
+  if (!chatOn() || UI.ended) return; if (to != null) CHAT.to = to; if (G.duel) CHAT.to = 1; chatClose(); clearInput();
+  const b = $('chatTo'); b.textContent = CHAT.to ? 'All' : 'Team'; b.className = CHAT.to ? 'all' : 'team'; $('chatBar').hidden = false; const inp = $('chatIn'); inp.value = ''; inp.focus();
+}
+function chatTypeEnd(send) { const bar = $('chatBar'), inp = $('chatIn'); if (bar.hidden) return; const v = inp.value; bar.hidden = true; inp.value = ''; inp.blur(); if (send && chatText(v)) chatSay(CHAT.to, v); }
+function bindChat() {
+  $('btnChat').innerHTML = icon('chat');
+  $('btnChat').addEventListener('click', () => { snd('ui'); if (CHAT.open) chatClose(); else chatOpen(); });
+  $('chatBox').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return; const d = b.dataset;
+    if (d.to != null) { CHAT.to = +d.to ? 1 : 0; snd('ui'); chatPanel(); }
+    else if (d.q != null) { const q = CHAT_QUICK[CHAT.to][+d.q]; if (q && chatSay(CHAT.to, q)) chatClose(); }
+    else if (d.type != null) { snd('ui'); chatType(); }
+    else if (d.mute != null) { CHAT.mute = !CHAT.mute; snd('ui'); chatPanel(); }
+    else if (d.x != null) { snd('ui'); chatClose(); }
+  });
+  const inp = $('chatIn');
+  inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); chatTypeEnd(true); } else if (e.key === 'Escape') { e.preventDefault(); chatTypeEnd(false); } });
+  inp.addEventListener('keyup', e => e.stopPropagation());
+  inp.addEventListener('blur', () => setTimeout(() => { if (!$('chatBar').hidden && document.activeElement !== inp) chatTypeEnd(false); }, 250));       // (a tap elsewhere puts it away: Send is quicker than that)
+  $('chatSend').addEventListener('click', () => chatTypeEnd(true)); $('chatX').addEventListener('click', () => chatTypeEnd(false));
+  $('chatTo').addEventListener('click', () => { if (G.duel) return; CHAT.to = CHAT.to ? 0 : 1; const b = $('chatTo'); b.textContent = CHAT.to ? 'All' : 'Team'; b.className = CHAT.to ? 'all' : 'team'; inp.focus(); });
 }
 
 </script>

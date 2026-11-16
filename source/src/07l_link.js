@@ -187,7 +187,7 @@ function lkFlush(R, force) {       // says this page's object in the room if it 
   if (!msg) { msg = (hello ? 'G' : 'F') + R.v + '\n' + json; R.fv = R.v; R.fobj = JSON.parse(json); R.fullT = now; R.ask = false; LK.stat.full++; } else must = false;
   R.said = true; R.pubT = now; lkSay(R, msg, must);
 }
-const lkLive = (L, now) => L.open && now - L.rxT <= LK_DQUIET && now >= L.doubtT;       // a direct line that is open and has not gone quiet
+const lkLive = (L, now) => L.open && now - L.rxT <= LK_DQUIET + Math.max(0, now - LK.tickT - 300) && now >= L.doubtT;       // a direct line that is open and has not gone quiet (a page that has itself been held up, its own clockwork overdue, has only not looked yet)
 function lkSay(R, msg, must) {       // by the direct lines where they are open; through the relays too unless everyone else at the table is heard from directly (must: through the relays in any case)
   let all = R.table && R.peers.size > 0 && LK.links.size > 0;
   if (R.table && LK.links.size > 0) { const now = performance.now(), dm = R.name + '\n' + msg; for (const P of R.peers.values()) { const L = LK.links.get(P.peer); if (!L || !L.open || !lkDirectSend(L, dm) || !lkLive(L, now)) all = false; } }

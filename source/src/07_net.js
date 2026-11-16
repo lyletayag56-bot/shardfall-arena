@@ -124,8 +124,9 @@ function netSay() {       // this page's place at the table, and during a match 
   if (!NET.chan) return; const h = UI.hero, M = NET.M, now = performance.now(); if (!M) netMine();
   const T = { v: NETV, sim: SIM_NAME, c: NET.code, nm: NET.nick, tm: NET.team, h, k: UI.skins[h] | 0, sp: UI.spell, r: roleIx(h), rd: NET.ready ? 1 : 0, pt: NET.pt, st: M ? 1 : 0, ln: NET.lastN };
   if (NET.hs) { T.hs = 1; T.ht = NET.ht; T.cfg = NET.cfg; if (NET.go && now - NET.goT < NET_GO_MS) T.go = NET.go; }
-  if (M) T.m = ncOut(M); else if (NET.quitN) T.m = { n: NET.quitN, q: 1 };
+  if (M) { T.m = ncOut(M); const ch = chatOut(now); if (ch) T.ch = ch; } else if (NET.quitN) T.m = { n: NET.quitN, q: 1 };
   if (T.go && T.m && netBytes(JSON.stringify(T)) > NET_BYTES) delete T.go;       // (cannot be while a match starts: what a match says only grows with trouble, later)
+  if (T.ch && netBytes(JSON.stringify(T)) > NET_BYTES) delete T.ch;       // (the turns come first)
   NET.pubT = now; netPut(NET.chan, { T });
 }
 function netTablePeers(peers) {
@@ -144,7 +145,7 @@ function netTablePeers(peers) {
   if (host && !host.me) { const c = host.T.cfg, df = c && Array.isArray(c.df) ? c.df : []; if (c && typeof c === 'object') { const md = c.md === 'duel' ? 'duel' : 'team'; if (md !== NET.cfg.md) { NET.cfg = { md, df: NET.cfg.df }; netLobbySay(); } NET.cfg = { md, df: [DIFFS[df[0]] ? df[0] : 1, DIFFS[df[1]] ? df[1] : 1] }; } }
   const go = host && host.T.go; if (go && typeof go === 'object' && (go.n | 0) > NET.lastN && !NET.M) netGo(go);
   const M = NET.M;
-  if (M) { for (let s = 0; s < M.seats; s++) { if (s === M.me) continue; const p = P.find(q => q.peer === NET.seats[s]); if (p && NET.prev.get(p.peer) !== p.raw) { NET.prev.set(p.peer, p.raw); if (p.T.m) ncIn(M, s, p.T.m, now); } } }
+  if (M) { for (let s = 0; s < M.seats; s++) { if (s === M.me) continue; const p = P.find(q => q.peer === NET.seats[s]); if (p && NET.prev.get(p.peer) !== p.raw) { NET.prev.set(p.peer, p.raw); if (p.T.m) ncIn(M, s, p.T.m, now); if (p.T.ch) chatIn(s, p.T.ch); } } }
   else netRender();
 }
 /* the seats as the table has them: for each side, who sits (in the order they sat down), and whose hero is already taken on that side */
@@ -188,11 +189,12 @@ function netGo(go) {
   if (!G.player) { NET.note = 'This page could not be seated in the match.'; startDemo(); netSay(); netRender(true); return; }
   const mine = humans.filter(h => h.team === humans[me].team).length, foes = humans.length - mine;
   NET.seats = peers; NET.M = ncNew(n, humans.length, me, performance.now());
-  if (NET.web) { let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) NET.M.D = Math.min(NC_D0, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / NC_TURN) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes) NET.abs = humans.map(() => 0); NET.prev = new Map(); NET.ready = false; NET.quitN = 0; NET.note = ''; NET.waitShown = false; NET.offT = 0; NET.say = { duel, df, n: humans.length, foes };
+  if (NET.web) { let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) NET.M.D = Math.min(NC_D0, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / NC_TURN) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes)
+  NET.abs = humans.map(() => 0); NET.prev = new Map(); NET.ready = false; NET.quitN = 0; NET.note = ''; NET.waitShown = false; NET.offT = 0; NET.say = { duel, df, n: humans.length, foes };
   UI.mode = 'net'; $('mp').hidden = true; enterPlay();
   banner(duel ? '1v1 · Mid lane' : foes ? 'Friends against friends' : 'Playing together', duel ? (foes ? 'Against ' + humans[1 - me].name : 'Break their turrets, then the crystal') : `${humans.length} ${humans.length === 1 ? 'player' : 'players'} · bots fill the other places`, '#f2c14e');
   hint((G.player.team === RED ? 'Your side starts at the top right this time: your own team is still the blue one on your screen. ' : '') + (duel ? 'One lane, two turrets and the crystal. ' : mine > 1 ? 'Your friends are on your side. ' : '') + 'Your hero answers the stick at once. Skills and attacks land a moment after the press, on every screen at the same time: that is what keeps everyone in the same match.', 11);
-  snd('horn'); netSay(); netLobbySay();
+  snd('horn'); chatReset(); netSay(); netLobbySay();
 }
 function netEndSay() { const s = NET.M && NET.say; return !s ? '' : s.duel ? (s.foes ? '1v1 against a friend' : '1v1') : `${s.n} ${s.n === 1 ? 'player' : 'players'}, ${wdSay(s.df)}`; }
 /* Where this player's own hero is about to be.
@@ -243,6 +245,7 @@ function netFrame(dt) {
   const off = NET.offT > 0 && now - NET.offT > 2000, w = M.waitMs > 700 ? ncWaitingFor(M) : -1, show = (w >= 0 || off) && !G.over && !M.out, key = off ? -2 : w;
   if (show !== NET.waitShown || (show && UI.last.nw !== key)) { NET.waitShown = show; UI.last.nw = key; const el = $('netWait'); el.hidden = !show; if (show) { const h = G.humans[w]; el.textContent = off ? 'Reconnecting…' : w === M.me || !h ? 'Waiting for the others…' : 'Waiting for ' + h.name + '…'; } }
   if (NET.web && now - NET.pingT > 1000) netPing(now);
+  chatTick(now);
   if (M.bad) netStop(`The match went out of step between the players at ${fmtTime(M.bad.turn / 15)} and could not go on. That should not happen: if it does again, everyone reloading the page is the first thing to try.`);
   else if (M.out) netStop(M.cut ? 'This device was without a connection for too long, and a bot has taken your hero.' : M.lost ? 'This device fell too far behind the match, and a bot has taken your hero.' : 'The others lost touch with this device for too long, and a bot has taken your hero.');
 }
@@ -256,12 +259,12 @@ function netPing(now) {
 }
 /* the match is over for this page (it ended, was left, or cannot go on): back to the menu, with the table open if it is still held */
 function netStop(msg, gone) {
-  const M = NET.M; NET.M = null; $('netWait').hidden = true; NET.waitShown = false; $('netPing').hidden = true; UI.last.np = ''; if (M && !G.over) NET.quitN = M.n; NET.ready = false; NET.note = msg || '';
+  const M = NET.M; NET.M = null; $('netWait').hidden = true; NET.waitShown = false; $('netPing').hidden = true; UI.last.np = ''; chatReset(); if (M && !G.over) NET.quitN = M.n; NET.ready = false; NET.note = msg || '';
   if (gone) netOff(gone === 2); else netSay();       // (2: the table's room has ended by itself, there is nothing left to say in it)
   netLobbySay(); if (UI.state === 'play') toMenu();
   if (msg || (NET.ok === 1 && NET.chan)) { $('mp').hidden = false; document.querySelectorAll('#mp .x').forEach(b => b.innerHTML = icon('x')); netRender(true); netLobbySay(); }
 }
-function netLeaveMatch() { const M = NET.M; if (!M) return; if (!G.over) NET.quitN = M.n; NET.M = null; $('netWait').hidden = true; NET.waitShown = false; $('netPing').hidden = true; UI.last.np = ''; NET.ready = false; netSay(); netLobbySay(); }       // (what it says from here on: that it has left that match)
+function netLeaveMatch() { const M = NET.M; if (!M) return; if (!G.over) NET.quitN = M.n; NET.M = null; $('netWait').hidden = true; NET.waitShown = false; $('netPing').hidden = true; UI.last.np = ''; chatReset(); NET.ready = false; netSay(); netLobbySay(); }       // (what it says from here on: that it has left that match)
 function netOff(dead) {
   for (const f of NET.off.splice(0)) try { f(); } catch (e) { /* gone already */ }
   const ch = NET.chan; NET.chan = null; NET.code = null; NET.P = []; NET.hs = 0; NET.go = null; NET.ready = false; NET.host = null; NET.M = null; NET.quitN = 0; netHashSet('');
@@ -326,7 +329,7 @@ function bindNet() {
   $('btnFriends').addEventListener('click', () => netOpen());
   $('btnDuel').addEventListener('click', () => { auInit(); snd('ui'); duelRender(); $('duel').hidden = false; document.querySelectorAll('#duel .x').forEach(b => b.innerHTML = icon('x')); });
   $('mpX').addEventListener('click', netClose);
-  window.addEventListener('hashchange', netFromLink);
+  window.addEventListener('hashchange', netFromLink); bindChat();
   const el = $('mpBody');
   el.addEventListener('input', e => { if (e.target.id === 'mpNick') { NET.nick = netNick(e.target.value); UI.nick = NET.nick; prefs(true); netLobbySay(); } });
   el.addEventListener('change', e => { if (e.target.id === 'mpNick') { e.target.value = NET.nick = netNick(e.target.value) || 'Player'; UI.nick = NET.nick; prefs(true); netLobbySay(); NET.sig = ''; } });
