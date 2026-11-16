@@ -1,0 +1,707 @@
+<title>Shardfall Arena 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
+<style>
+/* layout: one full-screen battlefield canvas; HUD pinned to the four corners like a phone MOBA; menus are chamfered "shard" panels over it */
+:root {
+  color-scheme: dark;
+  --ink: #081216; --panel: #0f1d23; --panel2: #162b32; --line: #2c4852; --text: #e8f0ee; --mute: #8fa6a8;
+  --gold: #f2c14e; --brass: #c9a45a; --ally: #46b4ff; --enemy: #ff5d5d; --self: #5fe08a; --mana: #4f8dff;
+  --f-display: 'Teko', 'Arial Narrow', Impact, sans-serif;
+  --f-ui: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --gl: max(16px, env(safe-area-inset-left, 0px)); --gr: max(16px, env(safe-area-inset-right, 0px));
+  --u: clamp(0.62px, 0.19vmin, 1.12px); --mm: clamp(124px, 27vmin, 214px);
+  --cut: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+html, body { height: 100%; overflow: hidden; }
+[hidden] { display: none !important; }
+body { background: var(--ink); color: var(--text); font-family: var(--f-ui); font-size: 15px; overflow: hidden; overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; touch-action: manipulation; }
+button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* --vw / --vh are 1% of the game's frame. On a phone held upright the frame is turned a quarter turn (class .land), so sizes hang off these, not the viewport */
+#app { position: relative; width: 100%; height: 100%; overflow: hidden; touch-action: none; --vw: 1vw; --vh: 1vh; }
+#app.land { --gl: max(16px, env(safe-area-inset-top, 0px)); --gr: max(16px, env(safe-area-inset-bottom, 0px)); }
+#app.land.flip { --gl: max(16px, env(safe-area-inset-bottom, 0px)); --gr: max(16px, env(safe-area-inset-top, 0px)); }
+/* on touch screens (class .ts) every gesture is handled by the game itself: per-finger controls, taps and list scrolling */
+#app.ts, #app.ts * { touch-action: none !important; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#ov { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+#loading, #nogl { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; text-align: center; background: var(--ink); padding-inline: 24px; }
+#loading b, #nogl b { display: block; font: 700 clamp(40px, calc(var(--vw) * 9), 84px)/.9 var(--f-display); letter-spacing: .05em; text-transform: uppercase; color: #fff; }
+#loading b em, #nogl b em { font-style: normal; color: var(--gold); }
+#loading span, #nogl span { display: block; margin-top: 10px; color: var(--mute); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; font-size: 13px; }
+#nogl span { text-transform: none; letter-spacing: 0; font-size: 15px; max-width: 46ch; line-height: 1.4; }
+#vig { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(4,10,14,.55) 100%); transition: box-shadow .3s; }
+#vig.low { box-shadow: inset 0 0 16vmin 3vmin rgba(255,40,40,.4); }
+#vig.dead { background: rgba(10,18,30,.55); }
+
+/* ---------- HUD ---------- */
+#hud { position: absolute; inset: 0; pointer-events: none; font-variant-numeric: tabular-nums; }
+#hud > * { pointer-events: auto; }
+.plate { background: rgba(9,20,25,.82); border: 1px solid rgba(201,164,90,.45); clip-path: var(--cut); }
+#mmWrap { position: absolute; z-index: 1; left: var(--gl); top: 8px; width: var(--mm); aspect-ratio: 1; border: 2px solid var(--brass); background: #0e1f20; box-shadow: 0 0 0 1px #000, 0 6px 18px rgba(0,0,0,.5); touch-action: none; }
+#mm { width: 100%; height: 100%; display: block; }
+#topC { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-start; gap: 12px; pointer-events: none; }
+#score { display: flex; align-items: stretch; gap: 2px; font-family: var(--f-display); }
+.tm { display: flex; gap: 5px; padding-top: 1px; }
+.tp { position: relative; width: 32px; height: 32px; }
+.tp img { display: block; width: 100%; height: 100%; box-sizing: border-box; border-radius: 50%; border: 2px solid var(--ally); background: #0b1418; }
+#tmE .tp img { border-color: var(--enemy); } .tp.me img { border-color: var(--self); }
+.tp i { position: absolute; left: 3px; right: 3px; bottom: -5px; height: 3px; background: #1b2a31; }
+.tp i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: calc(var(--h, 1) * 100%); background: var(--self); }
+#tmE .tp i::after { background: var(--enemy); }
+.tp.dead img { filter: grayscale(1) brightness(.45); }
+.tp span { position: absolute; inset: 0; display: grid; place-items: center; font: 700 18px/1 var(--f-display); color: #fff; text-shadow: 0 1px 3px #000; }
+#app.w940 .tm, #app.port .tm, #app.tA .tm { display: none; }
+/* the top row fits itself by measuring (fitTop): tB small tiles, tA no team portraits, tD no K/D/A plate */
+#app.tB #score .sc { min-width: 30px; padding: 2px 9px 0; font-size: 26px; } #app.tB #clock { font-size: 19px; padding: 2px 7px 0; }
+#app.tB #kda { font-size: 18px; padding: 0 7px; letter-spacing: .02em; } #app.tD #kda { display: none; }
+#score .sc { min-width: 54px; padding: 2px 12px 0; font-size: 30px; line-height: 34px; font-weight: 600; text-align: center; background: rgba(9,20,25,.85); }
+#score .ally { color: var(--ally); clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%); border-bottom: 3px solid var(--ally); }
+#score .enemy { color: var(--enemy); clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 100%, 0 100%); border-bottom: 3px solid var(--enemy); }
+#clock { padding: 2px 10px 0; font-size: 22px; line-height: 34px; background: rgba(9,20,25,.85); color: var(--text); letter-spacing: .04em; border-bottom: 3px solid var(--brass); }
+#topR { position: absolute; right: var(--gr); top: 8px; display: flex; gap: 6px; align-items: center; }
+#kda { padding: 0 10px; height: 34px; line-height: 35px; font-family: var(--f-display); font-size: 21px; letter-spacing: .05em; }
+#netPing { padding: 0 8px; height: 34px; line-height: 35px; font-family: var(--f-display); font-size: 19px; letter-spacing: .03em; white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+#netPing i { width: 8px; height: 8px; border-radius: 50%; background: var(--self); flex: none; } #netPing.y i { background: var(--gold); } #netPing.r i { background: var(--enemy); }
+#netPing small { font: 600 11px var(--f-ui); color: var(--mute); letter-spacing: .04em; } #app.tB #netPing { font-size: 16px; padding: 0 6px; } #app.tD #netPing small, #app.port #netPing small { display: none; }
+#app.rp #netPing, #app.watch #netPing { display: none !important; }
+.ibtn { width: 34px; height: 34px; display: grid; place-items: center; }
+.ibtn svg { width: 18px; height: 18px; }
+#econ { position: absolute; right: var(--gr); top: 50px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+#btnShop { display: flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px 0 9px; font-family: var(--f-display); font-size: 24px; color: var(--gold); }
+#btnShop svg { width: 22px; height: 22px; }
+#btnShop small { font: 600 11px var(--f-ui); color: var(--mute); letter-spacing: .08em; text-transform: uppercase; margin-left: 2px; }
+#quick { display: flex; align-items: center; gap: 8px; padding: 5px 10px 5px 6px; background: linear-gradient(180deg, #f6d06a, #c9982f); color: #1c1403; clip-path: var(--cut); font-weight: 700; font-size: 13px; animation: nudge 1.4s ease-in-out infinite; }
+#quick .ii { width: 30px; height: 30px; }
+#quick span { display: block; line-height: 1.1; text-align: left; }
+#quick small { font-weight: 600; opacity: .8; }
+@keyframes nudge { 50% { transform: translateX(-4px); } }
+#feed { position: absolute; right: var(--gr); top: 136px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; pointer-events: none; }
+#feed .fe { display: flex; align-items: center; gap: 6px; padding: 3px 8px; background: rgba(9,20,25,.8); font-size: 13px; font-weight: 600; animation: feedIn .25s ease-out; }
+#feed .fe img { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line); }
+#feed .a { color: var(--ally); } #feed .e { color: var(--enemy); } #feed .fe svg { width: 14px; height: 14px; color: var(--mute); }
+#feed .a img { border-color: var(--ally); } #feed .e img { border-color: var(--enemy); }
+@keyframes feedIn { from { opacity: 0; transform: translateX(20px); } }
+#announce { position: absolute; left: 50%; top: 19%; transform: translateX(-50%); text-align: center; pointer-events: none; width: min(calc(var(--vw) * 92), 640px, calc(100% - 2 * (var(--gl) + var(--mm) + 20px))); }       /* never as wide as to run under the minimap */
+#announce .big { font-family: var(--f-display); font-weight: 700; font-size: clamp(34px, 7vmin, 64px); line-height: .95; letter-spacing: .06em; text-transform: uppercase; text-shadow: 0 3px 0 rgba(0,0,0,.6), 0 0 24px currentColor; animation: annIn .35s cubic-bezier(.2,1.6,.4,1); }
+#announce .sub { font-weight: 600; font-size: clamp(13px, 2.4vmin, 17px); letter-spacing: .12em; text-transform: uppercase; color: var(--text); text-shadow: 0 2px 4px #000; margin-top: 4px; }
+@keyframes annIn { from { opacity: 0; transform: scale(1.6); } }
+#announce .duel { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 8px; animation: annIn .3s ease-out; }
+#announce .duel img { width: clamp(40px, 8vmin, 58px); height: clamp(40px, 8vmin, 58px); border-radius: 50%; border: 3px solid var(--ally); box-shadow: 0 3px 10px rgba(0,0,0,.6); }
+#announce .duel img.e { border-color: var(--enemy); } #announce .duel img.out { filter: grayscale(.85) brightness(.75); }
+#announce .duel svg { width: 26px; height: 26px; color: #fff; filter: drop-shadow(0 2px 3px #000); }
+#hint { position: absolute; left: 50%; bottom: 82px; transform: translateX(-50%); padding: 7px 14px; font-size: 14px; font-weight: 500; text-align: center; max-width: min(calc(var(--vw) * 86), 520px); pointer-events: none; }
+#dead { position: absolute; left: 50%; top: 60%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+#dead b { display: block; font: 600 15px var(--f-ui); letter-spacing: .2em; text-transform: uppercase; color: var(--mute); }
+#dead > span { font: 700 84px/1 var(--f-display); color: #fff; text-shadow: 0 4px 0 rgba(0,0,0,.5); }
+#dead em { display: block; margin-top: 2px; font: 600 15px var(--f-ui); font-style: normal; color: var(--text); text-shadow: 0 1px 2px #000, 0 0 8px rgba(0,0,0,.8); }
+#dead .dbtn { display: flex; gap: 8px; justify-content: center; margin-top: 10px; pointer-events: auto; } #dead .btn > .sh { display: none; }
+.btn.sm { min-height: 40px; padding: 3px 16px 0; font-size: 20px; }
+#app.h460 #dead { top: 52%; } #app.h460 #dead > span { font-size: 56px; } #app.h460 #dead em { font-size: 13px; } #app.h460 #dead .dbtn { margin-top: 6px; }
+/* the death replay: the picture between two dark bands, the fight's controls put away, a bar that runs to the blow */
+#vig.rp { background: linear-gradient(180deg, rgba(2,5,8,.9) 0, rgba(2,5,8,.9) 6%, transparent 13%, transparent 85%, rgba(2,5,8,.9) 92%, rgba(2,5,8,.9) 100%); }
+#app.rp #wCalls, #app.rp #wInfo, #app.rp #pad, #app.rp #joyZone, #app.rp #joy, #app.rp #status, #app.rp #econ, #app.rp #quick, #app.rp #hint, #app.rp #announce, #app.rp #feed, #app.rp #topR, #app.rp #btnPrac, #app.rp #pracInfo, #app.rp #cancel, #app.rp #tip { display: none !important; }
+#rpl { position: absolute; left: 50%; bottom: max(10px, var(--sab, 0px)); transform: translateX(-50%); width: min(560px, calc(100% - var(--gl) - var(--gr) - 24px)); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 14px; padding: 8px 12px 8px 16px; }
+#rpl b { font: 600 24px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: #ff8f8f; padding-top: 3px; }
+#rpl b::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ff5d5d; margin-right: 8px; vertical-align: 3px; animation: rpl 1s steps(2) infinite; }
+@keyframes rpl { 50% { opacity: .25; } }
+#rpl span { font: 600 14px var(--f-ui); color: var(--text); font-variant-numeric: tabular-nums; }
+#rpl .trk { grid-column: 1 / 3; position: relative; height: 6px; border-radius: 3px; background: var(--line); }
+#rpl .trk i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p, 0) * 100%); border-radius: 3px; background: var(--text); }
+#rpl .trk u { position: absolute; top: -4px; bottom: -4px; left: calc(var(--d, 1) * 100%); width: 2px; margin-left: -1px; background: #ff5d5d; }
+#rpl .btn { grid-column: 3; grid-row: 1 / 3; }
+@media (prefers-reduced-motion: reduce) { #rpl b::before { animation: none; } }
+
+/* status strip */
+#status { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; }
+#stPort { position: relative; width: 46px; height: 46px; flex: none; }
+#stPort img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--self); display: block; }
+#stMood { position: absolute; left: -5px; top: -5px; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); border: 1.5px solid var(--c, var(--gold)); color: var(--c, var(--gold)); display: grid; place-items: center; box-shadow: 0 0 7px var(--c, var(--gold)); }       /* the temper of a passive that has two (Miel's hive: tending or stinging) */
+#stMood svg { width: 13px; height: 13px; }
+#stLv { position: absolute; right: -4px; bottom: -4px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); border: 1.5px solid var(--brass); font: 600 14px/19px var(--f-display); text-align: center; }
+.bars { display: flex; flex-direction: column; gap: 3px; width: clamp(120px, calc(var(--vw) * 24), 230px); }
+.bar { position: relative; height: 14px; background: #1b2a31; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: 100%; transform-origin: left; background: var(--self); }
+.bar span { position: absolute; inset: 0; font: 700 11px/14px var(--f-ui); text-align: center; text-shadow: 0 1px 2px #000; }
+#stMp { height: 10px; } #stMp i { background: var(--mana); } #stMp span { font-size: 9px; line-height: 10px; }
+#stXp { height: 3px; } #stXp i { background: var(--gold); }
+#stItems { display: grid; grid-template-columns: repeat(6, 26px); gap: 3px; }
+#stItems .slot { width: 26px; height: 26px; background: #14242b; border: 1px solid var(--line); }
+.ii { display: grid; place-items: center; background: #14242b; border: 1px solid var(--line); }
+.ii svg { width: 72%; height: 72%; }
+
+/* joystick & pad */
+#joyZone { position: absolute; left: 0; bottom: 0; width: 46%; height: 62%; touch-action: none; }
+#joy { position: absolute; width: calc(var(--u) * 150); height: calc(var(--u) * 150); margin: calc(var(--u) * -75) 0 0 calc(var(--u) * -75); border-radius: 50%; background: radial-gradient(circle, rgba(9,20,25,.25) 40%, rgba(9,20,25,.6)); border: 2px solid rgba(201,164,90,.55); pointer-events: none; left: calc(var(--gl) + var(--u) * 95); bottom: auto; top: calc(100% - var(--u) * 110); }
+#joy.idle { opacity: .55; }
+body:not(.touch) #joy { display: none; }
+#joyKnob { position: absolute; left: 50%; top: 50%; width: 44%; height: 44%; margin: -22% 0 0 -22%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f0dba0, #b78a35); box-shadow: 0 3px 8px rgba(0,0,0,.5); }
+#pad { position: absolute; right: var(--gr); bottom: 8px; width: calc(var(--u) * 252); height: calc(var(--u) * 236); pointer-events: none; }
+#pad > * { pointer-events: auto; }
+.rb { position: absolute; border-radius: 50%; display: grid; place-items: center; touch-action: none; background: radial-gradient(circle at 35% 28%, #25414b, #0d1b21 72%); border: 2px solid var(--brass); box-shadow: 0 4px 10px rgba(0,0,0,.55), inset 0 0 0 2px rgba(0,0,0,.4); color: var(--c, #e8f0ee); transition: transform .06s; }
+.rb:active, .rb.on { transform: scale(.93); filter: brightness(1.25); }
+.rb svg { width: 56%; height: 56%; pointer-events: none; }
+.rb .key { position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%); min-width: 16px; padding: 0 4px; height: 15px; background: var(--ink); border: 1px solid var(--line); color: var(--mute); font: 700 10px/14px var(--f-ui); text-align: center; border-radius: 3px; pointer-events: none; }
+.touch .rb .key { display: none; }
+.rb .cd { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(rgba(4,10,14,.82) calc(var(--p, 0) * 1turn), transparent 0); pointer-events: none; }
+.rb .cdn { position: absolute; inset: 0; display: grid; place-items: center; font: 600 calc(var(--u) * 30)/1 var(--f-display); color: #fff; text-shadow: 0 2px 3px #000; pointer-events: none; }
+.rb .pips { position: absolute; top: -5px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; pointer-events: none; }
+.rb .pips i { width: 5px; height: 5px; background: #33474f; transform: rotate(45deg); }
+.rb .pips i.f { background: var(--gold); }
+.rb.locked { filter: grayscale(1) brightness(.6); }
+.rb.nomana { border-color: var(--mana); } .rb.nomana svg { opacity: .35; }
+.rb.ult { border-width: 3px; box-shadow: 0 4px 10px rgba(0,0,0,.55), 0 0 0 2px rgba(242,193,78,.25); }
+#bAtk { width: calc(var(--u) * 104); height: calc(var(--u) * 104); right: calc(var(--u) * 8); bottom: calc(var(--u) * 8); background: radial-gradient(circle at 35% 28%, #a8402f, #4a130f 75%); border-color: #f0b08a; color: #fff; }
+#bS0 { width: calc(var(--u) * 70); height: calc(var(--u) * 70); right: calc(var(--u) * 127); bottom: calc(var(--u) * 9); }
+#bS1 { width: calc(var(--u) * 70); height: calc(var(--u) * 70); right: calc(var(--u) * 105); bottom: calc(var(--u) * 89); }
+#bS2 { width: calc(var(--u) * 74); height: calc(var(--u) * 74); right: calc(var(--u) * 33); bottom: calc(var(--u) * 129); }
+#bSp { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 119); bottom: calc(var(--u) * 177); }
+#bRc { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 195); bottom: calc(var(--u) * 85); }
+#bHl { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 192); bottom: calc(var(--u) * 148); border-color: #4fbf74; }
+#bHl.idle { filter: saturate(.45) brightness(.8); }
+/* the pressed item: only there while one is carried; lit, with its time left running round the rim, while it works */
+#bIt { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 204); bottom: calc(var(--u) * 20); border-color: var(--c, var(--brass)); clip-path: none; }
+#bIt.idle { filter: saturate(.45) brightness(.8); }
+.rb.live { border-color: #fff; box-shadow: 0 0 0 2px var(--c), 0 0 20px var(--c), 0 4px 10px rgba(0,0,0,.55); }
+.rb.live::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; background: conic-gradient(#fff calc(var(--w, 1) * 1turn), transparent 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px)); mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px)); pointer-events: none; }
+.rb.live .cd { display: none; }
+/* a skill whose second cast is waiting: lit, showing what it will do, with the time left running round its rim */
+.rb > svg.alt { display: none; }
+.rb.armed > svg:first-child { display: none; } .rb.armed > svg.alt { display: block; }
+.rb.armed > svg.alt3, .rb.armed.st3 > svg.alt { display: none; } .rb.armed.st3 > svg.alt3 { display: block; }
+/* a chain of presses on one button: a pip for each, filled once made, the next one lit */
+.rb .chn { position: absolute; left: 50%; bottom: 17%; transform: translateX(-50%); display: flex; gap: calc(var(--u) * 3.5); pointer-events: none; }
+.touch .rb .chn { bottom: 11%; }       /* no key label under the button there */
+.rb .chn i { width: calc(var(--u) * 7.5); height: calc(var(--u) * 7.5); min-width: 5px; min-height: 5px; border-radius: 50%; background: rgba(4,10,14,.62); box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
+.rb .chn i.f { background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5); }
+.rb .chn i.n { background: var(--gold); box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 0 7px var(--gold); }
+.rb.locked .chn { display: none; }
+.rb.armed { border-color: #fff; box-shadow: 0 0 0 2px var(--c), 0 0 18px var(--c), 0 4px 10px rgba(0,0,0,.55); animation: armed .5s ease-in-out infinite alternate; }
+.rb.armed::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; background: conic-gradient(#fff calc(var(--w, 1) * 1turn), transparent 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px)); mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px)); pointer-events: none; }
+@keyframes armed { to { filter: brightness(1.35); } }
+.rb .pips.stk { top: -8px; gap: 3px; } .rb .pips.stk i { width: 7px; height: 7px; background: #5a2a22; box-shadow: 0 0 0 1px rgba(0,0,0,.6); } .rb .pips.stk i.f { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+#bAtk.charged { box-shadow: 0 0 0 3px var(--gold), 0 0 22px var(--gold), 0 4px 10px rgba(0,0,0,.55); }
+#bAtk.fl { box-shadow: 0 0 0 3px #ff5d7a, 0 0 24px #ff5d7a, 0 4px 10px rgba(0,0,0,.55); }       /* fast attacks in hand (Vex's Death Mark): how many, on the button */
+#bAtk.fl::before { content: attr(data-n); position: absolute; left: 50%; top: 5%; transform: translateX(-50%); min-width: 28px; height: 28px; padding: 0 6px; box-sizing: border-box; border-radius: 14px; background: #ff5d7a; color: #1a0508; font: 700 20px/29px var(--f-display); text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,.5); pointer-events: none; }
+#bMin { width: calc(var(--u) * 38); height: calc(var(--u) * 38); right: calc(var(--u) * 97); bottom: calc(var(--u) * -5); }
+#bTur { width: calc(var(--u) * 38); height: calc(var(--u) * 38); right: calc(var(--u) * 1); bottom: calc(var(--u) * 109); }
+#bMin, #bTur { border-width: 1.5px; }
+.up { position: absolute; width: calc(var(--u) * 34); height: calc(var(--u) * 34); border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #d39a22); color: #2a1c00; font: 700 calc(var(--u) * 28)/1 var(--f-display); display: grid; place-items: center; box-shadow: 0 0 0 2px #1c1403, 0 0 14px rgba(242,193,78,.8); animation: pulse 1s ease-in-out infinite; z-index: 2; }
+@keyframes pulse { 50% { transform: translateY(-3px) scale(1.08); } }
+#u0 { right: calc(var(--u) * 172); bottom: calc(var(--u) * 62); } #u1 { right: calc(var(--u) * 150); bottom: calc(var(--u) * 142); } #u2 { right: calc(var(--u) * 82); bottom: calc(var(--u) * 186); }
+#cancel { position: absolute; right: var(--gr); top: 30%; padding: 12px 16px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; color: var(--enemy); border-color: var(--enemy); }
+#cancel.hot { background: var(--enemy); color: #fff; }
+#tip { position: absolute; right: var(--gr); bottom: calc(var(--u) * 244 + 14px); width: min(300px, calc(var(--vw) * 46)); padding: 10px 12px; font-size: 13px; line-height: 1.35; pointer-events: none; }
+#tip b { display: block; font: 600 20px/1 var(--f-display); letter-spacing: .04em; color: var(--gold); margin-bottom: 4px; }
+#tip small { display: block; color: var(--mute); margin-top: 5px; font-weight: 600; }
+
+/* ---------- overlays ---------- */
+.modal { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); place-items: center; background: rgba(4,10,14,.72); padding-block: 12px; padding-left: var(--gl); padding-right: var(--gr); z-index: 5; }
+.sheet { width: min(100%, 880px); max-height: 100%; display: flex; flex-direction: column; background: var(--panel); border: 1px solid rgba(201,164,90,.5); clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); }
+.sheet > header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); flex: none; }
+.sheet h2 { margin: 0; font: 600 30px/1 var(--f-display); letter-spacing: .06em; text-transform: uppercase; text-wrap: balance; }
+.sheet .body { overflow: auto; padding: 14px 16px 18px; min-height: 0; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+.x { margin-left: auto; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--line); }
+.x svg { width: 16px; height: 16px; }
+.btn { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 4px 22px 0; font: 600 24px/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase; background: var(--panel2); border: 1px solid var(--line); clip-path: var(--cut); }
+.btn.go { background: linear-gradient(180deg, #f8d572, #c9982f); color: #1c1403; border: 0; }
+.btn.go:hover { filter: brightness(1.08); } .btn:disabled { opacity: .4; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: flex; align-items: center; gap: 7px; min-height: 38px; padding: 4px 12px 4px 6px; background: var(--panel2); border: 1px solid var(--line); font-weight: 600; font-size: 14px; }
+.chip .ii { width: 28px; height: 28px; border-radius: 50%; }
+.chip.plain { padding-left: 12px; }
+.chip .sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); flex: none; }
+.skinrow .eyebrow { margin-bottom: 6px; }
+.chip[aria-pressed="true"] { border-color: var(--gold); background: #2b2a1a; color: var(--gold); box-shadow: inset 0 -2px 0 var(--gold); }
+.chip.epic { border-color: #c98a2a; background: linear-gradient(120deg, #1a1220, #33240f); }
+.chip.epic em { font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 2px 6px; color: #1a1005; background: linear-gradient(180deg, #ffe08a, #e09a2a); }
+.chip.epic .sw { border-color: #ffc45a; box-shadow: 0 0 8px #ffb238; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--brass); margin: 0 0 6px; }
+
+/* menu */
+#menu { position: absolute; inset: 0; z-index: 4; overflow: auto; touch-action: pan-y; background: linear-gradient(90deg, rgba(6,14,18,.92) 0%, rgba(6,14,18,.74) 52%, rgba(6,14,18,.38) 100%); padding-block: 18px 22px; padding-left: var(--gl); padding-right: var(--gr); }
+.mwrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 22px 30px; align-items: start; }
+.brand { grid-column: 1 / -1; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.brand h1 { margin: 0; font: 700 clamp(52px, calc(var(--vw) * 9), 96px)/.8 var(--f-display); letter-spacing: .04em; text-transform: uppercase; color: #fff; }
+.brand h1 em { font-style: normal; color: var(--gold); }
+.brand p { margin: 0 0 4px; color: var(--mute); font-weight: 500; font-size: 15px; max-width: 46ch; line-height: 1.35; }
+.roster { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.hc { position: relative; display: block; text-align: left; background: var(--panel); border: 1px solid var(--line); clip-path: var(--cut); }
+.hc img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+.hc b { display: block; padding: 5px 7px 0; font: 600 19px/1 var(--f-display); letter-spacing: .03em; }
+.hc small.dual { transform: scaleX(.6); transform-origin: 0 50%; width: 167%; }       /* two classes on one card: drawn narrow, so that both fit at every size */
+.hc small { display: block; padding: 0 8px 6px; color: var(--mute); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+.hc b { white-space: nowrap; overflow: hidden; }
+.hc[aria-pressed="true"] { border-color: var(--gold); background: #23261c; }
+.hc[aria-pressed="true"]::after { content: ""; position: absolute; inset: 0; border: 2px solid var(--gold); clip-path: var(--cut); pointer-events: none; }
+.opts { display: grid; gap: 14px; margin-top: 16px; }
+.detail { background: rgba(15,29,35,.92); border: 1px solid rgba(201,164,90,.4); clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); padding: 16px 18px 18px; display: grid; gap: 12px; }
+.dhead { display: flex; gap: 14px; align-items: center; }
+.dhead canvas { width: 150px; height: 188px; flex: none; border: 1px solid rgba(201,164,90,.55); clip-path: var(--cut); background: #0d1a20; }
+.dbody { display: grid; gap: 12px; }
+.dhead h3 { margin: 0; font: 700 44px/.9 var(--f-display); letter-spacing: .04em; text-transform: uppercase; }
+.dhead p { margin: 2px 0 0; color: var(--mute); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+.dhead p b { color: var(--gold); }
+#dhead { flex: 1 1 0; min-width: 0; }
+.roles { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 7px 0 3px; }       /* a hero with two roles: which one to play */
+.roles > span { color: var(--mute); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin-right: 2px; }
+.roles .chip { min-height: 36px; padding: 3px 14px; justify-content: center; }
+.dhead p.does { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 13px; line-height: 1.35; color: var(--text); opacity: .86; max-width: 36ch; margin-top: 3px; }
+.rates { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.rate span { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+.rate i { display: block; height: 5px; margin-top: 3px; background: #1b2a31; position: relative; }
+.rate i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: calc(var(--v) * 10%); background: var(--gold); }
+.skl { display: grid; gap: 8px; }
+.sk { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: start; }
+.sk .ii { width: 40px; height: 40px; border-radius: 50%; border-color: var(--brass); color: var(--c); }
+.sk b { font: 600 20px/1.05 var(--f-display); letter-spacing: .03em; }
+.sk b small { font: 700 10px var(--f-ui); color: var(--brass); letter-spacing: .1em; margin-left: 6px; text-transform: uppercase; }
+.sk p { margin: 1px 0 0; font-size: 13.5px; line-height: 1.35; color: #c4d2d2; }
+.startrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.startrow .btn.go { flex: 1 1 220px; min-height: 56px; font-size: 32px; } .startrow .sm { display: none; } .startrow #btnDuel { min-width: 44px; }
+.how { font-size: 13.5px; line-height: 1.45; color: #c4d2d2; }
+.how dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; margin: 0; }
+.how dt { font-weight: 700; color: var(--gold); white-space: nowrap; } .how dd { margin: 0; }
+kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line); border-bottom-width: 2px; background: var(--panel2); border-radius: 3px; color: var(--text); }
+
+/* shop */
+.inv { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.inv .slot { width: 44px; height: 44px; position: relative; }
+.inv .slot.ii svg { width: 66%; height: 66%; }
+.inv .slot.sell { border-color: var(--enemy); } .inv .slot.sell::after { content: attr(data-s); position: absolute; inset: auto 0 0 0; background: var(--enemy); color: #fff; font: 700 10px/13px var(--f-ui); text-align: center; }
+.inv p { margin: 0 0 0 6px; color: var(--mute); font-size: 12.5px; flex: 1 1 160px; }
+.items { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 8px; margin-top: 12px; align-items: start; }
+.items h3 { grid-column: 1 / -1; margin: 6px 0 -2px; font: 600 15px var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.items h3:first-child { margin-top: 0; } .items p.note + h3 { margin-top: 2px; }
+.items p.note { grid-column: 1 / -1; margin: 0; color: var(--mute); font-size: 12.5px; }
+.itw { display: flex; flex-direction: column; min-width: 0; background: var(--panel2); border: 1px solid var(--line); }
+.itw > .it { border: 0; background: none; width: 100%; }
+.itw.own { opacity: .5; } .itw.no > .it .pr { color: var(--mute); }
+.itw.can { border-color: rgba(242,193,78,.7); } .itw.rec { box-shadow: inset 3px 0 0 var(--gold); }
+/* an item put first: the button under every card, the card and the chip under the purse when one is */
+.itw > .pri { align-self: flex-end; display: inline-flex; align-items: center; gap: 5px; min-height: 32px; margin: 0 8px 8px; padding: 3px 11px 1px 8px; border: 1px solid var(--line); background: rgba(0,0,0,.24); color: var(--mute); font: 600 16px/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
+.itw > .pri svg { width: 14px; height: 14px; margin-top: -2px; flex: none; }
+.itw > .pri[aria-pressed="true"] { color: #1c1403; background: linear-gradient(180deg, #f6d06a, #c9982f); border-color: #c9982f; }
+.itw.prio { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); } .itw.prio.rec { box-shadow: inset 0 0 0 1px var(--gold), inset 4px 0 0 var(--gold); }
+.items p.note b { color: var(--text); font-weight: 600; }
+#quick.prio small::before { content: '\2605\00a0'; }
+#quick.wait { animation: none; background: rgba(9,20,25,.88); color: var(--text); box-shadow: inset 0 0 0 1px var(--brass); } #quick.wait .ii { opacity: .8; } #quick.wait small { color: var(--gold); opacity: 1; }
+.itw.part > .it .ii { width: 34px; height: 34px; } .itw.part > .it { grid-template-columns: 34px minmax(0, 1fr) auto; } .itw.part > .it b { font-size: 17px; }
+.rc { display: grid; gap: 3px; padding: 0 8px 8px; }
+.rc > small { color: var(--mute); font-size: 11.5px; line-height: 1.3; }
+.pt { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 34px; padding: 3px 9px 3px 5px; background: rgba(0,0,0,.24); border: 1px solid var(--line); text-align: left; font-size: 12.5px; color: var(--text); }
+.pt .ii { width: 24px; height: 24px; } .pt > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt i { font-style: normal; font-weight: 700; color: var(--mute); font-variant-numeric: tabular-nums; }
+.pt.can { border-color: rgba(242,193,78,.6); } .pt.can i { color: var(--gold); } .pt.next { box-shadow: inset 3px 0 0 var(--gold); }
+.pt.have { border-style: dashed; color: var(--mute); } .pt.have i { color: var(--self); }
+.it .pr s { color: var(--mute); font-size: 13px; margin-right: 5px; }
+.inv .slot.part, #stItems .slot.part { border-style: dashed; }
+.it { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding: 8px 10px; background: var(--panel2); border: 1px solid var(--line); text-align: left; }
+.it .ii { width: 42px; height: 42px; grid-row: span 2; }
+.it b { font: 600 19px/1 var(--f-display); letter-spacing: .03em; min-width: 0; overflow-wrap: anywhere; }
+.it .st { grid-column: 2 / 4; font-size: 12px; color: #b9c8c8; line-height: 1.3; }
+.it .st em { display: block; margin-top: 3px; font-style: normal; color: #e9cf8a; }
+.it .st em.act { color: #d6ccff; } .it .st em.act u { text-decoration: none; font-weight: 700; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #14101f; background: #c4b5ff; padding: 0 5px; margin-right: 3px; border-radius: 2px; }
+.it .pr { font: 600 19px/1 var(--f-display); color: var(--gold); }
+
+/* practice */
+/* ---------- watching a match between bots: no controls, a plate for whoever is being followed, what each team is up to ---------- */
+#app.watch #pad, #app.watch #joyZone, #app.watch #joy, #app.watch #econ, #app.watch #kda, #app.watch #cancel, #app.watch #tip, #app.watch #dead, #app.watch #rpl, #app.watch #pracInfo, #app.watch #btnPrac { display: none !important; }
+.wbtn { height: 34px; padding: 1px 11px 0; display: flex; align-items: center; gap: 6px; font: 600 17px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+.wbtn svg { width: 17px; height: 17px; }
+#btnAuto[aria-pressed="true"] { color: var(--gold); border-color: rgba(242,193,78,.7); }
+#btnSpeed { min-width: 48px; justify-content: center; color: var(--text); } #btnSpeed.fast { color: var(--gold); border-color: rgba(242,193,78,.7); }
+#app.watch #topC .tp { pointer-events: auto; cursor: pointer; }
+#app.watch .tp i::after { background: var(--ally); } #app.watch #tmE .tp i::after { background: var(--enemy); }
+.tp.foc img { border-color: #fff !important; box-shadow: 0 0 0 2px rgba(255,255,255,.4), 0 0 10px rgba(255,255,255,.5); }
+#wCalls { position: absolute; left: var(--gl); top: calc(8px + var(--mm) + 12px); display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none; max-width: min(calc(var(--vw) * 44), 330px); }
+.wc { display: flex; align-items: baseline; gap: 8px; padding: 3px 10px 3px 8px; background: rgba(9,20,25,.82); font-size: 13px; font-weight: 600; line-height: 1.25; border-left: 3px solid var(--ally); }
+.wc.e { border-left-color: var(--enemy); } .wc b { flex: none; font: 600 16px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ally); } .wc.e b { color: var(--enemy); }
+.wc.idle span { color: var(--mute); font-weight: 500; }
+.wc .lv { flex: none; align-self: center; font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; line-height: 1; padding: 2px 4px 1px; color: var(--text); border: 1px solid var(--line); margin-left: -2px; }
+/* a level for each side's bots: the side's name, then the three levels; one under the other, or side by side where the screen is low */
+.wdr { display: flex; flex-direction: column; gap: 6px; }
+.wd { display: flex; align-items: center; gap: 6px; }
+.wd > b { flex: none; width: 58px; padding-top: 2px; font: 600 19px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ally); } .wd.e > b { color: var(--enemy); }
+.wd .chip { min-height: 36px; min-width: 66px; justify-content: center; }
+#app.h460 .wdr { flex-direction: row; flex-wrap: wrap; gap: 5px 16px; } #app.h460 .wd { gap: 4px; } #app.h460 .wd > b { width: auto; margin-right: 3px; font-size: 17px; } #app.h460 .wd .chip { min-height: 32px; min-width: 0; padding: 3px 9px; font-size: 13px; }
+.repbots .wdr + .meta { margin-top: 7px; } #app.h460 .repbots .wdr + .meta { display: none; } #pauseWd .meta { margin: 7px 0 0; } #app.h460 #pauseWd .meta { margin-top: 4px; font-size: 12px; }
+#wInfo { position: absolute; left: 50%; bottom: 72px; transform: translateX(-50%); padding: 4px 13px 4px; display: flex; align-items: baseline; gap: 10px; white-space: nowrap; pointer-events: none; font-size: 13px; max-width: calc(var(--vw) * 96); }
+#wInfo b { font: 600 20px/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase; } #wInfo b.a { color: var(--ally); } #wInfo b.e { color: var(--enemy); }
+#wInfo span { color: #cfe0df; font-weight: 600; } #wInfo em { font-style: normal; color: var(--gold); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+#app.watch #stPort { cursor: pointer; } #app.watch #stPort img { border-color: var(--ally); } #app.watch #status.e #stPort img { border-color: var(--enemy); }
+#app.watch #status, #app.watch.w720:not(.port) #status, #app.watch.w720:not(.port) #hint { left: 50%; } #app.watch.ph #status { pointer-events: auto; }
+#app.watch.port #status { bottom: 8px; } #app.watch #hint, #app.watch.port #hint { bottom: 112px; } #app.watch #feed, #app.watch.port #feed { top: 52px; }
+#app.watch.h460 #wInfo { bottom: 56px; font-size: 12px; padding: 2px 10px; gap: 8px; } #app.watch.h460 #wInfo b { font-size: 17px; } #app.watch.h460 #hint { bottom: 86px; } #app.watch.h460 #feed { top: 46px; }
+#app.watch.h460 .wc { font-size: 12px; padding: 2px 8px 2px 6px; } #app.watch.h460 .wc b { font-size: 14px; } #app.h460 .wbtn span, #app.tB .wbtn span { display: none; } #app.h460 .wbtn, #app.tB .wbtn { padding: 1px 9px 0; }
+/* ---------- a recording of your own match: the watching view with a bar to move about in it ---------- */
+#pbBar { position: absolute; left: var(--gl); right: var(--gr); bottom: 6px; height: 36px; display: flex; align-items: center; gap: 10px; pointer-events: none; z-index: 2; }       /* over the plate above it: the time under the finger must not go behind it */
+#pbBar > * { pointer-events: auto; }
+.pbc { display: flex; gap: 6px; flex: none; }
+.pbc button { width: 46px; height: 36px; display: grid; place-items: center; padding-top: 2px; font: 600 19px/1 var(--f-display); letter-spacing: .02em; color: var(--text); font-variant-numeric: tabular-nums; }
+.pbc button svg { width: 18px; height: 18px; margin-top: -2px; } #pbPlay { color: var(--gold); border-color: rgba(242,193,78,.7); }
+#pbTrack { position: relative; flex: 1 1 auto; min-width: 60px; height: 36px; cursor: pointer; touch-action: none; outline-offset: 2px; }
+#pbTrack .rail { position: absolute; left: 0; right: 0; top: 50%; height: 8px; margin-top: -4px; background: rgba(9,20,25,.86); box-shadow: 0 0 0 1px var(--line); }
+#pbFill { position: absolute; inset: 0; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #a87b22, #f2c14e); }
+#pbMarks i { position: absolute; top: -4px; width: 3px; height: 16px; margin-left: -1.5px; background: var(--ally); box-shadow: 0 0 0 1px rgba(4,10,14,.8); }
+#pbMarks i.e { background: var(--enemy); } #pbMarks i.me { top: -8px; height: 24px; width: 4px; margin-left: -2px; box-shadow: 0 0 0 1px #fff; }
+#pbMarks i.t { top: 0; height: 8px; width: 6px; margin-left: -3px; opacity: .85; }
+#pbMarks i.l, #pbMarks i.r { top: -1px; width: 10px; height: 10px; margin-left: -5px; transform: rotate(45deg); background: #c070ff; box-shadow: 0 0 0 1.5px var(--ally); } #pbMarks i.l.e, #pbMarks i.r.e { box-shadow: 0 0 0 1.5px var(--enemy); } #pbMarks i.r { background: #57c7b8; width: 8px; height: 8px; margin-left: -4px; top: 0; }
+#pbThumb { position: absolute; left: 0; top: 50%; width: 12px; height: 24px; margin: -12px 0 0 -6px; background: #fff; box-shadow: 0 0 0 2px #10242b, 0 2px 6px rgba(0,0,0,.5); }
+#pbTip { position: absolute; bottom: 36px; transform: translateX(-50%); padding: 3px 9px 1px; background: rgba(9,20,25,.94); box-shadow: 0 0 0 1px var(--brass); font: 600 19px/1.2 var(--f-display); letter-spacing: .06em; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
+#pbTime { flex: none; height: 32px; padding: 2px 11px 0; display: flex; align-items: center; font: 600 19px/1 var(--f-display); letter-spacing: .05em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#pbWait { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); min-width: 230px; padding: 12px 20px 14px; text-align: center; z-index: 3; pointer-events: none; }
+#pbWait b { display: block; font: 600 26px/1.1 var(--f-display); letter-spacing: .08em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+#pbWait .trk { height: 6px; margin-top: 10px; background: rgba(255,255,255,.14); } #pbWait .trk i { display: block; height: 100%; transform-origin: 0 50%; transform: scaleX(0); background: var(--gold); }
+#app.pb.seek #cv { filter: brightness(.5) saturate(.6); }
+#app.pb #status, #app.pb.port #status { bottom: 50px; } #app.pb #wInfo { bottom: 114px; } #app.pb #hint, #app.pb.port #hint { bottom: 152px; }
+#app.pb.h460 #pbBar { height: 32px; bottom: 4px; gap: 7px; } #app.pb.h460 .pbc button { width: 40px; height: 32px; font-size: 17px; } #app.pb.h460 .pbc { gap: 4px; } #app.pb.h460 #pbTime { height: 28px; font-size: 16px; padding: 2px 8px 0; } #app.pb.h460 #pbTrack { height: 32px; } #app.pb.h460 #pbTip { bottom: 32px; }
+#app.pb.h460 #status { bottom: 40px; } #app.pb.h460 #wInfo { bottom: 92px; } #app.pb.h460 #hint { bottom: 120px; }
+#app.rp #pbBar, #app.rp #pbWait { display: none !important; }
+/* the list of recordings */
+#repList { display: flex; flex-direction: column; gap: 6px; }
+.rep { display: flex; align-items: center; gap: 12px; padding: 7px 10px 7px 8px; background: var(--panel2); border: 1px solid var(--line); }
+.rep > img { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--ally); flex: none; }
+.rep .rt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.rep .rt b { font: 600 22px/1.05 var(--f-display); letter-spacing: .07em; text-transform: uppercase; color: var(--mute); } .rep .rt b.w { color: var(--gold); } .rep .rt b.l { color: var(--enemy); }
+.rep .rt span { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; } .rep .rt small { font-size: 12px; color: var(--mute); }
+.rep .rt span, .rep .rt small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rep .btn { flex: none; } .rep .del { flex: none; min-width: 36px; height: 36px; padding: 2px 8px 0; display: grid; place-items: center; border: 1px solid var(--line); color: var(--mute); font: 600 17px/1 var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
+.rep .del svg { width: 15px; height: 15px; margin-top: -2px; } .rep .del.arm { color: #fff; border-color: var(--enemy); background: rgba(255,93,93,.18); }
+.rep.old > img { filter: grayscale(1); opacity: .6; } .rep.old .rt b { color: var(--mute); } .rep.old .rt small { white-space: normal; }
+#repNote { margin: 8px 0 0; } .repempty { padding: 14px 12px; border: 1px dashed var(--line); color: var(--mute); font-size: 14px; line-height: 1.4; }
+/* the bots first, in one row that never leaves the top of the sheet: the list under it is what grows and scrolls */
+.repbots { justify-content: space-between; align-items: center; flex-wrap: nowrap; gap: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); } .repbots p { margin: 0; } .repbots > div { min-width: 0; }
+#app.w720 .rep { gap: 8px; padding: 6px 8px 6px 6px; } #app.w720 .rep > img { width: 38px; height: 38px; } #app.w720 .rep .rt b { font-size: 19px; } #app.w720 .rep .rt span { font-size: 13px; } #app.w720 .repbots .btn, #app.h460 .repbots .btn { min-height: 40px; padding: 3px 14px 0; font-size: 20px; } #app.h460 .repbots { padding-bottom: 9px; gap: 10px; } #app.h460 .repempty { padding: 8px 10px; font-size: 13px; }
+#end .blue { color: var(--ally); text-shadow: 0 0 40px rgba(70,180,255,.45); } #end .red { color: var(--enemy); text-shadow: 0 0 40px rgba(255,93,93,.4); }
+#btnPrac { height: 34px; padding: 0 12px; display: flex; align-items: center; gap: 7px; font: 600 17px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--gold); border-color: rgba(242,193,78,.6); }
+#btnPrac svg { width: 16px; height: 16px; }
+#pracInfo { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); padding: 4px 12px; font-size: 13px; white-space: nowrap; pointer-events: none; color: #cfe0df; font-variant-numeric: tabular-nums; }
+#pracInfo b { color: var(--gold); font-weight: 700; }
+#app.h460 .pheroes { grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 5px; } #app.h460 .pheroes img { width: 34px; height: 34px; } #app.h460 .pgs { gap: 10px; }
+#app.h460 #pracInfo { top: 44px; font-size: 12px; padding: 2px 9px; } #app.h460 #btnPrac span, #app.tB #btnPrac span { display: none; } #app.h460 #btnPrac, #app.tB #btnPrac { padding: 0 9px; }
+.pgs { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+.pgs h3 { margin: 0 0 6px; font: 600 15px var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.pgs .row { gap: 8px; } .pgs .chip { justify-content: center; } .pgs .chip.sq { width: 40px; padding: 0; font-size: 20px; }
+.pnum { min-width: 44px; text-align: center; font: 600 28px/1 var(--f-display); letter-spacing: .04em; font-variant-numeric: tabular-nums; } .pnum.gold { min-width: 86px; text-align: left; color: var(--gold); }
+.pheroes { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; }
+.pheroes button { display: grid; justify-items: center; gap: 2px; padding: 4px 2px 3px; background: var(--panel2); border: 1px solid var(--line); font-size: 11.5px; font-weight: 600; }
+.pheroes img { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; background: #0b1418; }
+.pheroes button[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); background: #2b2a1a; }
+
+/* tables */
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.tblwrap { overflow-x: auto; touch-action: pan-x pan-y; }
+.tbl th { text-align: right; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); padding: 4px 8px; font-weight: 700; white-space: nowrap; }
+.tbl th:first-child, .tbl td:first-child { text-align: left; }
+.tbl td { padding: 5px 8px; text-align: right; border-top: 1px solid rgba(44,72,82,.6); white-space: nowrap; }
+.tbl .who { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.tbl .who img { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--ally); }
+.tbl tr.e .who img { border-color: var(--enemy); } .tbl tr.me td { background: rgba(95,224,138,.09); } .tbl tr.me .who img { border-color: var(--self); }
+.tbl .sep td { border: 0; padding: 10px 8px 2px; font: 600 18px var(--f-display); letter-spacing: .08em; text-transform: uppercase; text-align: left; }
+.tbl .mini { display: inline-flex; gap: 2px; vertical-align: middle; } .tbl .mini .ii { width: 20px; height: 20px; }
+.tag { font: 700 10px var(--f-ui); letter-spacing: .1em; padding: 1px 5px; background: var(--gold); color: #1c1403; margin-left: 6px; }
+#end h2 { font-size: clamp(54px, 11vmin, 96px); font-weight: 700; line-height: .85; }
+#end .win { color: var(--gold); text-shadow: 0 0 40px rgba(242,193,78,.5); } #end .lose { color: var(--enemy); }
+#end .meta { color: var(--mute); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+/* playing together: the lobby, a table and its seats */
+.mpbig { margin: 0; font: 600 22px/1.2 var(--f-display); letter-spacing: .05em; text-transform: uppercase; }
+#mp .meta, #duel .meta { margin: 0; color: var(--mute); font-size: 13.5px; line-height: 1.45; max-width: 68ch; }
+.mpnote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--gold); background: #2b2a1a; font-size: 14px; line-height: 1.4; }
+.mpme { display: flex; align-items: center; gap: 10px; } .mpme label { color: var(--brass); font-weight: 700; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+.mpme input { flex: 0 1 220px; min-width: 0; min-height: 40px; padding: 4px 10px; background: var(--ink); border: 1px solid var(--line); color: var(--text); font: 600 16px var(--f-ui); border-radius: 0; -webkit-user-select: text; user-select: text; }
+.mpme input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.mplink { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 10px; background: var(--panel2); border: 1px solid var(--line); }
+.mplink span { color: var(--brass); font-weight: 700; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; flex: none; }
+.mplink code { flex: 1 1 180px; min-width: 0; font: 500 13px/1.3 ui-monospace, Menlo, Consolas, monospace; color: var(--text); overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
+.mpdir { display: flex; align-items: flex-start; gap: 10px; } .mpdir .chip { flex: none; } .mpdir .meta { margin: 0; }
+#mp a { color: var(--gold); }
+.mptables { display: grid; gap: 6px; } .mpt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--panel2); border: 1px solid var(--line); }
+.mpt > div { flex: 1; min-width: 0; display: grid; gap: 1px; } .mpt b { font-size: 15px; } .mpt span { color: var(--mute); font-size: 13px; }
+.mphead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; } .mphead > div:first-child { display: grid; gap: 2px; min-width: 0; }
+.mphead b { font: 600 22px/1.1 var(--f-display); letter-spacing: .05em; text-transform: uppercase; } .mphead span { color: var(--mute); font-size: 13px; }
+.mpteams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.mptm { display: grid; gap: 5px; align-content: start; padding: 8px; background: var(--panel2); border-top: 3px solid var(--ally); min-width: 0; } .mptm.e { border-top-color: var(--enemy); }
+.mptm h3 { margin: 0 0 2px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font: 600 19px/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--ally); } .mptm.e h3 { color: var(--enemy); }
+.mps { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 3px 8px 3px 4px; background: var(--ink); border: 1px solid var(--line); min-width: 0; }
+.mps img { width: 34px; height: 34px; border-radius: 50%; flex: none; object-fit: cover; background: #0b1418; } .mps > div { flex: 1; min-width: 0; display: grid; }
+.mps b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .mps b em { font-style: normal; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-left: 6px; }
+.mps span { color: var(--mute); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .mps i { flex: none; font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--self); }
+.mps.me { border-color: var(--gold); } .mps.bad { border-color: var(--enemy); } .mps.bad span { color: var(--enemy); } .mps.bot { opacity: .62; border-style: dashed; padding-left: 10px; }
+.mpmine { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); } .mpmine .eyebrow { margin: 0; }
+.mpopt { display: grid; gap: 6px; } .mpopt .chip { min-height: 34px; padding: 3px 10px; font-size: 13px; }
+.mpgo { gap: 10px 12px; } .mpgo .meta { flex: 1 1 200px; } .mpgo .chip { min-width: 70px; min-height: 42px; justify-content: center; }
+.mpgo .chip.a[aria-pressed="true"] { border-color: var(--ally); color: var(--ally); box-shadow: inset 0 -2px 0 var(--ally); background: #12283a; } .mpgo .chip.e[aria-pressed="true"] { border-color: var(--enemy); color: var(--enemy); box-shadow: inset 0 -2px 0 var(--enemy); background: #3a1616; }
+.mps > div.mplv { flex: none; display: flex; gap: 4px; } .mplv .chip { min-height: 30px; padding: 2px 8px; font-size: 12.5px; } .mps small { flex: none; color: var(--mute); font-size: 12px; font-weight: 600; }
+.mps.bot { flex-wrap: wrap; row-gap: 4px; padding-top: 4px; padding-bottom: 4px; }
+#mp .btn { min-height: 42px; padding: 3px 18px 0; font-size: 21px; } #mp .btn.on { border-color: var(--self); color: var(--self); }
+.mph button.tk { opacity: .35; } #mp .roles { margin: 0; }
+.dueltop { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; } .dueltop .mpyou { flex: 1 1 200px; min-width: 0; }
+.mpyou { display: flex; align-items: center; gap: 10px; } .mpyou img { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--self); object-fit: cover; background: #0b1418; } .mpyou > div { display: grid; gap: 2px; } .mpyou b { font-size: 16px; } .mpyou span { color: var(--mute); font-size: 13px; }
+.pheroes .any { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); border: 1px dashed var(--line); font: 700 22px/1 var(--f-display); color: var(--mute); }
+#app.h460 .pheroes .any { width: 34px; height: 34px; font-size: 18px; } #app.h460 .mpyou img { width: 38px; height: 38px; } #duelLv .chip { min-width: 74px; justify-content: center; }
+#app.h460 #mp .sheet > header, #app.h460 #duel .sheet > header { padding: 5px 12px; } #app.h460 #mp .sheet h2, #app.h460 #duel .sheet h2 { font-size: 21px; } #app.h460 #mp .sheet .body, #app.h460 #duel .sheet .body { padding: 9px 12px 12px; }
+#app.h460 .mphead b { font-size: 18px; } #app.h460 .mphead span { display: none; } #app.h460 .mptm { padding: 6px; gap: 4px; } #app.h460 .mptm h3 { font-size: 16px; margin: 0; }
+#app.h460 #mp .stack, #app.h460 #duel .stack { gap: 10px; } #app.h460 #mp .btn, #app.h460 #duel .btn { min-height: 38px; padding: 3px 14px 0; font-size: 19px; } #app.h460 .mps { min-height: 36px; } #app.h460 .mps img { width: 28px; height: 28px; } #app.h460 #mp .meta, #app.h460 #duel .meta { font-size: 12.5px; }
+#app.w720 .mpteams { gap: 6px; } #app.w720 .mptm { padding: 6px; } #app.w720 .mplv .chip { padding: 2px 6px; font-size: 12px; } #app.h460 .mpgo .chip { min-height: 38px; }
+#netWait { position: absolute; left: 50%; top: 62px; transform: translateX(-50%); padding: 6px 14px; font-weight: 600; font-size: 14px; white-space: nowrap; pointer-events: none; z-index: 3; }
+#app.h460 #netWait { top: 44px; font-size: 13px; padding: 4px 10px; } #app.rp #netWait { display: none !important; }
+.stack { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+.camset .slide { display: grid; grid-template-columns: auto auto minmax(90px, 1fr) auto 5.2ch; gap: 10px; align-items: center; } .camset .slide > span { font-weight: 600; } .camset .slide output { font: 700 20px/1 var(--f-display); color: var(--gold); text-align: right; font-variant-numeric: tabular-nums; }
+/* the slider is the game's own: a finger here never reaches a browser's built-in one (every touch is taken at the document, see bindTaps) */
+.camset .sl { position: relative; height: 44px; cursor: pointer; touch-action: none; outline: 0; } .camset .sl::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 8px; margin-top: -4px; border-radius: 4px; background: #33434b; box-shadow: inset 0 0 0 1px rgba(0,0,0,.4); }
+.camset .sl i { position: absolute; left: 0; top: 50%; height: 8px; margin-top: -4px; border-radius: 4px; background: var(--gold); width: calc(var(--f, .45) * (100% - 26px) + 13px); pointer-events: none; }
+.camset .sl b { position: absolute; top: 50%; left: calc(var(--f, .45) * (100% - 26px)); width: 26px; height: 26px; margin-top: -13px; border-radius: 50%; background: #f8d572; border: 2px solid #fff; box-sizing: border-box; box-shadow: 0 2px 6px rgba(0,0,0,.5); pointer-events: none; }
+.camset .sl:focus-visible b, .camset .sl.on b { box-shadow: 0 0 0 4px rgba(248,213,114,.35), 0 2px 6px rgba(0,0,0,.5); }
+.camset .step { min-width: 44px; min-height: 40px; padding: 0 0 2px; font-size: 26px; letter-spacing: 0; } #app.h460 #pause .camset .step, #app.w720 #pause .camset .step { min-width: 40px; min-height: 38px; padding: 0 0 2px; font-size: 24px; }
+#app.h460 #pause .btn { min-height: 38px; padding: 3px 14px 0; font-size: 19px; } #app.h460 #pause .stack { gap: 10px; } #app.h460 .camset > .meta { display: none; }       /* a short screen: the settings fit without scrolling */
+#app.w720 #pause .btn { min-height: 36px; padding: 2px 10px 0; font-size: 16px; letter-spacing: .04em; } #app.w720 #pause .row { gap: 8px; }
+.camset .meta { margin: 0 0 8px; } .camset .row .meta { margin: 0; flex: 1 1 200px; }
+
+/* layout steps, set as classes on #app from its own size: w820 = narrow, port = taller than wide, h460 = short (a phone on its side) */
+#app.w820 .mwrap { grid-template-columns: minmax(0, 1fr); }
+#app.w820 .hc b { font-size: 15px; padding: 4px 5px 0; } #app.w820 .hc small { font-size: 8.5px; padding: 0 5px 5px; letter-spacing: 0; }
+#app.w820 .roster { gap: 6px; }
+#app.w820 .dhead h3 { font-size: 36px; } #app.w820 .dhead canvas { width: 112px; height: 140px; }
+#app.w820 .mwrap > .stack { display: contents; }
+#app.w820 .startrow { position: sticky; bottom: -22px; z-index: 2; padding: 14px 0 22px; background: linear-gradient(180deg, rgba(8,18,22,0), var(--ink) 30%); flex-wrap: nowrap; }
+#app.w820 .startrow .btn { padding: 4px 12px 0; font-size: 19px; } #app.w820 .startrow .btn.go { min-height: 50px; font-size: 28px; flex: 1 1 auto; }
+#app.w720 .startrow { flex-wrap: wrap; } #app.w720 .startrow .lg { display: none; } #app.w720 .startrow .sm { display: inline; }
+#app.port #status { bottom: calc(var(--u) * 244 + 12px); }
+#app.port #hint { bottom: calc(var(--u) * 244 + 84px); }
+#app.port #econ { top: 50px; } #app.port #feed { top: 136px; }
+#app.port #score .sc { min-width: 34px; font-size: 24px; padding: 2px 6px 0; } #app.port #clock { font-size: 18px; padding: 2px 5px 0; }
+#app.port #kda { display: none; }
+#app.port #topC { left: calc(var(--gl) + var(--mm) + 10px); transform: none; }
+#app.h460 #status { transform: translateX(-50%) scale(.82); transform-origin: bottom center; bottom: 4px; }
+.rcp { --dv-magic: #3987e5; --dv-phys: #d95926; --dv-true: #199e70; }
+.rc-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.rc-k { display: flex; align-items: center; gap: 12px; flex: 1 1 240px; min-width: 0; }
+.rc-k img, .rc-k .ii { width: 56px; height: 56px; flex: none; border-radius: 50%; border: 2px solid var(--enemy); background: var(--panel2); }
+.rc-k .ii { display: grid; place-items: center; } .rc-k .ii svg { width: 30px; height: 30px; }
+.rc-k small { display: block; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.rc-k b { display: block; font: 600 32px/1 var(--f-display); letter-spacing: .04em; text-transform: uppercase; }
+.rc-k span { display: block; font-size: 13px; color: var(--mute); }
+.rc-n { flex: none; text-align: right; margin-left: auto; }
+.rc-n b { display: block; font: 600 52px/.85 var(--f-display); font-variant-numeric: tabular-nums; }
+.rc-n small { font-size: 13px; color: var(--mute); }
+.seg { display: flex; gap: 2px; height: 8px; margin: 14px 0 7px; }
+.seg i { display: block; min-width: 3px; border-radius: 1px; } .seg i:first-child { border-top-left-radius: 4px; border-bottom-left-radius: 4px; } .seg i:last-child { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+.seg.thin { height: 4px; margin: 5px 0 0; } .seg.thin i:first-child { border-top-left-radius: 2px; border-bottom-left-radius: 2px; } .seg.thin i:last-child { border-top-right-radius: 2px; border-bottom-right-radius: 2px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; flex: none; }
+.rc-leg { display: flex; flex-wrap: wrap; gap: 3px 20px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--mute); }
+.rc-leg li { display: flex; align-items: center; } .rc-leg b { margin: 0 5px 0 6px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.rcp h3 { margin: 18px 0 8px; font: 600 12px var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+.rc-src { display: grid; gap: 14px; }
+.rc-row .hd { display: flex; align-items: center; gap: 10px; }
+.rc-row .hd img, .rc-row .hd .ii { width: 30px; height: 30px; flex: none; border-radius: 50%; border: 1.5px solid var(--line); background: var(--panel2); }
+.rc-row .hd .ii { display: grid; place-items: center; } .rc-row .hd .ii svg { width: 16px; height: 16px; }
+.rc-row .hd b { font: 600 22px/1 var(--f-display); letter-spacing: .04em; padding-top: 3px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-row .hd .fig { margin-left: auto; white-space: nowrap; font-size: 13px; color: var(--mute); } .rc-row .hd .fig b { display: inline; font: 600 22px/1 var(--f-display); color: var(--text); margin-right: 6px; font-variant-numeric: tabular-nums; }
+.rc-ab { margin: 7px 0 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.rc-ab li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto 64px; align-items: center; gap: 8px; font-size: 13px; padding: 2px 0; }
+.rc-ab .ii { width: 22px; height: 22px; display: grid; place-items: center; background: var(--panel2); border: 1px solid var(--line); } .rc-ab .ii svg { width: 13px; height: 13px; }
+.rc-ab .an { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .rc-ab .an em { font-style: normal; color: var(--mute); margin-left: 5px; }
+.rc-ab .ty { display: flex; align-items: center; color: var(--mute); white-space: nowrap; } .rc-ab .ty .sw + .sw { margin-left: -3px; }
+.rc-ab b { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rc-cc { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font-size: 13px; } .rc-cc span { color: var(--mute); }
+.rc-note { margin: 12px 0 0; font-size: 13px; color: var(--mute); }
+.rc-act { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.rc-log { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.rc-log th { text-align: left; font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); padding: 3px 8px 3px 0; border-bottom: 1px solid var(--line); }
+.rc-log td { padding: 3px 8px 3px 0; border-bottom: 1px solid rgba(44,72,82,.5); white-space: nowrap; } .rc-log td.r, .rc-log th.r { text-align: right; padding-right: 0; } .rc-log td .sw { vertical-align: -1px; }
+.rc-log tr.hold td { color: var(--mute); }
+/* a narrow phone: the strip and the hints move over to leave room for the item button beside the skills */
+#app.w720:not(.port) #status, #app.w720:not(.port) #hint, #app.w720:not(.port) #dead { left: calc(50% - var(--u) * 70); }
+#app.w720 #announce .big { font-size: 28px; }
+#app.w720 #dead .dbtn .btn { min-height: 36px; padding: 3px 11px 0; font-size: 17px; } #app.w720 #dead .btn > .lg { display: none; } #app.w720 #dead .btn > .sh { display: inline; }
+/* on phones and tablets (class .ph) the strip lets a thumb through to the stick under it; only the item slots still take a tap */
+#app.ph #status { pointer-events: none; } #app.ph #stItems { pointer-events: auto; }
+#app.h460 #feed { top: 96px; } #app.h460 #econ { top: 46px; } #app.h460 #btnShop small { display: none; } #app.h460 #hint { bottom: 62px; max-width: calc(var(--vw) * 46); font-size: 13px; padding: 5px 10px; }
+/* a phone on its side: the menu is compact and the start button stays in reach */
+#app.h460 #menu { padding-block: 10px 14px; } #app.h460 .mwrap { gap: 12px 22px; }
+#app.h460 .brand { align-items: baseline; gap: 14px; } #app.h460 .brand h1 { font-size: 40px; } #app.h460 .brand p { font-size: 13px; max-width: none; margin: 0; flex: 1 1 260px; }
+#app.h460 .hc b { font-size: 14.5px; padding: 3px 5px 0; } #app.h460 .hc small { font-size: 8px; padding: 0 5px 4px; letter-spacing: 0; } #app.h460 .roster { gap: 6px; }
+#app.h460 .roles { margin: 4px 0 2px; gap: 5px; } #app.h460 .roles .chip { min-height: 32px; min-width: 58px; padding: 3px 11px; font-size: 13px; } #app.h460 .dhead p.does { font-size: 12px; line-height: 1.3; }
+#app.h460.w820 .roles > span { display: none; } #app.h460.w820 .roles .chip { padding: 3px 9px; }       /* (the narrowest panel: the two chips and nothing else) */
+#app.h460 .dhead h3 { font-size: 34px; } #app.h460 .dhead canvas { width: 104px; height: 130px; } #app.h460 .detail { padding: 12px 14px 14px; gap: 10px; }
+#app.h460 .startrow { position: sticky; bottom: -14px; z-index: 2; padding: 10px 0 14px; background: linear-gradient(180deg, rgba(8,18,22,0), var(--ink) 34%); flex-wrap: nowrap; }
+#app.h460 .startrow .btn { padding: 4px 6px 0; font-size: 14px; letter-spacing: .02em; } #app.h460 .startrow .btn.go { min-height: 46px; font-size: 18px; flex: 1 1 auto; min-width: max-content; padding: 4px 7px 0; letter-spacing: .03em; } #app.h460 .startrow { gap: 6px; flex-wrap: wrap; } #app.h460 .startrow .lg { display: none; } #app.h460 .startrow .sm { display: inline; }
+#app.h460.w820 .mwrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 16px; } #app.h460.w820 .mwrap > .stack { display: grid; }
+#app.h460.w820 .hc b { font-size: 12.5px; padding: 3px 3px 0; } #app.h460.w820 .hc small { font-size: 6.6px; padding: 0 3px 4px; letter-spacing: 0; } #app.h460.w820 .roster { gap: 4px; }
+#app.h460.w820 .startrow .btn { font-size: 13px; padding: 4px 6px 0; letter-spacing: .02em; } #app.h460.w820 .startrow .btn.go { font-size: 16px; letter-spacing: .03em; padding: 4px 6px 0; } #app.h460.w820 .startrow { gap: 6px; flex-wrap: wrap; }
+#app.h460.w720 .startrow { gap: 5px; } #app.h460.w720 .startrow .btn { flex: 1 1 auto; padding: 4px 5px 0; letter-spacing: 0; } #app.h460.w720 .startrow .btn.go { font-size: 15px; letter-spacing: .02em; }       /* the smallest phones: Enter battle, 1v1 and Friends on one line, the rest on the next */
+#app.h460.w820 .rate span { font-size: 9px; letter-spacing: .04em; }
+#app.h460.w820 .brand h1 { font-size: 34px; } #app.h460.w820 .dhead canvas { width: 84px; height: 105px; } #app.h460.w820 .dhead h3 { font-size: 28px; } #app.h460.w820 .dhead { gap: 10px; }
+#app.h460 #announce { top: 14%; } #app.h460 #stItems { grid-template-columns: repeat(6, 22px); } #app.h460 #stItems .slot { width: 22px; height: 22px; }
+@media (prefers-reduced-motion: reduce) { #quick, .up, .rb.armed { animation: none; } #announce .big { animation: none; } }
+</style>
+
+<div id="app">
+  <canvas id="cv" aria-label="Battlefield"></canvas>
+  <canvas id="ov"></canvas>
+  <div id="vig"></div>
+  <div id="loading"><div><b>Shard<em>fall</em> Arena</b><span>Raising the battlefield…</span></div></div>
+  <div id="nogl" hidden><div><b>Shard<em>fall</em> Arena</b><span>The 3D battlefield could not start. This game needs WebGL: check your connection, turn hardware acceleration on in your browser settings, or try another browser.</span></div></div>
+
+  <div id="hud" hidden>
+    <div id="joyZone"></div>
+    <div id="joy" class="idle"><i id="joyKnob"></i></div>
+    <div id="mmWrap" title="Hold to look there"><canvas id="mm"></canvas></div>
+    <div id="topC"><div class="tm" id="tmA"></div><div id="score"><div class="sc ally" id="scA">0</div><div id="clock">00:00</div><div class="sc enemy" id="scE">0</div></div><div class="tm" id="tmE"></div></div>
+    <div id="topR">
+      <div id="netPing" class="plate" role="status" hidden></div>
+      <div id="kda" class="plate" title="Kills / Deaths / Assists">0 / 0 / 0</div>
+      <button id="btnPrac" class="plate" aria-label="Practice tools" hidden></button>
+      <button id="btnAuto" class="plate wbtn" aria-pressed="true" aria-label="Director camera: follows the action by itself" hidden></button>
+      <button id="btnSpeed" class="plate wbtn" aria-label="Match speed" hidden></button>
+      <button id="btnBoard" class="plate ibtn" aria-label="Scoreboard"></button>
+      <button id="btnPause" class="plate ibtn" aria-label="Pause"></button>
+    </div>
+    <div id="econ">
+      <button id="btnShop" class="plate" aria-label="Open shop"><span id="coin"></span><span id="gold">300</span><small>Shop</small></button>
+      <button id="quick" hidden></button>
+    </div>
+    <div id="pracInfo" class="plate" hidden></div>
+    <div id="feed"></div>
+    <div id="announce"></div>
+    <div id="hint" class="plate" hidden></div>
+    <div id="wCalls" hidden><div class="wc a" id="wcA"><b>Blue</b><i class="lv" hidden></i><span></span></div><div class="wc e" id="wcE"><b>Red</b><i class="lv" hidden></i><span></span></div></div>
+    <div id="wInfo" class="plate" hidden><b id="wName"></b><span id="wStat"></span><em id="wPlan"></em></div>
+    <div id="pbBar" hidden>
+      <div class="pbc"><button id="pbBack" class="plate" aria-label="Back 15 seconds"></button><button id="pbPlay" class="plate" aria-label="Pause"></button><button id="pbFwd" class="plate" aria-label="Forward 15 seconds"></button></div>
+      <div id="pbTrack" role="slider" tabindex="0" aria-label="Position in the match" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div class="rail"><i id="pbFill"></i><div id="pbMarks"></div><u id="pbThumb"></u></div><span id="pbTip" hidden></span></div>
+      <span id="pbTime" class="plate"></span>
+    </div>
+    <div id="pbWait" class="plate" hidden><b id="pbWaitT"></b><div class="trk"><i id="pbWaitP"></i></div></div>
+    <div id="dead" hidden><b>Respawning in</b><span id="deadT">0</span><em id="deadBy"></em><div class="dbtn"><button class="btn sm" id="btnRecap" aria-label="Death recap"><span class="lg">Death recap</span><span class="sh">Recap</span></button><button class="btn sm go" id="btnReplay">Replay</button></div></div>
+    <div id="rpl" class="plate" hidden><b>Death replay</b><span id="rplT"></span><div class="trk"><i></i><u></u></div><button class="btn sm" id="btnSkip">Skip</button></div>
+    <div id="netWait" class="plate" role="status" hidden></div>
+    <div id="status" class="plate">
+      <div id="stPort"><img id="stImg" alt=""><div id="stLv">1</div><div id="stMood" role="img" hidden></div></div>
+      <div class="bars">
+        <div class="bar" id="stHp"><i></i><span></span></div>
+        <div class="bar" id="stMp"><i></i><span></span></div>
+        <div class="bar" id="stXp"><i></i></div>
+      </div>
+      <div id="stItems"></div>
+    </div>
+    <div id="pad">
+      <button class="rb" id="bRc" aria-label="Recall to base"></button>
+      <button class="rb" id="bHl" aria-label="Heal"></button>
+      <button class="rb" id="bIt" aria-label="Use item" hidden></button>
+      <button class="rb" id="bSp" aria-label="Battle spell"></button>
+      <button class="rb" id="bS0" aria-label="Skill 1"></button>
+      <button class="rb" id="bS1" aria-label="Skill 2"></button>
+      <button class="rb ult" id="bS2" aria-label="Ultimate"></button>
+      <button class="rb" id="bMin" aria-label="Attack minions"></button>
+      <button class="rb" id="bTur" aria-label="Attack turrets"></button>
+      <button class="rb" id="bAtk" aria-label="Basic attack"></button>
+      <button class="up" id="u0" hidden aria-label="Upgrade skill 1">+</button>
+      <button class="up" id="u1" hidden aria-label="Upgrade skill 2">+</button>
+      <button class="up" id="u2" hidden aria-label="Upgrade ultimate">+</button>
+    </div>
+    <div id="cancel" class="plate" hidden>Drag here to cancel</div>
+    <div id="tip" class="plate" hidden></div>
+  </div>
+
+  <div id="menu" hidden>
+    <div class="mwrap">
+      <div class="brand">
+        <h1>Shard<em>fall</em> Arena</h1>
+        <p>Five against five. Three lanes, a jungle and a river between two crystals. Push your lane, take the turrets, shatter theirs.</p>
+      </div>
+      <div>
+        <p class="eyebrow">Choose your hero</p>
+        <div class="roster" id="roster"></div>
+        <div class="opts">
+          <div><p class="eyebrow">Battle spell</p><div class="chips" id="spells"></div><p id="spellDesc" style="margin:6px 0 0;color:var(--mute);font-size:13px;min-height:2.6em;line-height:1.3"></p><p style="margin:4px 0 0;color:var(--mute);font-size:13px;line-height:1.3">Built in for every hero: Recall and Heal.</p></div>
+          <div><p class="eyebrow">Enemy skill</p><div class="chips" id="diffs"></div></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="detail"><div class="dhead"><canvas id="show" width="2" height="2" aria-hidden="true"></canvas><div id="dhead"></div></div><div class="skinrow"><p class="eyebrow">Skin</p><div class="chips" id="skins"></div></div><div id="detail" class="dbody"></div></div>
+        <div class="startrow">
+          <button class="btn go" id="btnStart">Enter battle</button>
+          <button class="btn" id="btnDuel" aria-label="1v1 on the mid lane, against a bot or a friend">1v1</button>
+          <button class="btn" id="btnFriends" aria-label="Play together with friends">Friends</button>
+          <button class="btn" id="btnPractice">Practice</button>
+          <button class="btn" id="btnWatch" aria-label="Watch: one of your own matches again, or a match between bots">Watch</button>
+          <button class="btn" id="btnHow" aria-expanded="false" aria-label="How to play"><span class="lg">How to play</span><span class="sm">Help</span></button>
+        </div>
+        <div class="detail how" id="how" hidden>
+          <dl>
+            <dt>Goal</dt><dd>Destroy the enemy Crystal. It is protected until all three turrets in at least one lane are down, and turrets must fall from the outside in.</dd>
+            <dt>Move</dt><dd>Left stick on touch. On a computer use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or right-click the ground.</dd>
+            <dt>Attack</dt><dd>Hold the red button, <kbd>Space</kbd> or the left mouse button, or right-click an enemy. The small buttons focus minions (<kbd>C</kbd>) or turrets (<kbd>V</kbd>).</dd>
+            <dt>Skills</dt><dd>Tap to auto-aim, or drag a skill button to aim it and release. Keyboard: hold <kbd>Q</kbd> <kbd>E</kbd> <kbd>R</kbd>, aim with the mouse, release. <kbd>F</kbd> is your battle spell. When a skill button lights up with a white rim, it has a second cast waiting: press it again before the rim runs out. A press that comes a moment early is kept and goes off the instant it can, so combos chain.</dd>
+            <dt>Chains</dt><dd>Kaela's first skill, Triple Cadence, is three presses of one button: a step and a cut, another, and then a leap that comes down on the ground and throws whoever is in front of her into the air for a moment, unable to act. Each press has 3 seconds to follow the last; the three dots on the button show how far along you are, the icon shows what the next press does, and the cooldown starts when the chain ends. Aim each cut on its own: drag the button, or just tap and she turns on the nearest enemy. Each step stops at the first enemy in her way, so she cuts from in front of them. Her ultimate, Bloodrage, puts wings of light on her back for as long as the rage lasts: when they gutter and fold, it is over.</dd>
+            <dt>Roles</dt><dd>Miel, the Amber Hivekeeper, can be played in two roles. Choose one under her name before the match: as a <b>Support</b> she goes to the bottom lane beside the carry and the shop recommends a build that keeps her team alive; as a <b>Mage</b> she holds the middle lane alone and the build is for damage. Your team's bots fill the other places around the one you take. Each of her skills does something for allies and something to enemies at once, and her passive follows the company she keeps: with an allied hero within reach of her she tends, and her heals and shields are 20% stronger (her bees turn pale and unhurried); with none near she stings, and her skills deal 20% more damage (they turn hot and quick). The badge on her portrait at the bottom of the screen says which: a heart while she tends, a sting while she stings. Bots play her in either role.</dd>
+            <dt>Stings</dt><dd>Miel's first skill, Stinger Flight, leaves a sting in every enemy it goes through, shown as a bright mote circling them. A sting lasts 8 seconds, hurts every second and slows a little. Hit the same enemy again before it runs out and there are two, then three at the most: each flight that lands adds one and starts the time of all of them again, and the damage and the slow are as many times over. Keeping the swarm on one enemy is where her damage is. A sting is not a blow: it does not interrupt a recall.</dd>
+            <dt>Friends</dt><dd><b>Friends</b> opens a table that everyone who has this page open can join from their own Friends list. Each player picks a side, a hero and says they are ready; the host starts. All on one side is your team against bots; on both sides is friends against friends; bots fill the empty places. Inside Claude everyone must be signed in and have the page shared with them by name; on the open web anyone with the page can join, and a table has an invite link to send. Your own hero answers the stick at once; skills and attacks land a moment after the press, on every screen at the same time. The match cannot be paused, and if someone looks away for more than a few seconds a bot plays on for them.</dd>
+            <dt>1v1</dt><dd><b>1v1</b> is one hero a side on the middle lane: two turrets, then the crystal, no jungle. Fight a bot of the level and hero you choose, or a friend at a 1v1 table. From the sixth minute the turrets and crystals take more and more damage, so it does not drag on.</dd>
+            <dt>Level up</dt><dd>Tap the gold + over a skill, or press <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>. The ultimate unlocks at levels 4, 8 and 12.</dd>
+            <dt>Watch</dt><dd><b>Watch</b>, then <b>Watch bots play</b>, plays a full five-against-five between bots, with nobody at the controls. Each side has a skill level of its own, chosen above the button (Hard against Easy, say, or both the same), and the pause menu changes either side's level while the match is running. A director follows whatever is most worth seeing: a fight, a team gathering for the Shardlord, a base under attack. Tap a portrait at the top, or a hero on the battlefield or the plate at the bottom (it steps to the next hero), to follow someone yourself; drag the battlefield or press the minimap to look around freely; <b>Auto</b> hands the view back to the director. The plate shows the hero's health, mana, items, score and what that bot is doing right now, and the two lines under the minimap say what each team has called. The speed button runs the match at 1, 2 or 4 times. On a keyboard: <kbd>Space</kbd> pauses, <kbd>A</kbd> is Auto, <kbd>1</kbd> to <kbd>5</kbd> follow the blue heroes and <kbd>6</kbd> to <kbd>0</kbd> the red, the arrow keys move the view, <kbd>+</kbd> and <kbd>&minus;</kbd> change the speed.</dd>
+            <dt>Replays</dt><dd>Every match you play is recorded. When it ends, <b>Watch replay</b> on the result screen plays it again, and the <b>Watch</b> button on the menu lists your last six matches (kept on this device only). A replay is the match itself happening again, so you can watch it from anywhere: the view starts on your own hero, a tap on a portrait or a hero follows someone else, <b>Auto</b> hands it to the director, and both teams are in sight the whole time, with what each of them called under the minimap. The bar at the bottom shows where you are: your kills and deaths are the tall marks, the other kills the short ones, turrets the squares and the great beasts the diamonds. Tap a mark to go to a few seconds before it, drag along the bar to go anywhere, or use the 15 second buttons (pressed several times in a row, the jumps add up); the speed button goes up to 8 times, and the button between the two pauses the match while you look around. Going back half a minute or so is immediate. A long jump, either way, has to run the match to that moment, so it takes a few seconds, with a plate showing how far it has got. On a keyboard: <kbd>Space</kbd> or <kbd>K</kbd> pauses, <kbd>J</kbd> and <kbd>L</kbd> jump back and forward, <kbd>Home</kbd> goes to the start. A new version of the game cannot play recordings made by an older one.</dd>
+            <dt>Bot teamwork</dt><dd>Bots play as a team, more of it the higher their skill. Their jungler ganks: it picks a lane where an enemy has come too far forward, goes round by the river to the road behind them where it can, and the laner goes in when it arrives. They answer a gank on one of their own, contest Riverback and the Shardlord when the other side starts on them, and later in the match fall back together when they are two short. From 7:30 they set up for the Shardlord: whoever is hurt goes home first, the rest gather at the pit and take it as it wakes if four of them are there (three will do with more of them standing than of you), then the whole team marches with it, hits the turret it is hitting and breaks the crystal before anything else. Against your Shardlord they gather at the turret it will reach and bring it down there. They step out of blows that mark the ground first, stay off a turret's ground on their way anywhere, never fight on a fountain, buy armour or resistance to match your team's damage, and play carefully when two or more of you are out of sight. Your own team's calls appear at the right of the screen ("Team: ganking bottom"): go along and the call counts you in. Easy bots only take the beasts and defend together; Hard bots do all of it sooner and add their roamer to ganks.</dd>
+            <dt>Practice</dt><dd>The Practice button puts your hero on the map alone with three dummies that cannot die. Open the practice tools (<kbd>T</kbd>) to set your level and gold, switch hero, turn cooldowns off, add dummies or a sparring bot, and bring minion waves in. <b>Add a wounded friend</b> puts an ally at your side who stays at half health, to try heals and shields on.</dd>
+            <dt>Gold</dt><dd>Last-hit minions and creeps, then buy from the shop anywhere (<kbd>P</kbd>). Complete items are forged from cheap parts: buy the parts as you can afford them and each comes off the item's price. The gold chip under your purse buys the next recommended part or item in one tap. To have another item first, press <b>Prioritize</b> on it in the shop, or press the item twice: the chip then works towards that item (its parts, then the item itself) before the rest of your build, and while nothing of it can be afforded it shows how much gold is still missing. Buying the item, or marking it again, ends it.</dd>
+            <dt>Recall</dt><dd><kbd>B</kbd> channels for 6 seconds and returns you to the fountain to heal. Every hero waits it out in their own way.</dd>
+            <dt>Heal</dt><dd>Every hero has Heal built in, the green button above Recall (<kbd>G</kbd>): it restores 18% of your health and 18% of your mana over 3 seconds, once a minute, whatever battle spell you picked. At full health you can still use it for the mana.</dd>
+            <dt>Pressed item</dt><dd>The Ironwill Totem (Armory, under Defense) is an item you press. Once you carry it a button appears left of your skills (<kbd>Z</kbd>): for 6 seconds nothing can stun, root, slow, pull or mark you, whatever was already slowing or rooting you is cleared, and magic damage is cut by 60%. Your hero stands a third taller while it lasts, so nobody can miss it (the size is for show: it is no easier to hit). Each use is a second shorter, down to 4, and it takes 90 seconds to come back, so save it for the fight that matters. Bots carry it too.</dd>
+            <dt>Victor's Hourglass</dt><dd>An item for whoever lives by their ultimate (Armory, under Magic): Magic Power, mana and 15% cooldown reduction, and every kill or assist takes 30% off what is left of your ultimate's cooldown. A fight that goes well gives the ultimate back sooner for the next.</dd>
+            <dt>Death recap</dt><dd>When you are slain, <b>Death recap</b> (<kbd>N</kbd>) shows who hurt you in the last ten seconds, with which skills, how much of it was physical, magic or true damage, and what stunned, rooted or slowed you. <b>Replay</b> plays those last seconds again from where you stood, slowing down for the killing blow; the match goes on meanwhile, and <b>Skip</b> (<kbd>Esc</kbd>) takes you back at once. The last recap stays in the pause menu.</dd>
+            <dt>Looking around</dt><dd>Drag a finger across the open battlefield (anywhere right of the stick) and the view goes the way you drag: drag right to see what lies to the right. Let go and it returns to your hero. How far it travels is <b>Drag sensitivity</b> in the pause menu: slide it, or tap &minus; and +. With a mouse, drag with the middle button. Holding the minimap jumps the view to that spot.</dd>
+            <dt>Aim camera</dt><dd>When you drag a skill button to aim a skill that reaches past the edge of the screen, the view leans after your aim so you can see where it will land, and comes back when you let go. It keeps your hero in view, so the very longest shots still run off the screen when aimed up or down. Switch it off in the pause menu if you prefer a still camera.</dd>
+            <dt>Cooldowns</dt><dd>Skills, your battle spell and Heal keep cooling down while you wait to respawn.</dd>
+            <dt>View</dt><dd>Scroll the mouse wheel to zoom and hold the minimap to look around. Camera distance and graphics quality are in the pause menu.</dd>
+            <dt>Phones</dt><dd>The game is always played sideways: hold your phone in landscape. If it shows upside down for the way you hold it, use Flip screen in the pause menu. Every control works under its own finger, so you can move, aim, attack, level up and shop at the same time.</dd>
+            <dt>Jungle</dt><dd>The Azure Golem grants cooldown and mana, the Crimson Brute makes attacks burn and slow. Stonehides in the dens near the middle pay well, and the Reedskitters in the river restore health and mana to whoever kills them. Slay the Shardlord and it marches a lane for your team.</dd>
+            <dt>Turrets</dt><dd>A turret guards its stretch of lane only, shown by a red outline when you are close: it never shoots into the jungle or the river. Hit it from anywhere and it answers. Bring minions in first: it shoots them before you. Its shots are heavy, and each one on the same hero lands 40% harder than the last, so do not stand under it alone.</dd>
+            <dt>Tall grass</dt><dd>Standing in tall grass hides you from enemies unless they step into the same grass, come right up to you, or you attack. While you stand in it your hero is drawn see-through, and so is anyone else in grass whom you can see; the grass itself never changes.</dd>
+            <dt>Gold plating</dt><dd>Until 5:00 the outer turret of every lane wears four gold plates over its own health, shown as gold bands on the tower and a gold bar above it. The plating takes every blow first, and each hit you land on an enemy turret's plating pays you gold on the spot: 100 gold a plate, 400 for stripping a turret bare. Minions wear it down too, and nobody is paid for that, so get your own hits in. Whatever is still on at 5:00 crumbles, and its gold with it.</dd>
+            <dt>Skins</dt><dd>Every hero has three looks. Pick one under the hero's name: it changes the model, the weapon and the colour of every skill. An Epic skin (Vex and Tavi each have one) goes further and brings its own moves and effects.</dd>
+            <dt>Skipping leaves</dt><dd>Orin throws leaves of iron, and each one skips from what it hits to up to four more enemies nearby, weaker each time. His shield makes him faster and impossible to stun while it holds, and grows as he deals damage. His ultimate only opens on a hero: it roots them, bursts, and leaps on to any other enemy hero standing close, so keep apart when you see it coming.</dd>
+            <dt>Two forms</dt><dd>Kiri wears two masks. Her ultimate, known from level 1, turns her between the Heron (ranged: wards that catch whoever walks into them, and a long arrow) and the Tiger (hand to hand: a leap and a rush). Her skill buttons change with her, and each turn makes the new form's two skills ready at once.</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="shop" class="modal" hidden><div class="sheet"><header><h2>Armory</h2><span id="shopGold" style="font:600 26px var(--f-display);color:var(--gold)"></span><button class="x" data-close="shop" aria-label="Close"></button></header><div class="body"><div class="inv" id="inv"></div><div class="chips" id="cats"></div><div class="items" id="items"></div></div></div></div>
+  <div id="prac" class="modal" hidden><div class="sheet" style="width:min(100%,680px)"><header><h2>Practice tools</h2><button class="x" data-close="prac" aria-label="Close"></button></header><div class="body pgs">
+    <section><h3>Hero</h3><div class="pheroes" id="pHeroes"></div></section>
+    <section><h3>Level</h3><div class="row"><button class="chip plain sq" id="pLvDn" aria-label="Level down">&minus;</button><b class="pnum" id="pLv">15</b><button class="chip plain sq" id="pLvUp" aria-label="Level up">+</button><button class="chip plain" data-lv="1">Level 1</button><button class="chip plain" data-lv="4">4</button><button class="chip plain" data-lv="8">8</button><button class="chip plain" data-lv="15">Max 15</button><button class="chip plain" id="pSkReset">Place skill points myself</button></div></section>
+    <section><h3>Gold</h3><div class="row"><b class="pnum gold" id="pGold">0</b><button class="chip plain" data-g="1000">+1,000</button><button class="chip plain" data-g="5000">+5,000</button><button class="chip plain" data-g="max">Max</button><button class="chip plain" data-g="0">Clear</button><button class="chip plain" id="pSell">Empty my bag</button><button class="chip plain" id="pShop">Open the armory</button></div></section>
+    <section><h3>Rules</h3><div class="row"><button class="chip plain" id="pFree" aria-pressed="false">No cooldowns, free mana</button><button class="chip plain" id="pWaves" aria-pressed="false">Minion waves</button></div></section>
+    <section><h3>Targets</h3><div class="row"><button class="chip plain" id="pDummy">Add a dummy</button><button class="chip plain" id="pSpar">Add a sparring bot</button><button class="chip plain" id="pFriend">Add a wounded friend</button><button class="chip plain" id="pClear">Remove all</button><button class="chip plain" id="pCamps">Respawn the jungle</button></div><p class="meta" id="pTargets" style="margin:6px 0 0"></p></section>
+    <section><h3>You</h3><div class="row"><button class="chip plain" id="pHeal">Heal and reset cooldowns</button><button class="chip plain" id="pMid">Go to the middle</button><button class="chip plain" id="pBase">Go to base</button><button class="chip plain" id="pEnemy">Go to the enemy turret</button></div></section>
+  </div></div></div>
+  <div id="board" class="modal" hidden><div class="sheet"><header><h2>Scoreboard</h2><button class="x" data-close="board" aria-label="Close"></button></header><div class="body"><div class="tblwrap" id="boardT"></div></div></div></div>
+  <div id="recap" class="modal" hidden><div class="sheet rcp" style="width:min(100%,660px)"><header><h2>Death recap</h2><button class="x" data-close="recap" aria-label="Close"></button></header><div class="body" id="rcBody"></div></div></div>
+  <div id="pause" class="modal" hidden><div class="sheet" style="width:min(100%,560px)"><header><h2 id="pauseH">Paused</h2><button class="x" data-close="pause" aria-label="Resume"></button></header><div class="body stack">
+    <div id="pauseWd" hidden><p class="eyebrow">Bots</p><div class="wdr" id="wdPause"></div><p class="meta">A change takes hold at once: how fast that side thinks, how well it aims, how much it plays as a team.</p></div>
+    <p class="mpnote" id="pauseNet" hidden>The match does not stop while this is open: the others are still playing, and your hero stands still.</p>
+    <div class="row"><button class="btn go" id="btnResume">Resume</button><button class="btn" id="btnSound">Sound on</button><button class="btn" id="btnGfx">Graphics: High</button><button class="btn" id="btnCam">Camera: Standard</button><button class="btn" id="btnFull">Full screen</button><button class="btn" id="btnFlip" hidden>Flip screen</button><button class="btn" id="btnLastRecap" hidden>Last death</button><button class="btn" id="btnQuit">Leave match</button></div>
+    <div class="camset"><p class="eyebrow">Camera</p>
+      <div class="slide"><span id="lblPan">Drag sensitivity</span><button class="btn step" id="btnPanDn" aria-label="Lower drag sensitivity">&minus;</button><div class="sl" id="slPan" role="slider" tabindex="0" aria-labelledby="lblPan" aria-valuemin="0.5" aria-valuemax="6" aria-valuenow="3" aria-valuetext="3 times"><i></i><b></b></div><button class="btn step" id="btnPanUp" aria-label="Raise drag sensitivity">+</button><output id="outPan">3×</output></div>
+      <p class="meta" id="panNote">How far the view travels when you drag the battlefield. Drag towards what you want to see; let go to return.</p>
+      <div class="row" id="rowAimCam"><button class="btn" id="btnAimCam" aria-pressed="true">Aim camera: On</button><span class="meta">While you drag a long-range skill to aim it, the view leans after the aim.</span></div></div>
+    <div id="pauseSkWrap"><p class="eyebrow">Your skills</p><div class="skl" id="pauseSk"></div></div>
+  </div></div></div>
+  <div id="mp" class="modal" hidden><div class="sheet" style="width:min(100%,760px)"><header><h2>Play together</h2><button class="x" id="mpX" aria-label="Close (and leave the table)"></button></header><div class="body stack" id="mpBody"></div></div></div>
+  <div id="duel" class="modal" hidden><div class="sheet" style="width:min(100%,680px)"><header><h2>1v1 · Mid lane</h2><button class="x" data-close="duel" aria-label="Close"></button></header><div class="body stack">
+    <div class="dueltop"><div class="mpyou" id="duelYou"></div><div class="row"><button class="btn go" id="btnDuelGo">Fight a bot</button><button class="btn" id="btnDuelFriend">Fight a friend</button></div></div>
+    <div><p class="eyebrow">Your opponent, if a bot</p><div class="pheroes" id="duelFoe"></div></div>
+    <div><p class="eyebrow">Bot level</p><div class="chips" id="duelLv"></div></div>
+    <p class="meta">One hero each on the middle lane and nothing else: two turrets a side and the crystal behind them. No side lanes, no jungle camps, no great beasts. From the sixth minute on the turrets and crystals take more and more damage, so a duel does not drag on.</p>
+  </div></div></div>
+  <div id="reps" class="modal" hidden><div class="sheet" style="width:min(100%,720px)"><header><h2>Watch</h2><button class="x" data-close="reps" aria-label="Close"></button></header><div class="body stack">
+    <div class="row repbots"><div><p class="eyebrow">Bots</p><div class="wdr" id="wdSheet"></div><p class="meta" id="repBots"></p></div><button class="btn" id="btnWatchBots">Watch bots play</button></div>
+    <div><p class="eyebrow">Your matches</p><div id="repList"></div><p class="meta" id="repNote"></p></div>
+  </div></div></div>
+  <div id="end" class="modal" hidden><div class="sheet"><div class="body stack"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2 id="endT"></h2><p class="meta" id="endM" style="margin:2px 0 0"></p></div><div class="row"><button class="btn go" id="btnAgain">Play again</button><button class="btn" id="btnRep" hidden>Watch replay</button><button class="btn" id="btnMenu">Change hero</button></div></div><div class="tblwrap" id="endTbl"></div></div></div></div>
+</div>
