@@ -732,6 +732,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
 <script>
 const SIM_ID = 'faf86074';
 const SITE_URL = "https://lyletayag56-bot.github.io/shardfall-arena/";
+const TURN_URL = "";
 'use strict';
 /* ============================================================
    SHARDFALL ARENA — data: constants, items, spells, heroes
@@ -4187,6 +4188,12 @@ function aiSpell(h, t, ctx, ax, ay) {
    runs a little fast until it is level: otherwise the one that started later, or hung for a moment, would stay behind for the rest
    of the match, and need to schedule that much further ahead than the others.
 
+   A turn is two steps of the match, a fifteenth of a second, unless the match was begun with quick turns (one step, a thirtieth):
+   those are for machines joined by short direct lines, where a press can then be scheduled in thirtieths, and lands sooner. They
+   cost twice the talk, so a match that goes through relays keeps the longer turn. What is counted in turns below (the idle
+   start, the window of frames kept, how often fingerprints are compared, the most a press may be scheduled ahead) is meant in the
+   longer turns, and is doubled for a match of quick ones (M.k).
+
    A seat goes (its page closed, or silent too long, or its player left): every machine that notices says so, with the last turn it
    has that seat's frames for, and republishes that seat's last frames for whoever has fewer. When all who remain name the same
    last turn, the seat is a bot from the turn after it, on every machine alike.
@@ -4204,7 +4211,6 @@ const NC_ACTS = 12;                                // presses to a frame, at mos
 const NC_FMAX = 1000, NC_RMAX = 280, NC_RELAYS = 3; // characters of its own frames a machine publishes at once, at most; of a gone seat's; and for how many gone seats at once (what a machine may publish is bounded: see the room's presence)
 const NC_OFFLINE = 8000;                           // ms a machine that knows it has no connection goes on hoping: after that it gives the match up itself (the others will have, or soon will)
 const NC_STUCK = 3000;                             // ms a machine may be offered only frames of a gone seat that do not follow on from its own before it gives the match up
-const NC_TURN = NC_STEP * NET_STEPS * 1000;        // ms to a turn
 
 /* ---- frames as text ---- */
 const _ncF = new Float32Array(1), _ncU = new Uint32Array(_ncF.buffer), _ncRe = /^[0-9a-z]{1,7}$/;
@@ -4259,14 +4265,16 @@ function ncDec(str, max) {
    fr[s]: seat s's frames from turn lo[s] on, have[s]: the last turn there is one for (for my own seat that is hi, the last I have
    published a frame for); ack[s]: the last turn of MY frames that seat s says it has; pT[s]: the turn s is at; seen[s]: when it last
    showed life (ms); here[s]: still at the table; gone[s] and the rest: see ncGone. */
-function ncNew(n, seats, me, now) {
-  const M = { n, seats, me, D: NC_D0, T: 0, stepIn: 0, acc: 0, fr: [], lo: [], have: [], hi: NC_INIT - 1, ack: [], pT: [], seen: [], here: [], wf: [],
+function ncNew(n, seats, me, now, steps) {       // steps: 1 for a match of quick turns
+  const st = steps === 1 ? 1 : NET_STEPS, k = NET_STEPS / st, init = NC_INIT * k;
+  const M = { n, seats, me, steps: st, k, turn: NC_STEP * st * 1000, init, win: NC_WIN * k, hashN: NC_HASH * k, dmax: NC_DMAX * k,       // steps to a turn · k: how many of these turns to a turn of two steps · turn: ms to a turn · and what is counted in turns, in these turns
+    D: NC_D0 * k, T: 0, stepIn: 0, acc: 0, fr: [], lo: [], have: [], hi: init - 1, ack: [], pT: [], seen: [], here: [], wf: [],
     gone: [], bel: [], dropAt: [], out: false, lost: false, left: false, bad: null, hashes: [], their: [], hh: null,       // out: the match goes on without this machine (lost: because it fell too far behind)
     waitSeat: -1, waitMs: 0, wAcc: [], waited: [], sAcc: [], slack: [], late: [], spare: [], winT: now, dT: now, calmT: now, lastF: null,
     hb: 0, hbT: now, dirty: true, fresh: true, pubT: 0, turns: 0, stalls: 0, stuck: [], offline: false, offT: 0, cut: false, floorD: 0, floorT: now - NC_FLOOR * 9, floorK: 1,
     wn: 1, wnOf: [], rep: [], lateAt: [], sA2: [], sN: [], upT: now, downT: now - NC_AGAIN,
-    clock: now, sent: [], sentHi: NC_INIT - 1, rA: [], rB: [], rT: now, lat: [], xs: [], xo: [], dx: [], born: now, warm: 0 };       // xs[s]: turns seat s is reckoned to be ahead of this machine · xo[s]: turns s reckons this machine to be ahead of it (null: it has not said) · dx[s]: how far ahead s really is, by the two together, evened out over half a second       // sent: when each of this machine's frames was first said ([turn, ms]) · rA, rB[s]: the quickest it has been said to have arrived at seat s and the word come back, in the last few seconds and the few before · lat[s]: ms the road to s takes, one way (0: not known)       // wn: which two seconds this machine's report is of · wnOf[s]: the last report read from seat s, rep[s]: and not acted on yet · lateAt[s]: when s last said it had waited for this machine       // offline: this machine knows it has no connection just now (cut: and gave the match up over it)       // fresh: there is a frame of its own that has not been published yet
-  for (let s = 0; s < seats; s++) { M.fr.push([]); M.lo.push(NC_INIT); M.have.push(NC_INIT - 1); M.ack.push(NC_INIT - 1); M.pT.push(0); M.seen.push(now); M.here.push(true); M.wf.push(-1);
+    clock: now, sent: [], sentHi: init - 1, rA: [], rB: [], rT: now, lat: [], xs: [], xo: [], dx: [], born: now, warm: 0 };       // xs[s]: turns seat s is reckoned to be ahead of this machine · xo[s]: turns s reckons this machine to be ahead of it (null: it has not said) · dx[s]: how far ahead s really is, by the two together, evened out over half a second       // sent: when each of this machine's frames was first said ([turn, ms]) · rA, rB[s]: the quickest it has been said to have arrived at seat s and the word come back, in the last few seconds and the few before · lat[s]: ms the road to s takes, one way (0: not known)       // wn: which two seconds this machine's report is of · wnOf[s]: the last report read from seat s, rep[s]: and not acted on yet · lateAt[s]: when s last said it had waited for this machine       // offline: this machine knows it has no connection just now (cut: and gave the match up over it)       // fresh: there is a frame of its own that has not been published yet
+  for (let s = 0; s < seats; s++) { M.fr.push([]); M.lo.push(init); M.have.push(init - 1); M.ack.push(init - 1); M.pT.push(0); M.seen.push(now); M.here.push(true); M.wf.push(-1);
     M.gone.push(false); M.bel.push({}); M.dropAt.push(-1); M.their.push(null); M.wAcc.push(0); M.waited.push(0); M.sAcc.push(99); M.slack.push(99); M.late.push(0); M.spare.push(99); M.stuck.push(0); M.wnOf.push(0); M.rep.push(false); M.lateAt.push(now - NC_AGAIN); M.sA2.push(99); M.sN.push(0); M.rA.push(1e9); M.rB.push(1e9); M.lat.push(0); M.xs.push(0); M.xo.push(null); M.dx.push(0); }
   return M;
 }
@@ -4274,7 +4282,7 @@ function ncGet(M, s, t) { const i = t - M.lo[s]; return i >= 0 && i < M.fr[s].le
 function ncActive(M, s) { return !M.gone[s]; }
 /* frames of seat s from turn `lo` on, as another machine has them: those that follow on from what is in hand are taken, the rest are known already */
 function ncTake(M, s, lo, arr) {
-  let got = 0; if (!arr || !(lo >= NC_INIT)) return 0;
+  let got = 0; if (!arr || !(lo >= M.init)) return 0;
   for (let i = 0; i < arr.length; i++) { const t = lo + i; if (t <= M.have[s]) continue; if (t !== M.have[s] + 1) break; M.fr[s].push(arr[i]); M.have[s] = t; got++; }
   return got;
 }
@@ -4291,14 +4299,14 @@ function ncIn(M, s, d, now) {
     ncGone(M, g); M.bel[s][g] = b;
     let r = null; if (Array.isArray(d.rl)) for (const q of d.rl) if (Array.isArray(q) && q[0] === g) { r = q; break; }       // (its last frames of that seat, for whoever has fewer: [seat, from which turn, the frames])
     if (r && int(r[1]) && M.dropAt[g] < 0) {
-      if (ncTake(M, g, r[1], ncDec(r[2], 64))) { M.dirty = true; M.stuck[g] = 0; }
+      if (ncTake(M, g, r[1], ncDec(r[2], 64 * M.k))) { M.dirty = true; M.stuck[g] = 0; }
       else if (r[1] > M.have[g] + 1 && !M.stuck[g]) M.stuck[g] = now;       // what it offers does not follow on from what this machine has
     }
   }
   if (M.gone[s]) return;       // (a seat that has gone says nothing more that counts: not its frames, not what it has, and above all not its fingerprints, which are of a match of its own from the turn it was dropped)
   if (int(d.lo)) {
     if (d.lo > M.have[s] + 1) { if (!M.out) { M.out = true; M.lost = true; M.dirty = true; M.fresh = true; } return; }       // it has stopped repeating frames this machine never got: there is no catching up from here
-    if (ncTake(M, s, d.lo, ncDec(d.f, NC_WIN + 8))) M.dirty = true;
+    if (ncTake(M, s, d.lo, ncDec(d.f, M.win + 8))) M.dirty = true;
   }
   if (Array.isArray(d.a) && int(d.a[M.me]) && d.a[M.me] > M.ack[s] && d.a[M.me] <= M.hi) {
     M.ack[s] = d.a[M.me];
@@ -4329,7 +4337,7 @@ function ncHashCheck(M, s) { const h = M.their[s]; if (!h || M.bad || M.out || M
 /* ---- what this machine publishes ---- */
 function ncOut(M) {
   let lo = M.hi + 1; for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s] && M.ack[s] + 1 < lo) lo = M.ack[s] + 1;
-  if (lo < M.hi + 1 - NC_WIN) lo = M.hi + 1 - NC_WIN; if (lo < M.lo[M.me]) lo = M.lo[M.me];
+  if (lo < M.hi + 1 - M.win) lo = M.hi + 1 - M.win; if (lo < M.lo[M.me]) lo = M.lo[M.me];
   if (M.hi > M.sentHi) { M.sentHi = M.hi; M.sent.push([M.hi, M.clock]); if (M.sent.length > 64) M.sent.shift(); }
   const mine = M.fr[M.me], o = { n: M.n, t: M.T, hb: M.hb, lo, f: ncEnc(mine.slice(lo - M.lo[M.me]), NC_FMAX), a: M.have.slice(), w: M.waited.slice(), sl: M.slack.slice(), wn: M.wn, ld: M.xs.map(x => Math.round(Math.max(-99, Math.min(99, x)) * 10)), wf: M.waitSeat };
   if (M.hh) o.hh = M.hh; if (M.left || M.out) o.q = 1;       // (q: this machine is no longer playing this match, whether it chose to go or lost touch)
@@ -4337,8 +4345,8 @@ function ncOut(M) {
   for (let s = 0; s < M.seats; s++) if (M.gone[s]) {
     if (!g) { g = []; for (let q = 0; q < M.seats; q++) g.push(-1); } g[s] = M.have[s];
     if (M.dropAt[s] < 0 && nr < NC_RELAYS) {       // its last frames, from the first that someone who remains still lacks
-      let need = M.have[s]; for (let q = 0; q < M.seats; q++) if (q !== M.me && q !== s && !M.gone[q]) { const b = M.bel[q][s]; need = Math.min(need, b == null ? M.have[s] - 48 : b); }
-      const from = Math.max(M.lo[s], need + 1, M.have[s] - 47);
+      let need = M.have[s]; for (let q = 0; q < M.seats; q++) if (q !== M.me && q !== s && !M.gone[q]) { const b = M.bel[q][s]; need = Math.min(need, b == null ? M.have[s] - 48 * M.k : b); }
+      const from = Math.max(M.lo[s], need + 1, M.have[s] - 48 * M.k + 1);
       if (from <= M.have[s]) { (rl || (rl = [])).push([s, from, ncEnc(M.fr[s].slice(from - M.lo[s]), NC_RMAX)]); nr++; }
     }
   }
@@ -4363,16 +4371,16 @@ function ncMissing(M, t) {
 function ncBegin(M) {
   const t = M.T, frames = [];
   if (!M.out && !M.left) ncSample(M);
-  for (let s = 0; s < M.seats; s++) { if (M.dropAt[s] === t) netGone(s); frames.push(M.dropAt[s] >= 0 && t >= M.dropAt[s] ? null : t < NC_INIT ? null : ncGet(M, s, t)); }
+  for (let s = 0; s < M.seats; s++) { if (M.dropAt[s] === t) netGone(s); frames.push(M.dropAt[s] >= 0 && t >= M.dropAt[s] ? null : t < M.init ? null : ncGet(M, s, t)); }
   for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s]) { const sp = M.have[s] - t; M.sN[s]++; if (sp < M.sAcc[s]) { M.sA2[s] = M.sAcc[s]; M.sAcc[s] = sp; } else if (sp < M.sA2[s]) M.sA2[s] = sp; }
   netApply(frames);
 }
 function ncEnd(M) {
   M.T++; M.turns++; const t = M.T;
-  if (t % NC_HASH === 0) { const h = simHash() | 0; M.hashes.push([t, h]); if (M.hashes.length > 8) M.hashes.shift(); M.hh = [t, h]; M.dirty = true; for (let s = 0; s < M.seats; s++) if (s !== M.me) ncHashCheck(M, s); }
+  if (t % M.hashN === 0) { const h = simHash() | 0; M.hashes.push([t, h]); if (M.hashes.length > 8) M.hashes.shift(); M.hh = [t, h]; M.dirty = true; for (let s = 0; s < M.seats; s++) if (s !== M.me) ncHashCheck(M, s); }
   for (let s = 0; s < M.seats; s++) {       // frames that are done with: all but my own that are not known to have arrived, and a gone seat's last ones while they may be asked for
-    let keep = t; if (s === M.me) { for (let q = 0; q < M.seats; q++) if (q !== s && !M.gone[q] && M.ack[q] + 1 < keep) keep = M.ack[q] + 1; if (keep < M.hi + 1 - NC_WIN) keep = M.hi + 1 - NC_WIN; }
-    else if (M.gone[s] && M.dropAt[s] < 0) keep = Math.min(keep, M.have[s] - 47);
+    let keep = t; if (s === M.me) { for (let q = 0; q < M.seats; q++) if (q !== s && !M.gone[q] && M.ack[q] + 1 < keep) keep = M.ack[q] + 1; if (keep < M.hi + 1 - M.win) keep = M.hi + 1 - M.win; }
+    else if (M.gone[s] && M.dropAt[s] < 0) keep = Math.min(keep, M.have[s] - 48 * M.k + 1);
     const cut = keep - M.lo[s]; if (cut > 0) { M.fr[s].splice(0, cut); M.lo[s] += cut; }
   }
 }
@@ -4384,15 +4392,16 @@ function ncTick(M, dt, now) {
   if (now - M.hbT >= 400) { M.hbT = now; M.hb = (M.hb + 1) % 100000; M.dirty = true; }
   for (let s = 0; s < M.seats; s++) { if (!M.here[s]) ncGone(M, s); if (M.stuck[s] && M.dropAt[s] < 0 && now - M.stuck[s] > NC_STUCK) { M.out = true; M.lost = true; M.dirty = true; M.fresh = true; return 0; } }
   ncSettle(M);
-  let lead = 0; const here = M.T + M.stepIn / NET_STEPS;       // how many turns the furthest of the others is ahead of this machine right now: where it said it was, and the road and the time since
+  let lead = 0; const here = M.T + M.stepIn / M.steps;       // how many turns the furthest of the others is ahead of this machine right now: where it said it was, and the road and the time since
   const ek = 1 - Math.exp(-dt / 0.5);
-  for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s]) { const x = M.pT[s] + (M.lat[s] + Math.min(Math.max(now - M.seen[s], 0), 400)) / NC_TURN - here, d = M.xo[s] === null ? x : (x - M.xo[s]) / 2; M.xs[s] = x; M.dx[s] += (d - M.dx[s]) * (Math.abs(d - M.dx[s]) > 2 ? 1 : ek); if (M.dx[s] > lead) lead = M.dx[s]; }       // (a jump of turns is taken at once: that is no wobble of the road)
+  for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s]) { const x = M.pT[s] + (M.lat[s] + Math.min(Math.max(now - M.seen[s], 0), 400)) / M.turn - here, d = M.xo[s] === null ? x : (x - M.xo[s]) / 2; M.xs[s] = x; M.dx[s] += (d - M.dx[s]) * (Math.abs(d - M.dx[s]) > 2 * M.k ? 1 : ek); if (M.dx[s] > lead) lead = M.dx[s]; }       // (a jump of turns is taken at once: that is no wobble of the road)
+  lead /= M.k;       // (from here on in turns of two steps, whatever this match's are)
   M.acc = Math.min(M.acc + dt * (lead >= 3 ? 1.5 : lead >= 2 ? 1.2 : lead >= 0.5 ? 1 + 0.06 * lead : 1), 0.35);       // behind the others: a little faster than the clock until it has caught up
   const most = lead >= 2 ? 6 : 3; let waiting = -1;
   while (M.acc >= NC_STEP && n < most && !G.over) {
     if (M.stepIn === 0) { waiting = ncMissing(M, M.T); if (waiting >= 0) break; ncBegin(M); }
     step(NC_STEP); n++; M.acc -= NC_STEP;
-    if (++M.stepIn >= NET_STEPS) { M.stepIn = 0; ncEnd(M); }
+    if (++M.stepIn >= M.steps) { M.stepIn = 0; ncEnd(M); }
   }
   if (waiting >= 0) {
     if (M.acc > NC_STEP * 1.5) M.acc = NC_STEP * 1.5;
@@ -4403,7 +4412,7 @@ function ncTick(M, dt, now) {
     M.winT = now; M.wn = M.wn % 99999 + 1; for (let s = 0; s < M.seats; s++) { M.waited[s] = Math.round(M.wAcc[s]); M.wAcc[s] = 0; M.slack[s] = M.sN[s] >= 8 ? M.sA2[s] : M.sAcc[s]; M.sAcc[s] = M.sA2[s] = 99; M.sN[s] = 0; } M.dirty = true;
   }
   if (!M.out && now - M.born < NC_WARM) {       // the first seconds: as far ahead as the road, as measured so far, needs (and what the others report of these seconds is not acted on)
-    if (now - M.born > 1200 + 1300 * M.warm) { M.warm++; let ms = 0; for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s] && M.lat[s] > ms) ms = M.lat[s]; if (ms > 0) { const need = Math.min(NC_DMAX, Math.ceil((ms + 25) / NC_TURN) + 1); if (need > M.D) M.D = need; } }
+    if (now - M.born > 1200 + 1300 * M.warm) { M.warm++; let ms = 0; for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s] && M.lat[s] > ms) ms = M.lat[s]; if (ms > 0) { const need = Math.min(M.dmax, Math.ceil((ms + 25) / M.turn) + 1); if (need > M.D) M.D = need; } }
     for (let s = 0; s < M.seats; s++) M.rep[s] = false; M.calmT = now;
   } else if (!M.out) {       // how far ahead to schedule, from what the others have just reported
     let up = 0, calm = true, any = false, known = true, others = 0, sp = 99;
@@ -4412,8 +4421,8 @@ function ncTick(M, dt, now) {
       if (M.late[s] > 100) { const again = now - M.lateAt[s] < NC_AGAIN; M.lateAt[s] = now; if (M.spare[s] <= 0 || again) up = Math.max(up, M.late[s] > 700 && M.spare[s] <= 0 ? 2 : 1); }       // (waited, and had nothing to spare either: the road is longer than D. Waited twice in a few seconds: it keeps happening)
     }
     if (!calm || !others) M.calmT = now;
-    if (up && lead < 2 && M.D < NC_DMAX && now - M.upT > 1200) {
-      M.D = Math.min(NC_DMAX, M.D + up); M.upT = now; M.calmT = now;
+    if (up && lead < 2 && M.D < M.dmax && now - M.upT > 1200) {
+      M.D = Math.min(M.dmax, M.D + up * M.k); M.upT = now; M.calmT = now;       // (further ahead by whole fifteenths of a second, whatever the turns: up is no time to be careful)
       if (now - M.downT < NC_AGAIN) { M.floorK = now - M.floorT < NC_FLOOR * M.floorK + 30000 ? Math.min(M.floorK * 2, 8) : 1; M.floorD = M.D; M.floorT = now; }       // (further ahead straight after going down: that number was too low. It is left alone for a while, and for twice as long each time it proves too low again)
     } else if (any && known && now - M.calmT > NC_CALM && M.D > NC_DMIN) {       // less far: by as many turns as still leave the others two to spare, and not under a number that is being left alone
       const low = now - M.floorT < NC_FLOOR * M.floorK ? Math.max(NC_DMIN, M.floorD) : NC_DMIN, k = Math.min(Math.max(1, sp - 2), M.D - low);
@@ -9122,7 +9131,10 @@ if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude
    Directly. Pages at the same table open a WebRTC data channel to each other (the relays carry the handshake), unordered and
    without waiting for what is lost, which is the quickest road between two devices there is. Once it is open, what they say goes
    straight across; the relays then carry only a sign of life, and take everything again the moment a direct line goes quiet. The
-   lower of two page names calls, the higher answers.
+   lower of two page names calls, the higher answers. Two devices that cannot reach each other (many phone networks, a VPN) can
+   still be joined through a TURN server where the page has been given one (LINK_CFG.turn: an address that answers with ICE
+   servers): that is a relay too, but usually a nearer and quicker one. A line that turns out slower than the relays is not
+   trusted with the match alone: what is said then goes both ways, and whichever copy arrives first counts.
 
    What a page says is either its whole object ('F', or 'G' when it also asks for the others'), or only what changed one level down
    since the last whole one ('D'), or that it has left ('B'). Each carries a number that only grows: a page takes what is newer than
@@ -9135,7 +9147,7 @@ if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude
 const LINK_CFG = (() => {
   const o = (typeof window !== 'undefined' && window.SHARDFALL_LINK) || {};
   return { relays: o.relays || ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'], spare: o.spare || ['wss://test.mosquitto.org:8081/mqtt'],
-    ice: o.ice || [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }], ns: o.ns || 'shardfall/a2/' };
+    ice: o.ice || [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }], turn: o.turn || (typeof TURN_URL === 'string' ? TURN_URL : ''), idle: o.idle || 120000, ns: o.ns || 'shardfall/a2/' };       // idle: ms with nothing to say and nobody to listen for (the Friends sheet shut, no table) after which the relays are let go of; they are taken up again when there is
 })();
 const LK_ID = /^p[a-z0-9]{6,20}$/, LK_ROOM = /^[a-z0-9][a-z0-9_.-]{0,47}$/;
 const LK_HB = [3000, 1200], LK_TTL = [10000, 5000];       // a whole object at least this often, and a page gone after this long unheard: [the lobby, a table]
@@ -9216,8 +9228,12 @@ function lkRelayIn(topic, text) {
   if (rest.startsWith('r/')) { const p = rest.split('/'); if (p.length !== 4 || (p[3] !== 's' && p[3] !== 'd') || p[2] === LK.me || !LK_ID.test(p[2])) return; const R = LK.rooms.get(p[1]); if (R) lkRoomIn(R, p[2], text, performance.now()); }
   else if (rest === 's/' + LK.me) lkSigIn(text);
 }
+function lkBusy() { for (const R of LK.rooms.values()) if (!R.left && (R.table || R.json !== '{}')) return true; return false; }       // something to say, or a table to listen at
+function lkWake() { if (!LK.asleep) return; LK.asleep = false; LK.idleT = performance.now(); lkLog('relays taken up again'); for (const C of LK.conns) { C.tryT = 0; C.wait = 500; if (C.main || LK.spareOn) mqOpen(C); } }
 function lkTick() {
   const now = performance.now(), gap = now - LK.tickT, up = lkUp(), mains = LK.conns.filter(C => C.main); LK.tickT = now;
+  if (lkBusy() || LK.wake) LK.idleT = now; else if (!LK.asleep && now - LK.idleT > LINK_CFG.idle) { LK.asleep = true; lkLog('nothing to do: relays let go'); for (const C of LK.conns) mqDown(C, 'idle'); }
+  if (LK.asleep) return;
   if (!LK.spareOn && now - LK.t0 > 3000 && mains.filter(C => C.st === 2).length < Math.min(2, mains.length)) { if (!LK.shortT) LK.shortT = now; else if (now - LK.shortT > 3000 || !up) LK.spareOn = true; } else LK.shortT = 0;
   for (const C of LK.conns) {
     if (C.st === 0) { if (now >= C.tryT && (C.main || LK.spareOn)) mqOpen(C); }
@@ -9249,14 +9265,15 @@ function lkRoomApi(R) {
     presence(patch) {
       if (R.left) return Promise.reject({ code: 'invalid_argument', message: 'this room has been left' });
       if (patch && typeof patch === 'object') for (const k in patch) { if (patch[k] === null || patch[k] === undefined) delete R.mine[k]; else R.mine[k] = patch[k]; }
+      if (LK.asleep && JSON.stringify(R.mine) !== '{}') lkWake();
       const w = R.pubT + 15 - performance.now(); if (w <= 0) lkFlush(R); else if (!R.flushT) R.flushT = setTimeout(() => lkFlush(R), w);
       return Promise.resolve();
     },
     peers: () => R.list,
     onPeers(fn) { R.fns.add(fn); R.changed = true; lkSoon(); return () => { R.fns.delete(fn); }; },
-    connected: lkConnected,
+    connected: () => LK.asleep || lkConnected(),       // (asleep is not cut off: the relays are a moment away)
   };
-  if (!R.table) o.join = name => { if (typeof name !== 'string' || !LK_ROOM.test(name) || name === 'lobby') return Promise.reject({ code: 'invalid_argument', message: 'not a name for a room' }); const old = LK.rooms.get(name); if (old) lkLeave(old); return Promise.resolve(lkRoomNew(name).api); };
+  if (!R.table) o.join = name => { if (typeof name !== 'string' || !LK_ROOM.test(name) || name === 'lobby') return Promise.reject({ code: 'invalid_argument', message: 'not a name for a room' }); lkWake(); const old = LK.rooms.get(name); if (old) lkLeave(old); return Promise.resolve(lkRoomNew(name).api); };
   else { o.name = R.name; o.leave = () => { lkLeave(R); return Promise.resolve(); }; }
   return Object.freeze(o);
 }
@@ -9294,10 +9311,12 @@ function lkFlush(R, force) {       // says this page's object in the room if it 
   if (!msg) { msg = (hello ? 'G' : 'F') + R.v + '\n' + json; R.fv = R.v; R.fobj = JSON.parse(json); R.fullT = now; R.ask = false; LK.stat.full++; } else must = false;
   R.said = true; R.pubT = now; lkSay(R, msg, must);
 }
+function lkRelayMs() { let r = 0; for (const C of LK.conns) if (C.st === 2 && C.rtt && (!r || C.rtt < r)) r = C.rtt; return r * 2; }       // about how long through the nearest relay to another page and back, if that page is as far from it as this one
+const lkGood = (L, now) => { if (!lkLive(L, now)) return false; const r = lkRelayMs(); return !(L.rtt > 0 && r > 0 && L.rtt > r * 1.3 + 30); };       // a direct line worth trusting with the match alone: live, and not clearly slower than the relays
 const lkLive = (L, now) => L.open && now - L.rxT <= LK_DQUIET + Math.max(0, now - LK.tickT - 300) && now >= L.doubtT;       // a direct line that is open and has not gone quiet (a page that has itself been held up, its own clockwork overdue, has only not looked yet)
 function lkSay(R, msg, must) {       // by the direct lines where they are open; through the relays too unless everyone else at the table is heard from directly (must: through the relays in any case)
   let all = R.table && R.peers.size > 0 && LK.links.size > 0;
-  if (R.table && LK.links.size > 0) { const now = performance.now(), dm = R.name + '\n' + msg; for (const P of R.peers.values()) { const L = LK.links.get(P.peer); if (!L || !L.open || !lkDirectSend(L, dm) || !lkLive(L, now)) all = false; } }
+  if (R.table && LK.links.size > 0) { const now = performance.now(), dm = R.name + '\n' + msg; for (const P of R.peers.values()) { const L = LK.links.get(P.peer); if (!L || !L.open || !lkDirectSend(L, dm) || !lkGood(L, now)) all = false; } }
   if (must || (!all && R.peers.size > 0)) { const topic = msg[0] === 'D' ? R.topicD : R.topic; for (const C of LK.conns) mqPub(C, topic, msg, must); if (must) R.relayT = performance.now(); }
 }
 function lkSayAll(R, msg) { for (const C of LK.conns) mqPub(C, R.topic, msg, true); if (R.table) for (const P of R.peers.values()) { const L = LK.links.get(P.peer); if (L && L.open) lkDirectSend(L, R.name + '\n' + msg); } }
@@ -9339,7 +9358,7 @@ function lkDeliver() {       // those listening to a room are told who is in it,
 function lkLinkCheck() {       // a line is wanted to everyone at a table with this page, and to nobody else
   const want = new Map(); for (const R of LK.rooms.values()) if (R.table && !R.left && R.json !== '{}') for (const P of R.peers.values()) want.set(P.peer, R.name);
   for (const [peer, L] of [...LK.links]) if (!want.has(peer) || !LK.direct || !LK.rtc) lkLinkClose(L, true);
-  if (LK.direct && LK.rtc) for (const [peer, room] of want) { let L = LK.links.get(peer); if (!L) { L = { peer, room, pc: null, dc: null, open: false, sid: '', rxT: 0, doubtT: 0, pingT: 0, t0: 0, tries: 0, nextT: 0, cq: [], have: false, n: 0, seen: new Set(), rtt: 0, mine: {}, theirs: {} }; LK.links.set(peer, L); } L.room = room; }
+  if (LK.direct && LK.rtc) for (const [peer, room] of want) { let L = LK.links.get(peer); if (!L) { L = { peer, room, pc: null, dc: null, open: false, sid: '', rxT: 0, doubtT: 0, pingT: 0, t0: 0, tries: 0, nextT: 0, cq: [], have: false, n: 0, seen: new Set(), rtt: 0, rs: [], mine: {}, theirs: {} }; LK.links.set(peer, L); } L.room = room; }
 }
 function lkLinkClose(L, forget) {
   const pc = L.pc, dc = L.dc, was = L.open; L.pc = null; L.dc = null; L.open = false;
@@ -9355,7 +9374,7 @@ function lkLinkFail(L, told) {       // the line did not open, or has broken: th
 function lkKind(c, o) { const p = String(c).split(' '), i = p.indexOf('typ'), t = i > 0 ? p[i + 1] : '?', a = p[4] || ''; o[t] = (o[t] || 0) + 1; if (a.indexOf(':') >= 0) o.v6 = (o.v6 || 0) + 1; else if (/\.local$/.test(a)) o.named = (o.named || 0) + 1; }
 const lkKinds = o => { const k = Object.keys(o).filter(x => x !== 'v6' && x !== 'named').map(x => x + ' ' + o[x]).join(', '); return (k || 'none') + (o.v6 ? ' (' + o.v6 + ' v6)' : '') + (o.named ? ' (' + o.named + ' by name)' : ''); };
 function lkLinkPc(L) {
-  let pc; try { pc = new RTCPeerConnection({ iceServers: LINK_CFG.ice }); } catch (e) { LK.rtc = false; return null; }
+  let pc; try { pc = new RTCPeerConnection({ iceServers: LK.ice || LINK_CFG.ice }); } catch (e) { LK.rtc = false; return null; }
   L.pc = pc; L.t0 = performance.now(); L.cq = []; L.have = false; L.n = 0; L.seen.clear(); L.mine = {}; L.theirs = {};
   pc.onicecandidate = e => { if (L.pc !== pc) return; if (e.candidate && e.candidate.candidate) { lkKind(e.candidate.candidate, L.mine); lkSig(L, { t: 'c', n: L.n++, c: e.candidate.candidate, m: e.candidate.sdpMid, l: e.candidate.sdpMLineIndex }); } else if (!e.candidate) lkLog('line ' + L.peer.slice(1, 5) + ' offers: ' + lkKinds(L.mine)); };
   pc.oniceconnectionstatechange = () => { if (L.pc === pc) lkLog('line ' + L.peer.slice(1, 5) + ' ice ' + pc.iceConnectionState); };
@@ -9365,7 +9384,7 @@ function lkLinkPc(L) {
 }
 function lkLinkChan(L, dc) {
   L.dc = dc;
-  dc.onopen = () => { if (L.dc !== dc) return; lkLog('line ' + L.peer.slice(1, 5) + ' open · mine: ' + lkKinds(L.mine) + ' · theirs: ' + lkKinds(L.theirs)); L.open = true; L.rxT = performance.now(); L.doubtT = 0; L.pingT = 0; L.tries = 0; for (const R of LK.rooms.values()) if (R.table && !R.left && R.json !== '{}' && R.peers.has(L.peer)) lkFlush(R, true); lkNote(); };
+  dc.onopen = () => { if (L.dc !== dc) return; lkLog('line ' + L.peer.slice(1, 5) + ' open · mine: ' + lkKinds(L.mine) + ' · theirs: ' + lkKinds(L.theirs)); L.open = true; L.rs = []; L.rtt = 0; L.rxT = performance.now(); L.doubtT = 0; L.pingT = 0; L.tries = 0; for (const R of LK.rooms.values()) if (R.table && !R.left && R.json !== '{}' && R.peers.has(L.peer)) lkFlush(R, true); lkNote(); };
   dc.onmessage = e => { if (L.dc === dc && typeof e.data === 'string') lkDirectIn(L, e.data); };
   dc.onclose = dc.onerror = () => { if (L.dc === dc) lkLinkFail(L); };
 }
@@ -9403,7 +9422,7 @@ function lkDirectSend(L, text) {
 function lkDirectIn(L, text) {
   const now = performance.now(), k = text[0]; L.rxT = now; LK.stat.din++;
   if (k === '?') { lkDirectSend(L, '!' + text.slice(1)); return; }       // "are you there": answered as it came
-  if (k === '!') { const r = now - (+text.slice(1)); if (r >= 0 && r < 10000) L.rtt = L.rtt ? L.rtt * 0.7 + r * 0.3 : r; return; }
+  if (k === '!') { const r = now - (+text.slice(1)); if (r >= 0 && r < 10000) { L.rs.push(r); if (L.rs.length > 8) L.rs.shift(); L.rtt = Math.min.apply(null, L.rs); } return; }       // (the quickest of the last few: an answer that found this page busy says nothing about the line)
   const nl = text.indexOf('\n'); if (nl < 1) return; const R = LK.rooms.get(text.slice(0, nl)); if (R && R.table) lkRoomIn(R, L.peer, text.slice(nl + 1), now, true);
 }
 function lkLinkTick(now) {
@@ -9419,7 +9438,7 @@ function lkLinkTick(now) {
 function linkOpen() {
   if (typeof WebSocket !== 'function' || typeof TextEncoder !== 'function' || typeof TextDecoder !== 'function') return Promise.resolve(null);
   if (!LK.on) {
-    LK.on = true; LK.enc = new TextEncoder(); LK.dec = new TextDecoder(); LK.rtc = typeof RTCPeerConnection === 'function'; LK.t0 = LK.tickT = performance.now(); LK.spareOn = false; LK.shortT = 0; LK.wasUp = false;
+    LK.on = true; LK.enc = new TextEncoder(); LK.dec = new TextDecoder(); LK.rtc = typeof RTCPeerConnection === 'function'; LK.t0 = LK.tickT = LK.idleT = performance.now(); LK.spareOn = false; LK.shortT = 0; LK.wasUp = false; LK.asleep = false;
     if (!LK.me) { let s = 'p'; const A = 'abcdefghijklmnopqrstuvwxyz0123456789', b = new Uint8Array(11); try { crypto.getRandomValues(b); } catch (e) { for (let i = 0; i < b.length; i++) b[i] = (Math.random() * 256) | 0; } for (const x of b) s += A[x % 36]; LK.me = s; }
     LK.conns = LINK_CFG.relays.map(u => [u, true]).concat(LINK_CFG.spare.map(u => [u, false])).map(([url, main], ix) => ({ url, ix, main, ws: null, st: 0, buf: null, pid: 0, tryT: 0, wait: 500, inT: 0, pingT: 0, pingAt: 0, rtt: 0, rs: [], t0: 0, openT: 0, subs: new Set() }));
     LK.timer = setInterval(lkTick, 250);
@@ -9429,6 +9448,12 @@ function linkOpen() {
       window.addEventListener('pagehide', () => { for (const R of LK.rooms.values()) if (R.said) { R.said = false; lkSayAll(R, 'B' + (++LK.ver)); } });       // (a page being closed says so: the others need not wait to find out)
     }
     for (const C of LK.conns) if (C.main) mqOpen(C);
+    if (LINK_CFG.turn && !LK.ice && typeof fetch === 'function') {       // the TURN servers this page may use, asked of whoever hands them out (without them: direct lines where the networks allow, as before)
+      fetch(LINK_CFG.turn).then(r => r.ok ? r.json() : null).then(list => {
+        if (!Array.isArray(list)) return; const ok = list.filter(q => q && (typeof q.urls === 'string' || Array.isArray(q.urls)) && (q.username == null || typeof q.username === 'string') && (q.credential == null || typeof q.credential === 'string')).slice(0, 8).map(q => ({ urls: q.urls, username: q.username, credential: q.credential }));
+        if (ok.length) { LK.ice = LINK_CFG.ice.concat(ok); lkLog('turn servers: ' + ok.length); }
+      }).catch(() => { lkLog('turn servers: none to be had'); });
+    }
   }
   const R = LK.rooms.get('lobby') || lkRoomNew('lobby');
   return new Promise(res => {
@@ -9444,12 +9469,16 @@ function linkDirect(on) {       // whether this page opens direct lines at all
   const was = LK.direct; LK.direct = !!on; if (!LK.on) return; lkLinkCheck();
   if (on && !was) for (const L of LK.links.values()) { if (LK.me > L.peer) lkSigTo(L.peer, '', { t: 'r' }); else L.nextT = 0; }
 }
-/* how this page hears a page at its table: { direct, ms } (ms: there and back, 0 where not known) */
-function linkInfo(peer) { const L = LK.links.get(peer), now = performance.now(); if (L && lkLive(L, now)) return { direct: true, ms: L.rtt }; let r = 0; for (const C of LK.conns) if (C.st === 2 && C.rtt && (!r || C.rtt < r)) r = C.rtt; return { direct: false, ms: r * 2 }; }
+/* how this page hears a page at its table: { direct, ms, open, rtt }. direct: by a direct line, this instant; ms: there and back by the road in use (0 where not known);
+   open: there is a direct line worth having, whether or not something has just come down it; rtt: there and back by that line (0 where not known) */
+function linkInfo(peer) {
+  const L = LK.links.get(peer), now = performance.now(), r = lkRelayMs(), open = !!L && L.open && !(L.rtt > 0 && r > 0 && L.rtt > r * 1.3 + 30), direct = open && lkLive(L, now);
+  return { direct, ms: direct ? L.rtt : r, open, rtt: L && L.open ? L.rtt : 0 };
+}
 /* how the connection stands, for the player to read (and to tell whoever has to find out why it misbehaves) */
 function linkStatus() {
   const now = performance.now(), relays = LK.conns.filter(C => C.main || C.st || LK.spareOn).map(C => ({ up: C.st === 2, ms: Math.round(C.rtt), spare: !C.main })), lines = [];
-  for (const L of LK.links.values()) lines.push({ peer: L.peer, state: lkLive(L, now) ? 'direct' : L.open ? 'quiet' : L.pc ? 'opening' : now < L.nextT && L.tries ? 'failed' : 'waiting', ms: Math.round(L.rtt), tries: L.tries });
+  for (const L of LK.links.values()) lines.push({ peer: L.peer, state: lkGood(L, now) ? 'direct' : lkLive(L, now) ? 'slower than the relay' : L.open ? 'quiet' : L.pc ? 'opening' : now < L.nextT && L.tries ? 'failed' : 'waiting', ms: Math.round(L.rtt), tries: L.tries });
   return { me: LK.me, rtc: LK.rtc, direct: LK.direct, relays, lines, stat: LK.stat, log: LK.log };
 }
 /* this page is waiting for something a page at its table should have said by now: it asks, through the relays as well, and whoever is asked that way says everything again by every road */
@@ -9474,7 +9503,7 @@ function linkAsk(name) { const R = LK.rooms.get(name); if (R && !R.left) lkAsk(R
    NET.ok: 0 not asked yet, 1 connected, -1 this view cannot connect. chan: the table (null: not at one). P: the pages at the table,
    as read. hs: this page hosts. go: what the host started. M: the match in progress, as the turn exchange holds it (ncNew).
    ============================================================ */
-const NETV = 3;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
+const NETV = 4;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
 const NET_AWAY = 6000;        // ms the page of a seat may be missing from the table during a match before the seat counts as gone (connections are refreshed now and then, and that is no leaving)
 const NET_GO_MS = 15000;      // ms the host keeps saying how a match started
 const NET_BYTES = 3900;       // the most a page may keep in a room is 4 KiB
@@ -9497,7 +9526,7 @@ function netConnect() {
     NET.busy = false;
     if (!r || typeof r.presence !== 'function' || typeof r.onPeers !== 'function') { NET.ok = -1; NET.want = null; netRender(true); return; }
     NET.room = r; NET.ok = 1; NET.since = performance.now(); NET.look = true; NET.down = false; NET.dnT = 0;
-    if (NET.web) { LK.onNote = () => { if (NET.chan && !NET.M) netRender(); }; linkDirect(UI.direct !== false); }
+    if (NET.web) { LK.onNote = () => { if (NET.chan && !NET.M) { netSay(); netRender(); } }; linkDirect(UI.direct !== false); }       // (a line opened or lost: the table hears how many this page has, and shows it)
     try { r.onPeers(c => netLobbyPeers(c && c.peers || []), () => netLost()); } catch (e) { NET.ok = -1; }
     if (!NET.timer) NET.timer = setInterval(netTick, 1000);
     setTimeout(() => { NET.look = false; netRender(); }, 2600);       // (the others in the room answer over a second or two: nobody is "alone" before that)
@@ -9531,7 +9560,7 @@ function netTick() {       // once a second: what depends on time passing
   const now = performance.now();
   if (NET.web && NET.ok === 1 && NET.room) {       // the page's own room: out of reach for a while is said, and how each player at the table is heard is kept up to date
     const dn = !NET.room.connected(); if (!dn) NET.dnT = 0; else if (!NET.dnT) NET.dnT = now; const show = dn && now - NET.dnT > 2500;
-    if (show !== NET.down) { NET.down = show; netRender(true); } else if (NET.chan && !NET.M) netRender();
+    if (show !== NET.down) { NET.down = show; netRender(true); } else if (NET.chan && !NET.M) { if (netLines() !== NET.dlSaid) netSay(); netRender(); }       // (and the table hears how many direct lines this page has, whenever that changes)
   }
   if (NET.chan && !NET.M && !NET.hs && !NET.busy && now - NET.hostT > 3000) {       // the host has gone: the first of those left takes the table over
     const ok = NET.P.filter(p => p.ok);
@@ -9580,6 +9609,7 @@ function netMine() {       // this page's own row at the table, as it stands now
 function netSay() {       // this page's place at the table, and during a match its part in the turn exchange
   if (!NET.chan) return; const h = UI.hero, M = NET.M, now = performance.now(); if (!M) netMine();
   const T = { v: NETV, sim: SIM_NAME, c: NET.code, nm: NET.nick, tm: NET.team, h, k: UI.skins[h] | 0, sp: UI.spell, r: roleIx(h), rd: NET.ready ? 1 : 0, pt: NET.pt, st: M ? 1 : 0, ln: NET.lastN };
+  if (NET.web) T.dl = NET.dlSaid = netLines();
   if (NET.hs) { T.hs = 1; T.ht = NET.ht; T.cfg = NET.cfg; if (NET.go && now - NET.goT < NET_GO_MS) T.go = NET.go; }
   if (M) { T.m = ncOut(M); const ch = chatOut(now); if (ch) T.ch = ch; } else if (NET.quitN) T.m = { n: NET.quitN, q: 1 };
   if (T.go && T.m && netBytes(JSON.stringify(T)) > NET_BYTES) delete T.go;       // (cannot be while a match starts: what a match says only grows with trouble, later)
@@ -9619,11 +9649,18 @@ function netCanStart() {
   const w = all.find(p => !p.rd && p.peer !== NET.host); if (w) return w.me ? 'Say that you are ready.' : `Waiting for ${w.nm} to be ready.`;
   return '';
 }
+const netLines = () => { let n = 0; for (const p of NET.P) if (!p.me && linkInfo(p.peer).open) n++; return n; };       // how many of the others at the table this page has a direct line to that is worth the name
+/* quick turns (see part one) are for a table where everyone seated reaches everyone else by a short direct line: the host knows its own lines, and every page says how many it has */
+function netQuick(all) {
+  if (!NET.web || all.length < 2 || NET.P.length !== all.length) return false;       // (with someone at the table who is not seated, the count of lines says too little)
+  for (const p of all) { if (p.me) { if (netLines() < all.length - 1) return false; continue; } const v = linkInfo(p.peer); if (!v.open || !(v.rtt > 0 && v.rtt <= 110) || (p.T.dl | 0) < all.length - 1) return false; }
+  return true;
+}
 function netHostStart() {
   if (!NET.hs || NET.M || netCanStart()) return; const { S } = netSeats(), seats = [];
   for (const p of S[0].concat(S[1])) seats.push([p.peer, p.tm, p.h, Math.min(Math.max(p.k, 0), SKINS[p.h].length - 1), p.sp || HEROES[p.h].spell, p.r, p.nm]);
   let n = NET.lastN; for (const p of NET.P) if (p.ln > n) n = p.ln;       // (a number no page at the table has seen: whoever hosts)
-  const go = NET.go = { n: n + 1, seed: ((Math.random() * 2147483646) | 0) + 1, md: NET.cfg.md, df: NET.cfg.df.slice(), seats }; NET.goT = performance.now();
+  const go = NET.go = { n: n + 1, seed: ((Math.random() * 2147483646) | 0) + 1, md: NET.cfg.md, df: NET.cfg.df.slice(), ts: netQuick(S[0].concat(S[1])) ? 1 : 2, seats }; NET.goT = performance.now();
   setTimeout(() => { if (NET.go === go) { NET.go = null; if (NET.chan && !NET.M) netSay(); } }, NET_GO_MS + 200);
   netSay(); netGo(go);
 }
@@ -9645,8 +9682,8 @@ function netGo(go) {
   newGame({ seed: (go.seed >>> 0) || 1, fx: true, det: true, mode: duel ? 'duel' : undefined, diff: df[1], diffs: df, humans, me });
   if (!G.player) { NET.note = 'This page could not be seated in the match.'; startDemo(); netSay(); netRender(true); return; }
   const mine = humans.filter(h => h.team === humans[me].team).length, foes = humans.length - mine;
-  NET.seats = peers; NET.M = ncNew(n, humans.length, me, performance.now());
-  if (NET.web) { let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) NET.M.D = Math.min(NC_D0, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / NC_TURN) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes)
+  NET.seats = peers; NET.M = ncNew(n, humans.length, me, performance.now(), go.ts === 1 ? 1 : 2);       // (ts 1: a match of quick turns, the host having found everyone joined by direct lines)
+  if (NET.web) { const M = NET.M; let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) M.D = Math.min(NC_D0 * M.k, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / M.turn) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes)
   NET.abs = humans.map(() => 0); NET.prev = new Map(); NET.ready = false; NET.quitN = 0; NET.note = ''; NET.waitShown = false; NET.offT = 0; NET.say = { duel, df, n: humans.length, foes };
   UI.mode = 'net'; $('mp').hidden = true; enterPlay();
   banner(duel ? '1v1 · Mid lane' : foes ? 'Friends against friends' : 'Playing together', duel ? (foes ? 'Against ' + humans[1 - me].name : 'Break their turrets, then the crystal') : `${humans.length} ${humans.length === 1 ? 'player' : 'players'} · bots fill the other places`, '#f2c14e');
@@ -9677,15 +9714,15 @@ function netAhead() {
     if ((mx || my) && root <= 0 && wallSlide(U.x, U.y, mx * sp * k, my * sp * k, 0.4)) { roundPosts(U, mx, my, sp * k); U.x = _wx; U.y = _wy; }
     if (root > 0) root -= NC_STEP * k;
   };
-  let t = M.T; if (M.stepIn > 0) { for (let k = M.stepIn; k < NET_STEPS; k++) walk(1); t++; }       // what is left of the turn being played
+  let t = M.T; if (M.stepIn > 0) { for (let k = M.stepIn; k < M.steps; k++) walk(1); t++; }       // what is left of the turn being played
   for (; t <= M.hi && !cast; t++) {       // the frames of its own that wait their turn
-    const f = t >= NC_INIT ? ncGet(M, M.me, t) : null;
+    const f = t >= M.init ? ncGet(M, M.me, t) : null;
     if (f) { for (const a of f.acts) if (a[0] === A_CAST || a[0] === A_RECALL) cast = true; if (cast) break; if (f.mc === MOVE_NONE) mx = my = 0; else { const a = f.mc * (TAU / 65536); mx = fcos(a); my = fsin(a); } if (mx || my) { hx = mx; hy = my; } }
-    for (let k = 0; k < NET_STEPS; k++) walk(1);
+    for (let k = 0; k < M.steps; k++) walk(1);
   }
   if (!cast && !G.net.out.some(a => a[0] === A_CAST || a[0] === A_RECALL) && !UI.paused && !UI.ended) {       // and the stick as it is held now, for the part of a turn since the last frame went
     const I = G.input, l = hyp(I.mx, I.my);
-    if (l > 0) { mx = I.mx / l; my = I.my / l; hx = mx; hy = my; walk(Math.min(NET_STEPS, (now - AH.sampT) / 1000 / NC_STEP)); } else if (mx || my) { /* the stick was let go: nothing further */ }
+    if (l > 0) { mx = I.mx / l; my = I.my / l; hx = mx; hy = my; walk(Math.min(M.steps, (now - AH.sampT) / 1000 / NC_STEP)); } else if (mx || my) { /* the stick was let go: nothing further */ }
   }
   _wx = w0; _wy = w1; _sgx = g0; _sgy = g1;
   AH.x = U.x; AH.y = U.y; AH.moving = Math.abs(U.x - me.x) + Math.abs(U.y - me.y) > 2; AH.face = hx || hy ? fatan2(hy, hx) : me.face; AH.on = true;
@@ -9701,18 +9738,23 @@ function netFrame(dt) {
   const since = now - NET.pubT; if ((M.fresh && since >= 10) || (M.dirty && since >= 110) || since >= 400) netSay();       // a new frame of its own goes out at once (the room itself sends at most thirty times a second); the rest (what has arrived, a sign of life) can wait a little
   const off = NET.offT > 0 && now - NET.offT > 2000, w = M.waitMs > 700 ? ncWaitingFor(M) : -1, show = (w >= 0 || off) && !G.over && !M.out, key = off ? -2 : w;
   if (show !== NET.waitShown || (show && UI.last.nw !== key)) { NET.waitShown = show; UI.last.nw = key; const el = $('netWait'); el.hidden = !show; if (show) { const h = G.humans[w]; el.textContent = off ? 'Reconnecting…' : w === M.me || !h ? 'Waiting for the others…' : 'Waiting for ' + h.name + '…'; } }
-  if (NET.web && now - NET.pingT > 1000) netPing(now);
+  if (now - NET.pingT > 1000) netPing(now);
   chatTick(now);
-  if (M.bad) netStop(`The match went out of step between the players at ${fmtTime(M.bad.turn / 15)} and could not go on. That should not happen: if it does again, everyone reloading the page is the first thing to try.`);
+  if (M.bad) netStop(`The match went out of step between the players at ${fmtTime(M.bad.turn * M.turn / 1000)} and could not go on. That should not happen: if it does again, everyone reloading the page is the first thing to try.`);
   else if (M.out) netStop(M.cut ? 'This device was without a connection for too long, and a bot has taken your hero.' : M.lost ? 'This device fell too far behind the match, and a bot has taken your hero.' : 'The others lost touch with this device for too long, and a bot has taken your hero.');
 }
-/* how the other players of the match are heard, said small on the HUD: the slowest of them, there and back, and whether that is a direct line */
+/* how the other players of the match are heard, said small on the HUD: the slowest of them, there and back (as the turn exchange
+   itself has measured it, or until it has, as the link reckons), and on the open web whether that is by a direct line */
 function netPing(now) {
-  const M = NET.M, el = $('netPing'); NET.pingT = now; let ms = 0, n = 0, direct = true;
-  if (M) for (let s = 0; s < M.seats; s++) { if (s === M.me || !M.here[s] || !NET.P.some(p => p.peer === NET.seats[s])) continue; const v = linkInfo(NET.seats[s]); n++; if (!v.direct) direct = false; if (v.ms > ms) ms = v.ms; }
-  const show = n > 0 && ms > 0, key = show ? (direct ? 'd' : 'r') + Math.round(ms / 5) : ''; if (key === UI.last.np) return; UI.last.np = key; el.hidden = !show; if (!show) return;
-  el.className = 'plate ' + (ms <= 110 ? 'g' : ms <= 240 ? 'y' : 'r'); el.innerHTML = `<i></i>${direct ? '' : '~'}${Math.round(ms)}<small>ms${direct ? '' : ' · relay'}</small>`;
-  el.setAttribute('aria-label', (direct ? 'Direct lines to the other players' : 'Through the relay') + ', about ' + Math.round(ms) + ' milliseconds there and back'); NET.via = { direct, ms };
+  const M = NET.M, el = $('netPing'); NET.pingT = now; let ms = 0, n = 0, direct = NET.web, sure = true;
+  if (M) for (let s = 0; s < M.seats; s++) {
+    if (s === M.me || M.gone[s] || !M.here[s]) continue; n++; let v = M.lat[s] > 0 ? M.lat[s] * 2 + 10 : 0;
+    if (NET.web) { const q = linkInfo(NET.seats[s]); if (!q.direct) direct = false; if (!v) { v = q.ms; if (!q.direct) sure = false; } }
+    if (v > ms) ms = v;
+  }
+  const show = n > 0 && ms > 0, key = show ? (direct ? 'd' : 'r') + (sure ? '' : '~') + Math.round(ms / 5) : ''; if (key === UI.last.np) return; UI.last.np = key; el.hidden = !show; if (!show) return;
+  el.className = 'plate ' + (ms <= 110 ? 'g' : ms <= 240 ? 'y' : 'r'); el.innerHTML = `<i></i>${sure ? '' : '~'}${Math.round(ms)}<small>ms${NET.web && !direct ? ' · relay' : ''}</small>`;
+  el.setAttribute('aria-label', (NET.web ? (direct ? 'Direct lines to the other players' : 'Through the relay') + ', about ' : 'About ') + Math.round(ms) + ' milliseconds there and back'); NET.via = { direct, ms };
 }
 /* the match is over for this page (it ended, was left, or cannot go on): back to the menu, with the table open if it is still held */
 function netStop(msg, gone) {
@@ -9751,6 +9793,7 @@ function netRender(force) {
     const down = NET.down ? `<p class="mpnote">The connection has dropped. Trying to get it back…</p>` : '';
     h = `<div class="mpme"><label for="mpNick">Your name</label><input id="mpNick" maxlength="14" value="${esc(NET.nick)}" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"></div>` + note + down
       + `<div><p class="eyebrow">Tables open now</p><div class="mptables">${T.length ? T.map(t => `<div class="mpt"><div><b>${esc(t.host)}’s table</b><span>${NET_MD[t.md]} · ${t.n} ${t.n === 1 ? 'player' : 'players'}${t.st ? ' · playing now' : ''}${t.ok ? '' : ' · another version of the page'}</span></div><button class="btn sm go" data-join="${t.code}"${t.ok ? '' : ' disabled'}>Join</button></div>`).join('') : `<p class="meta">${NET.look ? 'Looking for open tables…' : `None yet. Host one, and it shows here for everyone who has this page open and has pressed Friends (${oth <= 0 ? 'nobody else has the page open right now' : oth === 1 ? 'one other person has the page open right now' : oth + ' other people have the page open right now'}).`}</p>`}</div></div>`
+      + (NET.web && T.some(t => !t.ok) ? `<p class="mpnote">A table here is on another copy of the page than yours: one of the two is older. <button class="btn sm" data-fresh>Get the newest page</button></p>` : '')
       + `<div class="row"><button class="btn go" data-host="team">Host a 5v5</button><button class="btn" data-host="duel">Host a 1v1</button></div>`
       + `<p class="meta">In a 5v5 each player picks a side: all on one side is your team against bots, on both sides is friends against friends, and bots fill whatever places are left. A 1v1 is two players on the middle lane. ${NET.web ? 'Anyone who opens this page and presses Friends sees the open tables. To bring your friends straight to yours, send them the invite link you get at the table.' : 'Your friends need this page shared with them by name and to be signed in; a public link is not enough.' + (site ? ' On the open page nobody needs to sign in: ' + site + '.' : '')}</p>`
       + (NET.web ? `<div class="mpdir"><button class="chip plain" data-direct aria-pressed="${UI.direct !== false}">Direct lines: ${UI.direct !== false ? 'on' : 'off'}</button><span class="meta">Players at one table connect their devices straight to each other where they can, which is what makes a match quick. It lets those devices see each other’s network address. Off: everything goes through the relay, slower.</span></div>` : '');
@@ -9765,6 +9808,7 @@ function netRender(force) {
       + (NET.web ? `<div class="mplink"><span>Invite link</span><code id="mpLink">${esc(netLink(NET.code))}</code><button class="btn sm" data-copy>${NET.copied ? 'Copied' : 'Copy'}</button>${typeof navigator.share === 'function' ? '<button class="btn sm" data-share>Share</button>' : ''}</div>` : '')
       + `<div class="mpteams">${side(0, 'Blue')}${side(1, 'Red')}</div>`
       + (out.length ? `<p class="meta">Not seated: ${out.map(p => esc(netName(p)) + (p.ok ? '' : ' (another version of the page)')).join(', ')}. ${duel ? 'A 1v1 has one seat a side.' : 'A side has five seats.'}</p>` : '')
+      + (NET.web && NET.P.some(p => !p.ok) ? `<p class="mpnote">Not everyone here has the same copy of the page, and only the same copies can play together. Whoever has the older one should get the newest. <button class="btn sm" data-fresh>Get the newest page</button></p>` : '')
       + `<div class="row mpgo"><div class="chips" role="group" aria-label="Your side">${[0, 1].map(t => `<button class="chip plain ${t ? 'e' : 'a'}" data-tm="${t}" aria-pressed="${NET.team === t}">${t ? 'Red' : 'Blue'}</button>`).join('')}</div>${hs ? `<button class="btn go" data-start${why ? ' disabled' : ''}>Start the match</button>` : `<button class="btn${NET.ready ? ' on' : ' go'}" data-ready aria-pressed="${NET.ready}">${NET.ready ? 'Ready ✓' : 'I am ready'}</button>`}<span class="meta" role="status">${esc(hs ? (why || (NET.P.length > 1 ? 'Everyone is ready.' : 'Start alone against bots, or wait for your friends.')) : why ? (host ? host.nm : 'The host') + ' starts the match when everyone is ready. ' + why : 'Everyone is ready: ' + (host ? host.nm : 'the host') + ' can start the match.')}</span></div>`
       + `<div class="mpmine"><p class="eyebrow">Your hero</p><div class="pheroes mph">${HERO_KEYS.map(k => `<button data-hero="${k}" aria-pressed="${k === UI.hero}"${S[NET.team].some(p => !p.me && p.h === k) ? ' class="tk"' : ''}><img src="${portrait(k, UI.skins[k] | 0)}" alt="">${esc(HEROES[k].name)}</button>`).join('')}</div>`
       + (HEROES[UI.hero].roles ? `<div class="roles" role="group" aria-label="Role to play ${HEROES[UI.hero].name} in"><span>Play as</span>${HEROES[UI.hero].roles.map((r, i) => `<button class="chip plain" data-role="${i}" aria-pressed="${i === roleIx(UI.hero)}">${r.cls}</button>`).join('')}</div>` : '')
@@ -9806,6 +9850,7 @@ function bindNet() {
     else if (d.df && NET.hs) { const df = NET.cfg.df.slice(); df[+d.df ? 1 : 0] = DIFFS[+d.d] ? +d.d : 1; NET.cfg = { md: NET.cfg.md, df }; snd('ui'); netSay(); netRender(true); }
     else if (d.start != null && NET.hs) { if (netCanStart()) snd('deny'); else netHostStart(); }
     else if (d.diag != null) { NET.diag = !NET.diag; snd('ui'); netRender(true); }
+    else if (d.fresh != null) { try { location.replace(location.href.split('#')[0].split('?')[0] + '?r=' + Date.now().toString(36) + (location.hash || '')); } catch (e1) { location.reload(); } }       // (asked for under a new name, so that no stale copy is handed back; the table's link is kept)
     else if (d.retry != null) { snd('ui'); if (NET.ok === -1) { NET.ok = 0; netConnect(); netRender(true); } }
     else if (d.direct != null) { UI.direct = UI.direct === false; snd('ui'); prefs(true); linkDirect(UI.direct); netRender(true); }
     else if (d.copy != null && NET.code) {       // the invite link, onto the clipboard (where that is refused, it is selected so that it can be copied by hand)
