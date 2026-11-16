@@ -236,6 +236,9 @@ function tending(h) { for (const a of G.heroes) if (a !== h && a.team === h.team
    turret on her, and whoever else finishes a stung enemy off has not done it for her.
    This came with KIT_V 20: a match recorded before it is played again without (G.kit). */
 const STING_T = 8, STING_MAX = 3, STING_SLOW = 0.06;
+/* Lyra's Starfall, as of KIT_V 21: the stars fall for STARFALL_T seconds, and an enemy that has been under them for STARFALL_STAY
+   seconds without a break is rooted for STARFALL_ROOT, once for each Starfall (see zone's hold). */
+const STARFALL_T = 5, STARFALL_STAY = 1.5, STARFALL_ROOT = 2;
 function stingDmg(h, lv) { return L(lv, 5, 1.8) + 0.025 * h.ap; }
 function sting(h, e, lv) {
   if (e.dead || e.kind === 'turret' || e.kind === 'crystal' || immuneOf(e)) return;
@@ -615,10 +618,10 @@ const HEROES = {
         } },
       { name: 'Starfall', ic: 'star', c: '#ffd76a', max: 3, cd: [45, 35], cost: [140, 180], range: 800, cast: 'point', ult: true,
         ind: { t: 'circle', r: 330 }, ai: { t: 'point', r: 330, delay: 0.3, ult: true },
-        desc: lv => `Call down stars for 3s. Enemies inside take ${L(lv, 110, 50)} (+30% Magic) damage every 0.5s and are slowed 30%.`,
+        desc: lv => `Call down stars for ${STARFALL_T}s. Enemies inside take ${L(lv, 110, 50)} (+30% Magic) damage every 0.5s and are slowed 30%, and whoever stays under them for ${STARFALL_STAY}s is rooted for ${STARFALL_ROOT}s (once for each Starfall).`,
         fn(h, lv, tx, ty) {
-          skfx(h, 'lyra2c', h.x, h.y, { tx, ty });
-          zone(h, tx, ty, { dur: 3, r: 330, tick: 0.5, look: 'stars', c: '#ffd76a', ci: 2, hit(e) { dmg(h, e, L(lv, 110, 50) + 0.3 * h.ap, 'magic', { skill: true }); slow(e, 0.3, 0.7); } });
+          skfx(h, 'lyra2c', h.x, h.y, { tx, ty }); const late = G.kit >= 21;       // (before KIT_V 21 the stars fell for three seconds and held nobody)
+          zone(h, tx, ty, { dur: late ? STARFALL_T : 3, r: 330, tick: 0.5, look: 'stars', c: '#ffd76a', ci: 2, hold: late ? { stay: STARFALL_STAY, root: STARFALL_ROOT } : null, hit(e) { dmg(h, e, L(lv, 110, 50) + 0.3 * h.ap, 'magic', { skill: true }); slow(e, 0.3, 0.7); } });
         } },
     ],
   },

@@ -304,6 +304,12 @@ function aiCall(h, c, foes, hpF, late) {
 function aiDanger(h) {
   const org = h.ai.org; if (org < 2 || h.rootT > 0 || h.stunT > 0) return null;
   for (const z of G.areas) {
+    if (z.type === 'zone' && z.hold && z.team !== h.team && z.t > 0.3 && z.r) {       // ground that roots whoever stays on it: out by the nearest edge, if that can be reached before it holds (and if this bot has taken it in)
+      const s = z.hold.by[h.id]; if (s && s.held) continue; const dx = h.x - z.x, dy = h.y - z.y, d = hyp(dx, dy), out = z.r + h.r * 0.6 + 25; if (d >= out) continue;
+      const k = z._dz || (z._dz = {}); if (k[h.id] == null) k[h.id] = rnd() < (org >= 3 ? 0.9 : 0.55); if (!k[h.id]) continue;
+      const left = z.hold.stay - (s && s.k >= z.hold.k - 1 ? (s.n - 1) * z.tick : 0); if ((out - d) / Math.max(120, h.ms * 0.7) > left + 0.15) continue;       // too deep in it: no use running
+      if (d > 6) return { x: dx / d, y: dy / d }; const b = MAP.spawn[h.team], l = hyp(b.x - h.x, b.y - h.y) || 1; return { x: (b.x - h.x) / l, y: (b.y - h.y) / l };
+    }
     if (z.type !== 'delay' || z.team === h.team || !(z.t > 0.1) || !z.r) continue;
     const dx = h.x - z.x, dy = h.y - z.y, d = hyp(dx, dy), out = z.r + h.r * 0.6 + 25; if (d >= out) continue;
     const k = z._dz || (z._dz = {}); if (k[h.id] == null) k[h.id] = rnd() < (org >= 3 ? 0.9 : 0.55); if (!k[h.id]) continue;

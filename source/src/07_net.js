@@ -17,7 +17,7 @@
    NET.ok: 0 not asked yet, 1 connected, -1 this view cannot connect. chan: the table (null: not at one). P: the pages at the table,
    as read. hs: this page hosts. go: what the host started. M: the match in progress, as the turn exchange holds it (ncNew).
    ============================================================ */
-const NETV = 3;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
+const NETV = 4;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
 const NET_AWAY = 6000;        // ms the page of a seat may be missing from the table during a match before the seat counts as gone (connections are refreshed now and then, and that is no leaving)
 const NET_GO_MS = 15000;      // ms the host keeps saying how a match started
 const NET_BYTES = 3900;       // the most a page may keep in a room is 4 KiB
@@ -40,7 +40,7 @@ function netConnect() {
     NET.busy = false;
     if (!r || typeof r.presence !== 'function' || typeof r.onPeers !== 'function') { NET.ok = -1; NET.want = null; netRender(true); return; }
     NET.room = r; NET.ok = 1; NET.since = performance.now(); NET.look = true; NET.down = false; NET.dnT = 0;
-    if (NET.web) { LK.onNote = () => { if (NET.chan && !NET.M) netRender(); }; linkDirect(UI.direct !== false); }
+    if (NET.web) { LK.onNote = () => { if (NET.chan && !NET.M) { netSay(); netRender(); } }; linkDirect(UI.direct !== false); }       // (a line opened or lost: the table hears how many this page has, and shows it)
     try { r.onPeers(c => netLobbyPeers(c && c.peers || []), () => netLost()); } catch (e) { NET.ok = -1; }
     if (!NET.timer) NET.timer = setInterval(netTick, 1000);
     setTimeout(() => { NET.look = false; netRender(); }, 2600);       // (the others in the room answer over a second or two: nobody is "alone" before that)
@@ -74,7 +74,7 @@ function netTick() {       // once a second: what depends on time passing
   const now = performance.now();
   if (NET.web && NET.ok === 1 && NET.room) {       // the page's own room: out of reach for a while is said, and how each player at the table is heard is kept up to date
     const dn = !NET.room.connected(); if (!dn) NET.dnT = 0; else if (!NET.dnT) NET.dnT = now; const show = dn && now - NET.dnT > 2500;
-    if (show !== NET.down) { NET.down = show; netRender(true); } else if (NET.chan && !NET.M) netRender();
+    if (show !== NET.down) { NET.down = show; netRender(true); } else if (NET.chan && !NET.M) { if (netLines() !== NET.dlSaid) netSay(); netRender(); }       // (and the table hears how many direct lines this page has, whenever that changes)
   }
   if (NET.chan && !NET.M && !NET.hs && !NET.busy && now - NET.hostT > 3000) {       // the host has gone: the first of those left takes the table over
     const ok = NET.P.filter(p => p.ok);
@@ -123,6 +123,7 @@ function netMine() {       // this page's own row at the table, as it stands now
 function netSay() {       // this page's place at the table, and during a match its part in the turn exchange
   if (!NET.chan) return; const h = UI.hero, M = NET.M, now = performance.now(); if (!M) netMine();
   const T = { v: NETV, sim: SIM_NAME, c: NET.code, nm: NET.nick, tm: NET.team, h, k: UI.skins[h] | 0, sp: UI.spell, r: roleIx(h), rd: NET.ready ? 1 : 0, pt: NET.pt, st: M ? 1 : 0, ln: NET.lastN };
+  if (NET.web) T.dl = NET.dlSaid = netLines();
   if (NET.hs) { T.hs = 1; T.ht = NET.ht; T.cfg = NET.cfg; if (NET.go && now - NET.goT < NET_GO_MS) T.go = NET.go; }
   if (M) { T.m = ncOut(M); const ch = chatOut(now); if (ch) T.ch = ch; } else if (NET.quitN) T.m = { n: NET.quitN, q: 1 };
   if (T.go && T.m && netBytes(JSON.stringify(T)) > NET_BYTES) delete T.go;       // (cannot be while a match starts: what a match says only grows with trouble, later)
@@ -162,11 +163,18 @@ function netCanStart() {
   const w = all.find(p => !p.rd && p.peer !== NET.host); if (w) return w.me ? 'Say that you are ready.' : `Waiting for ${w.nm} to be ready.`;
   return '';
 }
+const netLines = () => { let n = 0; for (const p of NET.P) if (!p.me && linkInfo(p.peer).open) n++; return n; };       // how many of the others at the table this page has a direct line to that is worth the name
+/* quick turns (see part one) are for a table where everyone seated reaches everyone else by a short direct line: the host knows its own lines, and every page says how many it has */
+function netQuick(all) {
+  if (!NET.web || all.length < 2 || NET.P.length !== all.length) return false;       // (with someone at the table who is not seated, the count of lines says too little)
+  for (const p of all) { if (p.me) { if (netLines() < all.length - 1) return false; continue; } const v = linkInfo(p.peer); if (!v.open || !(v.rtt > 0 && v.rtt <= 110) || (p.T.dl | 0) < all.length - 1) return false; }
+  return true;
+}
 function netHostStart() {
   if (!NET.hs || NET.M || netCanStart()) return; const { S } = netSeats(), seats = [];
   for (const p of S[0].concat(S[1])) seats.push([p.peer, p.tm, p.h, Math.min(Math.max(p.k, 0), SKINS[p.h].length - 1), p.sp || HEROES[p.h].spell, p.r, p.nm]);
   let n = NET.lastN; for (const p of NET.P) if (p.ln > n) n = p.ln;       // (a number no page at the table has seen: whoever hosts)
-  const go = NET.go = { n: n + 1, seed: ((Math.random() * 2147483646) | 0) + 1, md: NET.cfg.md, df: NET.cfg.df.slice(), seats }; NET.goT = performance.now();
+  const go = NET.go = { n: n + 1, seed: ((Math.random() * 2147483646) | 0) + 1, md: NET.cfg.md, df: NET.cfg.df.slice(), ts: netQuick(S[0].concat(S[1])) ? 1 : 2, seats }; NET.goT = performance.now();
   setTimeout(() => { if (NET.go === go) { NET.go = null; if (NET.chan && !NET.M) netSay(); } }, NET_GO_MS + 200);
   netSay(); netGo(go);
 }
@@ -188,8 +196,8 @@ function netGo(go) {
   newGame({ seed: (go.seed >>> 0) || 1, fx: true, det: true, mode: duel ? 'duel' : undefined, diff: df[1], diffs: df, humans, me });
   if (!G.player) { NET.note = 'This page could not be seated in the match.'; startDemo(); netSay(); netRender(true); return; }
   const mine = humans.filter(h => h.team === humans[me].team).length, foes = humans.length - mine;
-  NET.seats = peers; NET.M = ncNew(n, humans.length, me, performance.now());
-  if (NET.web) { let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) NET.M.D = Math.min(NC_D0, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / NC_TURN) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes)
+  NET.seats = peers; NET.M = ncNew(n, humans.length, me, performance.now(), go.ts === 1 ? 1 : 2);       // (ts 1: a match of quick turns, the host having found everyone joined by direct lines)
+  if (NET.web) { const M = NET.M; let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) M.D = Math.min(NC_D0 * M.k, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / M.turn) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes)
   NET.abs = humans.map(() => 0); NET.prev = new Map(); NET.ready = false; NET.quitN = 0; NET.note = ''; NET.waitShown = false; NET.offT = 0; NET.say = { duel, df, n: humans.length, foes };
   UI.mode = 'net'; $('mp').hidden = true; enterPlay();
   banner(duel ? '1v1 · Mid lane' : foes ? 'Friends against friends' : 'Playing together', duel ? (foes ? 'Against ' + humans[1 - me].name : 'Break their turrets, then the crystal') : `${humans.length} ${humans.length === 1 ? 'player' : 'players'} · bots fill the other places`, '#f2c14e');
@@ -220,15 +228,15 @@ function netAhead() {
     if ((mx || my) && root <= 0 && wallSlide(U.x, U.y, mx * sp * k, my * sp * k, 0.4)) { roundPosts(U, mx, my, sp * k); U.x = _wx; U.y = _wy; }
     if (root > 0) root -= NC_STEP * k;
   };
-  let t = M.T; if (M.stepIn > 0) { for (let k = M.stepIn; k < NET_STEPS; k++) walk(1); t++; }       // what is left of the turn being played
+  let t = M.T; if (M.stepIn > 0) { for (let k = M.stepIn; k < M.steps; k++) walk(1); t++; }       // what is left of the turn being played
   for (; t <= M.hi && !cast; t++) {       // the frames of its own that wait their turn
-    const f = t >= NC_INIT ? ncGet(M, M.me, t) : null;
+    const f = t >= M.init ? ncGet(M, M.me, t) : null;
     if (f) { for (const a of f.acts) if (a[0] === A_CAST || a[0] === A_RECALL) cast = true; if (cast) break; if (f.mc === MOVE_NONE) mx = my = 0; else { const a = f.mc * (TAU / 65536); mx = fcos(a); my = fsin(a); } if (mx || my) { hx = mx; hy = my; } }
-    for (let k = 0; k < NET_STEPS; k++) walk(1);
+    for (let k = 0; k < M.steps; k++) walk(1);
   }
   if (!cast && !G.net.out.some(a => a[0] === A_CAST || a[0] === A_RECALL) && !UI.paused && !UI.ended) {       // and the stick as it is held now, for the part of a turn since the last frame went
     const I = G.input, l = hyp(I.mx, I.my);
-    if (l > 0) { mx = I.mx / l; my = I.my / l; hx = mx; hy = my; walk(Math.min(NET_STEPS, (now - AH.sampT) / 1000 / NC_STEP)); } else if (mx || my) { /* the stick was let go: nothing further */ }
+    if (l > 0) { mx = I.mx / l; my = I.my / l; hx = mx; hy = my; walk(Math.min(M.steps, (now - AH.sampT) / 1000 / NC_STEP)); } else if (mx || my) { /* the stick was let go: nothing further */ }
   }
   _wx = w0; _wy = w1; _sgx = g0; _sgy = g1;
   AH.x = U.x; AH.y = U.y; AH.moving = Math.abs(U.x - me.x) + Math.abs(U.y - me.y) > 2; AH.face = hx || hy ? fatan2(hy, hx) : me.face; AH.on = true;
@@ -244,18 +252,23 @@ function netFrame(dt) {
   const since = now - NET.pubT; if ((M.fresh && since >= 10) || (M.dirty && since >= 110) || since >= 400) netSay();       // a new frame of its own goes out at once (the room itself sends at most thirty times a second); the rest (what has arrived, a sign of life) can wait a little
   const off = NET.offT > 0 && now - NET.offT > 2000, w = M.waitMs > 700 ? ncWaitingFor(M) : -1, show = (w >= 0 || off) && !G.over && !M.out, key = off ? -2 : w;
   if (show !== NET.waitShown || (show && UI.last.nw !== key)) { NET.waitShown = show; UI.last.nw = key; const el = $('netWait'); el.hidden = !show; if (show) { const h = G.humans[w]; el.textContent = off ? 'Reconnecting…' : w === M.me || !h ? 'Waiting for the others…' : 'Waiting for ' + h.name + '…'; } }
-  if (NET.web && now - NET.pingT > 1000) netPing(now);
+  if (now - NET.pingT > 1000) netPing(now);
   chatTick(now);
-  if (M.bad) netStop(`The match went out of step between the players at ${fmtTime(M.bad.turn / 15)} and could not go on. That should not happen: if it does again, everyone reloading the page is the first thing to try.`);
+  if (M.bad) netStop(`The match went out of step between the players at ${fmtTime(M.bad.turn * M.turn / 1000)} and could not go on. That should not happen: if it does again, everyone reloading the page is the first thing to try.`);
   else if (M.out) netStop(M.cut ? 'This device was without a connection for too long, and a bot has taken your hero.' : M.lost ? 'This device fell too far behind the match, and a bot has taken your hero.' : 'The others lost touch with this device for too long, and a bot has taken your hero.');
 }
-/* how the other players of the match are heard, said small on the HUD: the slowest of them, there and back, and whether that is a direct line */
+/* how the other players of the match are heard, said small on the HUD: the slowest of them, there and back (as the turn exchange
+   itself has measured it, or until it has, as the link reckons), and on the open web whether that is by a direct line */
 function netPing(now) {
-  const M = NET.M, el = $('netPing'); NET.pingT = now; let ms = 0, n = 0, direct = true;
-  if (M) for (let s = 0; s < M.seats; s++) { if (s === M.me || !M.here[s] || !NET.P.some(p => p.peer === NET.seats[s])) continue; const v = linkInfo(NET.seats[s]); n++; if (!v.direct) direct = false; if (v.ms > ms) ms = v.ms; }
-  const show = n > 0 && ms > 0, key = show ? (direct ? 'd' : 'r') + Math.round(ms / 5) : ''; if (key === UI.last.np) return; UI.last.np = key; el.hidden = !show; if (!show) return;
-  el.className = 'plate ' + (ms <= 110 ? 'g' : ms <= 240 ? 'y' : 'r'); el.innerHTML = `<i></i>${direct ? '' : '~'}${Math.round(ms)}<small>ms${direct ? '' : ' · relay'}</small>`;
-  el.setAttribute('aria-label', (direct ? 'Direct lines to the other players' : 'Through the relay') + ', about ' + Math.round(ms) + ' milliseconds there and back'); NET.via = { direct, ms };
+  const M = NET.M, el = $('netPing'); NET.pingT = now; let ms = 0, n = 0, direct = NET.web, sure = true;
+  if (M) for (let s = 0; s < M.seats; s++) {
+    if (s === M.me || M.gone[s] || !M.here[s]) continue; n++; let v = M.lat[s] > 0 ? M.lat[s] * 2 + 10 : 0;
+    if (NET.web) { const q = linkInfo(NET.seats[s]); if (!q.direct) direct = false; if (!v) { v = q.ms; if (!q.direct) sure = false; } }
+    if (v > ms) ms = v;
+  }
+  const show = n > 0 && ms > 0, key = show ? (direct ? 'd' : 'r') + (sure ? '' : '~') + Math.round(ms / 5) : ''; if (key === UI.last.np) return; UI.last.np = key; el.hidden = !show; if (!show) return;
+  el.className = 'plate ' + (ms <= 110 ? 'g' : ms <= 240 ? 'y' : 'r'); el.innerHTML = `<i></i>${sure ? '' : '~'}${Math.round(ms)}<small>ms${NET.web && !direct ? ' · relay' : ''}</small>`;
+  el.setAttribute('aria-label', (NET.web ? (direct ? 'Direct lines to the other players' : 'Through the relay') + ', about ' : 'About ') + Math.round(ms) + ' milliseconds there and back'); NET.via = { direct, ms };
 }
 /* the match is over for this page (it ended, was left, or cannot go on): back to the menu, with the table open if it is still held */
 function netStop(msg, gone) {
@@ -294,6 +307,7 @@ function netRender(force) {
     const down = NET.down ? `<p class="mpnote">The connection has dropped. Trying to get it back…</p>` : '';
     h = `<div class="mpme"><label for="mpNick">Your name</label><input id="mpNick" maxlength="14" value="${esc(NET.nick)}" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"></div>` + note + down
       + `<div><p class="eyebrow">Tables open now</p><div class="mptables">${T.length ? T.map(t => `<div class="mpt"><div><b>${esc(t.host)}’s table</b><span>${NET_MD[t.md]} · ${t.n} ${t.n === 1 ? 'player' : 'players'}${t.st ? ' · playing now' : ''}${t.ok ? '' : ' · another version of the page'}</span></div><button class="btn sm go" data-join="${t.code}"${t.ok ? '' : ' disabled'}>Join</button></div>`).join('') : `<p class="meta">${NET.look ? 'Looking for open tables…' : `None yet. Host one, and it shows here for everyone who has this page open and has pressed Friends (${oth <= 0 ? 'nobody else has the page open right now' : oth === 1 ? 'one other person has the page open right now' : oth + ' other people have the page open right now'}).`}</p>`}</div></div>`
+      + (NET.web && T.some(t => !t.ok) ? `<p class="mpnote">A table here is on another copy of the page than yours: one of the two is older. <button class="btn sm" data-fresh>Get the newest page</button></p>` : '')
       + `<div class="row"><button class="btn go" data-host="team">Host a 5v5</button><button class="btn" data-host="duel">Host a 1v1</button></div>`
       + `<p class="meta">In a 5v5 each player picks a side: all on one side is your team against bots, on both sides is friends against friends, and bots fill whatever places are left. A 1v1 is two players on the middle lane. ${NET.web ? 'Anyone who opens this page and presses Friends sees the open tables. To bring your friends straight to yours, send them the invite link you get at the table.' : 'Your friends need this page shared with them by name and to be signed in; a public link is not enough.' + (site ? ' On the open page nobody needs to sign in: ' + site + '.' : '')}</p>`
       + (NET.web ? `<div class="mpdir"><button class="chip plain" data-direct aria-pressed="${UI.direct !== false}">Direct lines: ${UI.direct !== false ? 'on' : 'off'}</button><span class="meta">Players at one table connect their devices straight to each other where they can, which is what makes a match quick. It lets those devices see each other’s network address. Off: everything goes through the relay, slower.</span></div>` : '');
@@ -308,6 +322,7 @@ function netRender(force) {
       + (NET.web ? `<div class="mplink"><span>Invite link</span><code id="mpLink">${esc(netLink(NET.code))}</code><button class="btn sm" data-copy>${NET.copied ? 'Copied' : 'Copy'}</button>${typeof navigator.share === 'function' ? '<button class="btn sm" data-share>Share</button>' : ''}</div>` : '')
       + `<div class="mpteams">${side(0, 'Blue')}${side(1, 'Red')}</div>`
       + (out.length ? `<p class="meta">Not seated: ${out.map(p => esc(netName(p)) + (p.ok ? '' : ' (another version of the page)')).join(', ')}. ${duel ? 'A 1v1 has one seat a side.' : 'A side has five seats.'}</p>` : '')
+      + (NET.web && NET.P.some(p => !p.ok) ? `<p class="mpnote">Not everyone here has the same copy of the page, and only the same copies can play together. Whoever has the older one should get the newest. <button class="btn sm" data-fresh>Get the newest page</button></p>` : '')
       + `<div class="row mpgo"><div class="chips" role="group" aria-label="Your side">${[0, 1].map(t => `<button class="chip plain ${t ? 'e' : 'a'}" data-tm="${t}" aria-pressed="${NET.team === t}">${t ? 'Red' : 'Blue'}</button>`).join('')}</div>${hs ? `<button class="btn go" data-start${why ? ' disabled' : ''}>Start the match</button>` : `<button class="btn${NET.ready ? ' on' : ' go'}" data-ready aria-pressed="${NET.ready}">${NET.ready ? 'Ready ✓' : 'I am ready'}</button>`}<span class="meta" role="status">${esc(hs ? (why || (NET.P.length > 1 ? 'Everyone is ready.' : 'Start alone against bots, or wait for your friends.')) : why ? (host ? host.nm : 'The host') + ' starts the match when everyone is ready. ' + why : 'Everyone is ready: ' + (host ? host.nm : 'the host') + ' can start the match.')}</span></div>`
       + `<div class="mpmine"><p class="eyebrow">Your hero</p><div class="pheroes mph">${HERO_KEYS.map(k => `<button data-hero="${k}" aria-pressed="${k === UI.hero}"${S[NET.team].some(p => !p.me && p.h === k) ? ' class="tk"' : ''}><img src="${portrait(k, UI.skins[k] | 0)}" alt="">${esc(HEROES[k].name)}</button>`).join('')}</div>`
       + (HEROES[UI.hero].roles ? `<div class="roles" role="group" aria-label="Role to play ${HEROES[UI.hero].name} in"><span>Play as</span>${HEROES[UI.hero].roles.map((r, i) => `<button class="chip plain" data-role="${i}" aria-pressed="${i === roleIx(UI.hero)}">${r.cls}</button>`).join('')}</div>` : '')
@@ -349,6 +364,7 @@ function bindNet() {
     else if (d.df && NET.hs) { const df = NET.cfg.df.slice(); df[+d.df ? 1 : 0] = DIFFS[+d.d] ? +d.d : 1; NET.cfg = { md: NET.cfg.md, df }; snd('ui'); netSay(); netRender(true); }
     else if (d.start != null && NET.hs) { if (netCanStart()) snd('deny'); else netHostStart(); }
     else if (d.diag != null) { NET.diag = !NET.diag; snd('ui'); netRender(true); }
+    else if (d.fresh != null) { try { location.replace(location.href.split('#')[0].split('?')[0] + '?r=' + Date.now().toString(36) + (location.hash || '')); } catch (e1) { location.reload(); } }       // (asked for under a new name, so that no stale copy is handed back; the table's link is kept)
     else if (d.retry != null) { snd('ui'); if (NET.ok === -1) { NET.ok = 0; netConnect(); netRender(true); } }
     else if (d.direct != null) { UI.direct = UI.direct === false; snd('ui'); prefs(true); linkDirect(UI.direct); netRender(true); }
     else if (d.copy != null && NET.code) {       // the invite link, onto the clipboard (where that is refused, it is selected so that it can be copied by hand)

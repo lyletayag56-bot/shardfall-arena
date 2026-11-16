@@ -15,7 +15,10 @@
    Directly. Pages at the same table open a WebRTC data channel to each other (the relays carry the handshake), unordered and
    without waiting for what is lost, which is the quickest road between two devices there is. Once it is open, what they say goes
    straight across; the relays then carry only a sign of life, and take everything again the moment a direct line goes quiet. The
-   lower of two page names calls, the higher answers.
+   lower of two page names calls, the higher answers. Two devices that cannot reach each other (many phone networks, a VPN) can
+   still be joined through a TURN server where the page has been given one (LINK_CFG.turn: an address that answers with ICE
+   servers): that is a relay too, but usually a nearer and quicker one. A line that turns out slower than the relays is not
+   trusted with the match alone: what is said then goes both ways, and whichever copy arrives first counts.
 
    What a page says is either its whole object ('F', or 'G' when it also asks for the others'), or only what changed one level down
    since the last whole one ('D'), or that it has left ('B'). Each carries a number that only grows: a page takes what is newer than
@@ -28,7 +31,7 @@
 const LINK_CFG = (() => {
   const o = (typeof window !== 'undefined' && window.SHARDFALL_LINK) || {};
   return { relays: o.relays || ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'], spare: o.spare || ['wss://test.mosquitto.org:8081/mqtt'],
-    ice: o.ice || [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }], ns: o.ns || 'shardfall/a2/' };
+    ice: o.ice || [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }], turn: o.turn || (typeof TURN_URL === 'string' ? TURN_URL : ''), idle: o.idle || 120000, ns: o.ns || 'shardfall/a2/' };       // idle: ms with nothing to say and nobody to listen for (the Friends sheet shut, no table) after which the relays are let go of; they are taken up again when there is
 })();
 const LK_ID = /^p[a-z0-9]{6,20}$/, LK_ROOM = /^[a-z0-9][a-z0-9_.-]{0,47}$/;
 const LK_HB = [3000, 1200], LK_TTL = [10000, 5000];       // a whole object at least this often, and a page gone after this long unheard: [the lobby, a table]
@@ -109,8 +112,12 @@ function lkRelayIn(topic, text) {
   if (rest.startsWith('r/')) { const p = rest.split('/'); if (p.length !== 4 || (p[3] !== 's' && p[3] !== 'd') || p[2] === LK.me || !LK_ID.test(p[2])) return; const R = LK.rooms.get(p[1]); if (R) lkRoomIn(R, p[2], text, performance.now()); }
   else if (rest === 's/' + LK.me) lkSigIn(text);
 }
+function lkBusy() { for (const R of LK.rooms.values()) if (!R.left && (R.table || R.json !== '{}')) return true; return false; }       // something to say, or a table to listen at
+function lkWake() { if (!LK.asleep) return; LK.asleep = false; LK.idleT = performance.now(); lkLog('relays taken up again'); for (const C of LK.conns) { C.tryT = 0; C.wait = 500; if (C.main || LK.spareOn) mqOpen(C); } }
 function lkTick() {
   const now = performance.now(), gap = now - LK.tickT, up = lkUp(), mains = LK.conns.filter(C => C.main); LK.tickT = now;
+  if (lkBusy() || LK.wake) LK.idleT = now; else if (!LK.asleep && now - LK.idleT > LINK_CFG.idle) { LK.asleep = true; lkLog('nothing to do: relays let go'); for (const C of LK.conns) mqDown(C, 'idle'); }
+  if (LK.asleep) return;
   if (!LK.spareOn && now - LK.t0 > 3000 && mains.filter(C => C.st === 2).length < Math.min(2, mains.length)) { if (!LK.shortT) LK.shortT = now; else if (now - LK.shortT > 3000 || !up) LK.spareOn = true; } else LK.shortT = 0;
   for (const C of LK.conns) {
     if (C.st === 0) { if (now >= C.tryT && (C.main || LK.spareOn)) mqOpen(C); }
@@ -142,14 +149,15 @@ function lkRoomApi(R) {
     presence(patch) {
       if (R.left) return Promise.reject({ code: 'invalid_argument', message: 'this room has been left' });
       if (patch && typeof patch === 'object') for (const k in patch) { if (patch[k] === null || patch[k] === undefined) delete R.mine[k]; else R.mine[k] = patch[k]; }
+      if (LK.asleep && JSON.stringify(R.mine) !== '{}') lkWake();
       const w = R.pubT + 15 - performance.now(); if (w <= 0) lkFlush(R); else if (!R.flushT) R.flushT = setTimeout(() => lkFlush(R), w);
       return Promise.resolve();
     },
     peers: () => R.list,
     onPeers(fn) { R.fns.add(fn); R.changed = true; lkSoon(); return () => { R.fns.delete(fn); }; },
-    connected: lkConnected,
+    connected: () => LK.asleep || lkConnected(),       // (asleep is not cut off: the relays are a moment away)
   };
-  if (!R.table) o.join = name => { if (typeof name !== 'string' || !LK_ROOM.test(name) || name === 'lobby') return Promise.reject({ code: 'invalid_argument', message: 'not a name for a room' }); const old = LK.rooms.get(name); if (old) lkLeave(old); return Promise.resolve(lkRoomNew(name).api); };
+  if (!R.table) o.join = name => { if (typeof name !== 'string' || !LK_ROOM.test(name) || name === 'lobby') return Promise.reject({ code: 'invalid_argument', message: 'not a name for a room' }); lkWake(); const old = LK.rooms.get(name); if (old) lkLeave(old); return Promise.resolve(lkRoomNew(name).api); };
   else { o.name = R.name; o.leave = () => { lkLeave(R); return Promise.resolve(); }; }
   return Object.freeze(o);
 }
@@ -187,10 +195,12 @@ function lkFlush(R, force) {       // says this page's object in the room if it 
   if (!msg) { msg = (hello ? 'G' : 'F') + R.v + '\n' + json; R.fv = R.v; R.fobj = JSON.parse(json); R.fullT = now; R.ask = false; LK.stat.full++; } else must = false;
   R.said = true; R.pubT = now; lkSay(R, msg, must);
 }
+function lkRelayMs() { let r = 0; for (const C of LK.conns) if (C.st === 2 && C.rtt && (!r || C.rtt < r)) r = C.rtt; return r * 2; }       // about how long through the nearest relay to another page and back, if that page is as far from it as this one
+const lkGood = (L, now) => { if (!lkLive(L, now)) return false; const r = lkRelayMs(); return !(L.rtt > 0 && r > 0 && L.rtt > r * 1.3 + 30); };       // a direct line worth trusting with the match alone: live, and not clearly slower than the relays
 const lkLive = (L, now) => L.open && now - L.rxT <= LK_DQUIET + Math.max(0, now - LK.tickT - 300) && now >= L.doubtT;       // a direct line that is open and has not gone quiet (a page that has itself been held up, its own clockwork overdue, has only not looked yet)
 function lkSay(R, msg, must) {       // by the direct lines where they are open; through the relays too unless everyone else at the table is heard from directly (must: through the relays in any case)
   let all = R.table && R.peers.size > 0 && LK.links.size > 0;
-  if (R.table && LK.links.size > 0) { const now = performance.now(), dm = R.name + '\n' + msg; for (const P of R.peers.values()) { const L = LK.links.get(P.peer); if (!L || !L.open || !lkDirectSend(L, dm) || !lkLive(L, now)) all = false; } }
+  if (R.table && LK.links.size > 0) { const now = performance.now(), dm = R.name + '\n' + msg; for (const P of R.peers.values()) { const L = LK.links.get(P.peer); if (!L || !L.open || !lkDirectSend(L, dm) || !lkGood(L, now)) all = false; } }
   if (must || (!all && R.peers.size > 0)) { const topic = msg[0] === 'D' ? R.topicD : R.topic; for (const C of LK.conns) mqPub(C, topic, msg, must); if (must) R.relayT = performance.now(); }
 }
 function lkSayAll(R, msg) { for (const C of LK.conns) mqPub(C, R.topic, msg, true); if (R.table) for (const P of R.peers.values()) { const L = LK.links.get(P.peer); if (L && L.open) lkDirectSend(L, R.name + '\n' + msg); } }
@@ -232,7 +242,7 @@ function lkDeliver() {       // those listening to a room are told who is in it,
 function lkLinkCheck() {       // a line is wanted to everyone at a table with this page, and to nobody else
   const want = new Map(); for (const R of LK.rooms.values()) if (R.table && !R.left && R.json !== '{}') for (const P of R.peers.values()) want.set(P.peer, R.name);
   for (const [peer, L] of [...LK.links]) if (!want.has(peer) || !LK.direct || !LK.rtc) lkLinkClose(L, true);
-  if (LK.direct && LK.rtc) for (const [peer, room] of want) { let L = LK.links.get(peer); if (!L) { L = { peer, room, pc: null, dc: null, open: false, sid: '', rxT: 0, doubtT: 0, pingT: 0, t0: 0, tries: 0, nextT: 0, cq: [], have: false, n: 0, seen: new Set(), rtt: 0, mine: {}, theirs: {} }; LK.links.set(peer, L); } L.room = room; }
+  if (LK.direct && LK.rtc) for (const [peer, room] of want) { let L = LK.links.get(peer); if (!L) { L = { peer, room, pc: null, dc: null, open: false, sid: '', rxT: 0, doubtT: 0, pingT: 0, t0: 0, tries: 0, nextT: 0, cq: [], have: false, n: 0, seen: new Set(), rtt: 0, rs: [], mine: {}, theirs: {} }; LK.links.set(peer, L); } L.room = room; }
 }
 function lkLinkClose(L, forget) {
   const pc = L.pc, dc = L.dc, was = L.open; L.pc = null; L.dc = null; L.open = false;
@@ -248,7 +258,7 @@ function lkLinkFail(L, told) {       // the line did not open, or has broken: th
 function lkKind(c, o) { const p = String(c).split(' '), i = p.indexOf('typ'), t = i > 0 ? p[i + 1] : '?', a = p[4] || ''; o[t] = (o[t] || 0) + 1; if (a.indexOf(':') >= 0) o.v6 = (o.v6 || 0) + 1; else if (/\.local$/.test(a)) o.named = (o.named || 0) + 1; }
 const lkKinds = o => { const k = Object.keys(o).filter(x => x !== 'v6' && x !== 'named').map(x => x + ' ' + o[x]).join(', '); return (k || 'none') + (o.v6 ? ' (' + o.v6 + ' v6)' : '') + (o.named ? ' (' + o.named + ' by name)' : ''); };
 function lkLinkPc(L) {
-  let pc; try { pc = new RTCPeerConnection({ iceServers: LINK_CFG.ice }); } catch (e) { LK.rtc = false; return null; }
+  let pc; try { pc = new RTCPeerConnection({ iceServers: LK.ice || LINK_CFG.ice }); } catch (e) { LK.rtc = false; return null; }
   L.pc = pc; L.t0 = performance.now(); L.cq = []; L.have = false; L.n = 0; L.seen.clear(); L.mine = {}; L.theirs = {};
   pc.onicecandidate = e => { if (L.pc !== pc) return; if (e.candidate && e.candidate.candidate) { lkKind(e.candidate.candidate, L.mine); lkSig(L, { t: 'c', n: L.n++, c: e.candidate.candidate, m: e.candidate.sdpMid, l: e.candidate.sdpMLineIndex }); } else if (!e.candidate) lkLog('line ' + L.peer.slice(1, 5) + ' offers: ' + lkKinds(L.mine)); };
   pc.oniceconnectionstatechange = () => { if (L.pc === pc) lkLog('line ' + L.peer.slice(1, 5) + ' ice ' + pc.iceConnectionState); };
@@ -258,7 +268,7 @@ function lkLinkPc(L) {
 }
 function lkLinkChan(L, dc) {
   L.dc = dc;
-  dc.onopen = () => { if (L.dc !== dc) return; lkLog('line ' + L.peer.slice(1, 5) + ' open · mine: ' + lkKinds(L.mine) + ' · theirs: ' + lkKinds(L.theirs)); L.open = true; L.rxT = performance.now(); L.doubtT = 0; L.pingT = 0; L.tries = 0; for (const R of LK.rooms.values()) if (R.table && !R.left && R.json !== '{}' && R.peers.has(L.peer)) lkFlush(R, true); lkNote(); };
+  dc.onopen = () => { if (L.dc !== dc) return; lkLog('line ' + L.peer.slice(1, 5) + ' open · mine: ' + lkKinds(L.mine) + ' · theirs: ' + lkKinds(L.theirs)); L.open = true; L.rs = []; L.rtt = 0; L.rxT = performance.now(); L.doubtT = 0; L.pingT = 0; L.tries = 0; for (const R of LK.rooms.values()) if (R.table && !R.left && R.json !== '{}' && R.peers.has(L.peer)) lkFlush(R, true); lkNote(); };
   dc.onmessage = e => { if (L.dc === dc && typeof e.data === 'string') lkDirectIn(L, e.data); };
   dc.onclose = dc.onerror = () => { if (L.dc === dc) lkLinkFail(L); };
 }
@@ -296,7 +306,7 @@ function lkDirectSend(L, text) {
 function lkDirectIn(L, text) {
   const now = performance.now(), k = text[0]; L.rxT = now; LK.stat.din++;
   if (k === '?') { lkDirectSend(L, '!' + text.slice(1)); return; }       // "are you there": answered as it came
-  if (k === '!') { const r = now - (+text.slice(1)); if (r >= 0 && r < 10000) L.rtt = L.rtt ? L.rtt * 0.7 + r * 0.3 : r; return; }
+  if (k === '!') { const r = now - (+text.slice(1)); if (r >= 0 && r < 10000) { L.rs.push(r); if (L.rs.length > 8) L.rs.shift(); L.rtt = Math.min.apply(null, L.rs); } return; }       // (the quickest of the last few: an answer that found this page busy says nothing about the line)
   const nl = text.indexOf('\n'); if (nl < 1) return; const R = LK.rooms.get(text.slice(0, nl)); if (R && R.table) lkRoomIn(R, L.peer, text.slice(nl + 1), now, true);
 }
 function lkLinkTick(now) {
@@ -312,7 +322,7 @@ function lkLinkTick(now) {
 function linkOpen() {
   if (typeof WebSocket !== 'function' || typeof TextEncoder !== 'function' || typeof TextDecoder !== 'function') return Promise.resolve(null);
   if (!LK.on) {
-    LK.on = true; LK.enc = new TextEncoder(); LK.dec = new TextDecoder(); LK.rtc = typeof RTCPeerConnection === 'function'; LK.t0 = LK.tickT = performance.now(); LK.spareOn = false; LK.shortT = 0; LK.wasUp = false;
+    LK.on = true; LK.enc = new TextEncoder(); LK.dec = new TextDecoder(); LK.rtc = typeof RTCPeerConnection === 'function'; LK.t0 = LK.tickT = LK.idleT = performance.now(); LK.spareOn = false; LK.shortT = 0; LK.wasUp = false; LK.asleep = false;
     if (!LK.me) { let s = 'p'; const A = 'abcdefghijklmnopqrstuvwxyz0123456789', b = new Uint8Array(11); try { crypto.getRandomValues(b); } catch (e) { for (let i = 0; i < b.length; i++) b[i] = (Math.random() * 256) | 0; } for (const x of b) s += A[x % 36]; LK.me = s; }
     LK.conns = LINK_CFG.relays.map(u => [u, true]).concat(LINK_CFG.spare.map(u => [u, false])).map(([url, main], ix) => ({ url, ix, main, ws: null, st: 0, buf: null, pid: 0, tryT: 0, wait: 500, inT: 0, pingT: 0, pingAt: 0, rtt: 0, rs: [], t0: 0, openT: 0, subs: new Set() }));
     LK.timer = setInterval(lkTick, 250);
@@ -322,6 +332,12 @@ function linkOpen() {
       window.addEventListener('pagehide', () => { for (const R of LK.rooms.values()) if (R.said) { R.said = false; lkSayAll(R, 'B' + (++LK.ver)); } });       // (a page being closed says so: the others need not wait to find out)
     }
     for (const C of LK.conns) if (C.main) mqOpen(C);
+    if (LINK_CFG.turn && !LK.ice && typeof fetch === 'function') {       // the TURN servers this page may use, asked of whoever hands them out (without them: direct lines where the networks allow, as before)
+      fetch(LINK_CFG.turn).then(r => r.ok ? r.json() : null).then(list => {
+        if (!Array.isArray(list)) return; const ok = list.filter(q => q && (typeof q.urls === 'string' || Array.isArray(q.urls)) && (q.username == null || typeof q.username === 'string') && (q.credential == null || typeof q.credential === 'string')).slice(0, 8).map(q => ({ urls: q.urls, username: q.username, credential: q.credential }));
+        if (ok.length) { LK.ice = LINK_CFG.ice.concat(ok); lkLog('turn servers: ' + ok.length); }
+      }).catch(() => { lkLog('turn servers: none to be had'); });
+    }
   }
   const R = LK.rooms.get('lobby') || lkRoomNew('lobby');
   return new Promise(res => {
@@ -337,12 +353,16 @@ function linkDirect(on) {       // whether this page opens direct lines at all
   const was = LK.direct; LK.direct = !!on; if (!LK.on) return; lkLinkCheck();
   if (on && !was) for (const L of LK.links.values()) { if (LK.me > L.peer) lkSigTo(L.peer, '', { t: 'r' }); else L.nextT = 0; }
 }
-/* how this page hears a page at its table: { direct, ms } (ms: there and back, 0 where not known) */
-function linkInfo(peer) { const L = LK.links.get(peer), now = performance.now(); if (L && lkLive(L, now)) return { direct: true, ms: L.rtt }; let r = 0; for (const C of LK.conns) if (C.st === 2 && C.rtt && (!r || C.rtt < r)) r = C.rtt; return { direct: false, ms: r * 2 }; }
+/* how this page hears a page at its table: { direct, ms, open, rtt }. direct: by a direct line, this instant; ms: there and back by the road in use (0 where not known);
+   open: there is a direct line worth having, whether or not something has just come down it; rtt: there and back by that line (0 where not known) */
+function linkInfo(peer) {
+  const L = LK.links.get(peer), now = performance.now(), r = lkRelayMs(), open = !!L && L.open && !(L.rtt > 0 && r > 0 && L.rtt > r * 1.3 + 30), direct = open && lkLive(L, now);
+  return { direct, ms: direct ? L.rtt : r, open, rtt: L && L.open ? L.rtt : 0 };
+}
 /* how the connection stands, for the player to read (and to tell whoever has to find out why it misbehaves) */
 function linkStatus() {
   const now = performance.now(), relays = LK.conns.filter(C => C.main || C.st || LK.spareOn).map(C => ({ up: C.st === 2, ms: Math.round(C.rtt), spare: !C.main })), lines = [];
-  for (const L of LK.links.values()) lines.push({ peer: L.peer, state: lkLive(L, now) ? 'direct' : L.open ? 'quiet' : L.pc ? 'opening' : now < L.nextT && L.tries ? 'failed' : 'waiting', ms: Math.round(L.rtt), tries: L.tries });
+  for (const L of LK.links.values()) lines.push({ peer: L.peer, state: lkGood(L, now) ? 'direct' : lkLive(L, now) ? 'slower than the relay' : L.open ? 'quiet' : L.pc ? 'opening' : now < L.nextT && L.tries ? 'failed' : 'waiting', ms: Math.round(L.rtt), tries: L.tries });
   return { me: LK.me, rtc: LK.rtc, direct: LK.direct, relays, lines, stat: LK.stat, log: LK.log };
 }
 /* this page is waiting for something a page at its table should have said by now: it asks, through the relays as well, and whoever is asked that way says everything again by every road */

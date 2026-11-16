@@ -658,7 +658,12 @@ function useMark(h, e) {
   skfx(h, 'markx', e.x, e.y, { tid: e.id, n: e.km.n }); dmg(h, e, 100 + 14 * h.level + 0.4 * h.ap, 'magic', { skill: true, n: 'Spirit mark', ic: 'mask' }); return true;
 }
 function setForm(h, f) { h.form = f; h.cds[0] = h.cds[1] = 0; h.re[0] = h.re[1] = null; h.atkTarget = null; h.windT = 0; recalc(h); }
-function zone(h, x, y, o) { G.areas.push({ type: 'zone', x, y, r: o.r, t: o.dur, dur: o.dur, tick: o.tick, acc: o.tick, team: h.team, src: h, hit: o.hit, each: o.each || null, follow: o.follow || null, c: o.c, look: o.look || 'zone', ci: o.ci, cx: G.cx }); }       // hit: every enemy in it, each tick; each: once a tick, whoever is in it (what it does for its own side)
+function zone(h, x, y, o) { G.areas.push({ type: 'zone', x, y, r: o.r, t: o.dur, dur: o.dur, tick: o.tick, acc: o.tick, team: h.team, src: h, hit: o.hit, each: o.each || null, follow: o.follow || null, hold: o.hold ? { stay: o.hold.stay, root: o.hold.root, k: 0, by: {} } : null, c: o.c, look: o.look || 'zone', ci: o.ci, cx: G.cx }); }       // hit: every enemy in it, each tick; each: once a tick, whoever is in it (what it does for its own side); hold: { stay, root }: an enemy that has been in it for `stay` seconds running is rooted for `root`, once
+/* a zone that holds: by[id] is how many ticks running (n) that unit has been in it, as of which tick (k), and whether it has been held by it already */
+function zoneHold(a, e) {
+  const H = a.hold, s = H.by[e.id] || (H.by[e.id] = { n: 0, k: -9, held: false }); s.n = s.k === H.k - 1 ? s.n + 1 : 1; s.k = H.k;
+  if (!s.held && !e.dead && (s.n - 1) * a.tick >= H.stay - 1e-6) { s.held = true; root(e, H.root); }
+}
 function beam(h, ang, o) { G.areas.push({ type: 'beam', x: h.x, y: h.y, ang, len: o.len, w: o.w, t: o.delay, dur: o.delay, team: h.team, src: h, hit: o.hit, c: o.c, look: 'beam', ci: o.ci, cx: G.cx }); }
 function tickProjs(dt) {
   const P = G.projs;
@@ -709,7 +714,7 @@ function tickAreas(dt) {
     if (a.type === 'trap') { /* handled */ } else if (a.type === 'zone') {
       if (a.follow) { if (a.follow.dead) a.t = 0; else { a.x = a.follow.x; a.y = a.follow.y; } }
       a.acc += dt;
-      if (a.acc >= a.tick && a.t > -dt) { a.acc -= a.tick; for (const e of enemiesIn(a.team, a.x, a.y, a.r)) a.hit(e); if (a.each) a.each(a); }
+      if (a.acc >= a.tick && a.t > -dt) { a.acc -= a.tick; for (const e of enemiesIn(a.team, a.x, a.y, a.r)) { a.hit(e); if (a.hold) zoneHold(a, e); } if (a.hold) a.hold.k++; if (a.each) a.each(a); }
     } else if (a.t <= 0) {
       if (a.type === 'delay') { if (a.n) skfx(a.src, a.n, a.x, a.y, { r: a.r }); else fx('quake', a.x, a.y, { c: a.c, r: a.r }); sfx('thud', a.x, a.y); for (const e of enemiesIn(a.team, a.x, a.y, a.r)) a.hit(e); if (a.done) a.done(a); }
       else if (a.type === 'beam') {
@@ -1222,11 +1227,11 @@ function step(dt) {
    A finished recording: { v, sim, opts: { seed, diff, player }, steps, t, dt, ev, chk, marks, over, winner }.
    pb (while playing one): rec, i: the step to run next, e: read position in ev, next: the step the next event belongs to. */
 const DT_Q = 7200, DU_MAX = 240, MOVE_NONE = 65535, REC_V = 1, ROSTER_0 = 12;
-const KIT_V = 20, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings.
+const KIT_V = 21, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it.
 const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so)
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }
