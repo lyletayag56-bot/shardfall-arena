@@ -188,7 +188,7 @@ function netGo(go) {
   if (!G.player) { NET.note = 'This page could not be seated in the match.'; startDemo(); netSay(); netRender(true); return; }
   const mine = humans.filter(h => h.team === humans[me].team).length, foes = humans.length - mine;
   NET.seats = peers; NET.M = ncNew(n, humans.length, me, performance.now());
-  if (NET.web) { let ms = 0; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (v.ms > ms) ms = v.ms; } if (ms > 0) NET.M.D = Math.min(NC_DMAX, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / (NC_STEP * NET_STEPS * 1000)) + 1)); }       // (how long the road to the others is, is known here: the first guess at how far ahead to schedule is made from it) NET.abs = humans.map(() => 0); NET.prev = new Map(); NET.ready = false; NET.quitN = 0; NET.note = ''; NET.waitShown = false; NET.offT = 0; NET.say = { duel, df, n: humans.length, foes };
+  if (NET.web) { let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) NET.M.D = Math.min(NC_D0, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / NC_TURN) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes) NET.abs = humans.map(() => 0); NET.prev = new Map(); NET.ready = false; NET.quitN = 0; NET.note = ''; NET.waitShown = false; NET.offT = 0; NET.say = { duel, df, n: humans.length, foes };
   UI.mode = 'net'; $('mp').hidden = true; enterPlay();
   banner(duel ? '1v1 · Mid lane' : foes ? 'Friends against friends' : 'Playing together', duel ? (foes ? 'Against ' + humans[1 - me].name : 'Break their turrets, then the crystal') : `${humans.length} ${humans.length === 1 ? 'player' : 'players'} · bots fill the other places`, '#f2c14e');
   hint((G.player.team === RED ? 'Your side starts at the top right this time: your own team is still the blue one on your screen. ' : '') + (duel ? 'One lane, two turrets and the crystal. ' : mine > 1 ? 'Your friends are on your side. ' : '') + 'Your hero answers the stick at once. Skills and attacks land a moment after the press, on every screen at the same time: that is what keeps everyone in the same match.', 11);
@@ -251,7 +251,7 @@ function netPing(now) {
   const M = NET.M, el = $('netPing'); NET.pingT = now; let ms = 0, n = 0, direct = true;
   if (M) for (let s = 0; s < M.seats; s++) { if (s === M.me || !M.here[s] || !NET.P.some(p => p.peer === NET.seats[s])) continue; const v = linkInfo(NET.seats[s]); n++; if (!v.direct) direct = false; if (v.ms > ms) ms = v.ms; }
   const show = n > 0 && ms > 0, key = show ? (direct ? 'd' : 'r') + Math.round(ms / 5) : ''; if (key === UI.last.np) return; UI.last.np = key; el.hidden = !show; if (!show) return;
-  el.className = 'plate ' + (ms <= 90 ? 'g' : ms <= 200 ? 'y' : 'r'); el.innerHTML = `<i></i>${direct ? '' : '~'}${Math.round(ms)}<small>ms${direct ? '' : ' · relay'}</small>`;
+  el.className = 'plate ' + (ms <= 110 ? 'g' : ms <= 240 ? 'y' : 'r'); el.innerHTML = `<i></i>${direct ? '' : '~'}${Math.round(ms)}<small>ms${direct ? '' : ' · relay'}</small>`;
   el.setAttribute('aria-label', (direct ? 'Direct lines to the other players' : 'Through the relay') + ', about ' + Math.round(ms) + ' milliseconds there and back'); NET.via = { direct, ms };
 }
 /* the match is over for this page (it ended, was left, or cannot go on): back to the menu, with the table open if it is still held */
@@ -311,6 +311,11 @@ function netRender(force) {
       + `<div class="mpopt"><div class="chips" role="group" aria-label="Skin">${SKINS[UI.hero].map((k, i) => `<button class="chip plain" data-skin="${i}" aria-pressed="${i === (UI.skins[UI.hero] | 0)}">${esc(k.name)}</button>`).join('')}</div><div class="chips" role="group" aria-label="Battle spell">${Object.keys(SPELLS).map(k => `<button class="chip plain" data-spell="${k}" aria-pressed="${k === UI.spell}">${esc(SPELLS[k].name)}</button>`).join('')}</div></div></div>`
       + `<div class="row"><button class="btn" data-leave>Leave the table</button><span class="meta">Closing this sheet leaves the table too.</span></div>`;
   }
+  if (NET.web && NET.ok === 1) {       // how this page is connected, in a line; and for whoever needs to find out why it misbehaves, the last things that happened
+    const q = linkStatus(), up = q.relays.filter(r => r.up), ms = up.filter(r => r.ms > 0).map(r => r.ms + ' ms').join(', ');
+    h += `<div class="mpconn"><span class="meta">Relays reached: ${up.length} of ${q.relays.length}${ms ? ' (' + ms + ')' : ''}${NET.chan && q.lines.length ? ' · direct lines: ' + q.lines.filter(l => l.state === 'direct').length + ' of ' + q.lines.length : ''}</span><button class="chip plain" data-diag aria-pressed="${!!NET.diag}">Details</button></div>`
+      + (NET.diag ? `<pre class="mplog">${esc(`page ${q.me.slice(1, 5)} · ${SIM_NAME} · v${NETV} · direct lines ${q.direct ? 'on' : 'off'}${q.rtc ? '' : ' (this browser has none)'}\nrelays ${q.relays.map((r, i) => (i + 1) + (r.spare ? ' spare' : '') + ': ' + (r.up ? 'up' + (r.ms ? ' ' + r.ms + ' ms' : '') : 'down')).join(' · ')}\n${q.lines.map(l => 'line to ' + l.peer.slice(1, 5) + ': ' + l.state + (l.ms ? ' ' + l.ms + ' ms' : '') + (l.tries ? ' (tries ' + l.tries + ')' : '')).join('\n')}${q.lines.length ? '\n' : ''}sent ${q.stat.rout} by relay, ${q.stat.dout} direct · got ${q.stat.rin} by relay, ${q.stat.din} direct · dropped ${q.stat.skip}\n${q.log.slice(-22).join('\n')}`)}</pre>` : '');
+  }
   if (!force && h === NET.sig) return; NET.sig = h;
   const f = document.activeElement, typing = f && f.id === 'mpNick', pos = typing ? f.selectionStart : 0, sc = el.scrollTop;
   if (typing && !force) return;       // (the list under a name being typed is redrawn when the typing is done)
@@ -340,6 +345,7 @@ function bindNet() {
     else if (d.md && NET.hs) { NET.cfg = { md: d.md === 'duel' ? 'duel' : 'team', df: NET.cfg.df }; snd('ui'); netSay(); netLobbySay(); netRender(true); }
     else if (d.df && NET.hs) { const df = NET.cfg.df.slice(); df[+d.df ? 1 : 0] = DIFFS[+d.d] ? +d.d : 1; NET.cfg = { md: NET.cfg.md, df }; snd('ui'); netSay(); netRender(true); }
     else if (d.start != null && NET.hs) { if (netCanStart()) snd('deny'); else netHostStart(); }
+    else if (d.diag != null) { NET.diag = !NET.diag; snd('ui'); netRender(true); }
     else if (d.retry != null) { snd('ui'); if (NET.ok === -1) { NET.ok = 0; netConnect(); netRender(true); } }
     else if (d.direct != null) { UI.direct = UI.direct === false; snd('ui'); prefs(true); linkDirect(UI.direct); netRender(true); }
     else if (d.copy != null && NET.code) {       // the invite link, onto the clipboard (where that is refused, it is selected so that it can be copied by hand)

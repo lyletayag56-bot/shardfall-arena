@@ -14,8 +14,16 @@
    frames and how many turns of them it had to spare (the second lowest count of the two seconds: one bad moment is not the road).
    A machine whose frames keep arriving late schedules further ahead: at once if the others had none to spare either, and
    otherwise only if it happens again within a few seconds, because one hold-up on the way is better sat out once than paid for in
-   every press for the rest of the match. One whose frames arrive with turns to spare schedules less far, and remembers for a
-   while where that turned out to be too little. The turns skipped when D grows repeat what was held.
+   every press for the rest of the match. One whose frames arrive with turns to spare schedules less far, by as many turns as
+   would still leave two, and remembers where that turned out to be too little: for a while, and for longer each time it turns out so
+   again. The turns skipped when D grows repeat what was held.
+
+   The machines also keep in time with one another. Each knows roughly how long the road to every other is (from how soon its own
+   frames are said to have arrived), and so about which turn the others are at this instant, not just which they were at when they
+   last spoke. Each says how far ahead of itself it reckons every other to be, and half the difference between what two machines
+   reckon of each other is how far apart they really are, whatever both got wrong about the road. One that finds itself behind
+   runs a little fast until it is level: otherwise the one that started later, or hung for a moment, would stay behind for the rest
+   of the match, and need to schedule that much further ahead than the others.
 
    A seat goes (its page closed, or silent too long, or its player left): every machine that notices says so, with the last turn it
    has that seat's frames for, and republishes that seat's last frames for whoever has fewer. When all who remain name the same
@@ -25,6 +33,7 @@ const NC_INIT = 2;                                 // the first turns of a match
 const NC_D0 = 3, NC_DMIN = 2, NC_DMAX = 14;       // turns ahead a player's doings are scheduled: to begin with, at least, at most (15 turns a second)
 const NC_CALM = 4000, NC_FLOOR = 20000;            // ms without trouble before it tries one turn less ahead; and for how long it will not go back under a number that going down to has just proved too low
 const NC_AGAIN = 9000;                             // ms within which a second hold-up at the same seat counts as the road, not as bad luck
+const NC_WARM = 4000;                              // ms at the start of a match in which waiting says nothing about the road (every machine is still getting the match on its feet): D is set from the road as measured instead
 const NC_WIN = 96;                                 // the most of its own frames a machine keeps publishing
 const NC_SILENT = 9000;                            // ms without a sign of life from a seat that is being waited for: it has gone
 const NC_HASH = 30;                                // the match's fingerprint is compared every so many turns
@@ -33,6 +42,7 @@ const NC_ACTS = 12;                                // presses to a frame, at mos
 const NC_FMAX = 1000, NC_RMAX = 280, NC_RELAYS = 3; // characters of its own frames a machine publishes at once, at most; of a gone seat's; and for how many gone seats at once (what a machine may publish is bounded: see the room's presence)
 const NC_OFFLINE = 8000;                           // ms a machine that knows it has no connection goes on hoping: after that it gives the match up itself (the others will have, or soon will)
 const NC_STUCK = 3000;                             // ms a machine may be offered only frames of a gone seat that do not follow on from its own before it gives the match up
+const NC_TURN = NC_STEP * NET_STEPS * 1000;        // ms to a turn
 
 /* ---- frames as text ---- */
 const _ncF = new Float32Array(1), _ncU = new Uint32Array(_ncF.buffer), _ncRe = /^[0-9a-z]{1,7}$/;
@@ -91,10 +101,11 @@ function ncNew(n, seats, me, now) {
   const M = { n, seats, me, D: NC_D0, T: 0, stepIn: 0, acc: 0, fr: [], lo: [], have: [], hi: NC_INIT - 1, ack: [], pT: [], seen: [], here: [], wf: [],
     gone: [], bel: [], dropAt: [], out: false, lost: false, left: false, bad: null, hashes: [], their: [], hh: null,       // out: the match goes on without this machine (lost: because it fell too far behind)
     waitSeat: -1, waitMs: 0, wAcc: [], waited: [], sAcc: [], slack: [], late: [], spare: [], winT: now, dT: now, calmT: now, lastF: null,
-    hb: 0, hbT: now, dirty: true, fresh: true, pubT: 0, turns: 0, stalls: 0, stuck: [], offline: false, offT: 0, cut: false, floorD: 0, floorT: now - NC_FLOOR,
-    wn: 1, wnOf: [], rep: [], lateAt: [], sA2: [], sN: [], upT: now, downT: now - NC_AGAIN };       // wn: which two seconds this machine's report is of · wnOf[s]: the last report read from seat s, rep[s]: and not acted on yet · lateAt[s]: when s last said it had waited for this machine       // offline: this machine knows it has no connection just now (cut: and gave the match up over it)       // fresh: there is a frame of its own that has not been published yet
+    hb: 0, hbT: now, dirty: true, fresh: true, pubT: 0, turns: 0, stalls: 0, stuck: [], offline: false, offT: 0, cut: false, floorD: 0, floorT: now - NC_FLOOR * 9, floorK: 1,
+    wn: 1, wnOf: [], rep: [], lateAt: [], sA2: [], sN: [], upT: now, downT: now - NC_AGAIN,
+    clock: now, sent: [], sentHi: NC_INIT - 1, rA: [], rB: [], rT: now, lat: [], xs: [], xo: [], dx: [], born: now, warm: 0 };       // xs[s]: turns seat s is reckoned to be ahead of this machine · xo[s]: turns s reckons this machine to be ahead of it (null: it has not said) · dx[s]: how far ahead s really is, by the two together, evened out over half a second       // sent: when each of this machine's frames was first said ([turn, ms]) · rA, rB[s]: the quickest it has been said to have arrived at seat s and the word come back, in the last few seconds and the few before · lat[s]: ms the road to s takes, one way (0: not known)       // wn: which two seconds this machine's report is of · wnOf[s]: the last report read from seat s, rep[s]: and not acted on yet · lateAt[s]: when s last said it had waited for this machine       // offline: this machine knows it has no connection just now (cut: and gave the match up over it)       // fresh: there is a frame of its own that has not been published yet
   for (let s = 0; s < seats; s++) { M.fr.push([]); M.lo.push(NC_INIT); M.have.push(NC_INIT - 1); M.ack.push(NC_INIT - 1); M.pT.push(0); M.seen.push(now); M.here.push(true); M.wf.push(-1);
-    M.gone.push(false); M.bel.push({}); M.dropAt.push(-1); M.their.push(null); M.wAcc.push(0); M.waited.push(0); M.sAcc.push(99); M.slack.push(99); M.late.push(0); M.spare.push(99); M.stuck.push(0); M.wnOf.push(0); M.rep.push(false); M.lateAt.push(now - NC_AGAIN); M.sA2.push(99); M.sN.push(0); }
+    M.gone.push(false); M.bel.push({}); M.dropAt.push(-1); M.their.push(null); M.wAcc.push(0); M.waited.push(0); M.sAcc.push(99); M.slack.push(99); M.late.push(0); M.spare.push(99); M.stuck.push(0); M.wnOf.push(0); M.rep.push(false); M.lateAt.push(now - NC_AGAIN); M.sA2.push(99); M.sN.push(0); M.rA.push(1e9); M.rB.push(1e9); M.lat.push(0); M.xs.push(0); M.xo.push(null); M.dx.push(0); }
   return M;
 }
 function ncGet(M, s, t) { const i = t - M.lo[s]; return i >= 0 && i < M.fr[s].length ? M.fr[s][i] : null; }
@@ -108,7 +119,7 @@ function ncTake(M, s, lo, arr) {
 /* ---- what another machine published: d is its match object (as ncOut makes them); who knows what is not trusted, only read ---- */
 function ncIn(M, s, d, now) {
   if (!d || typeof d !== 'object' || d.n !== M.n || s === M.me || !(s >= 0 && s < M.seats)) return;
-  M.seen[s] = now; const S = M.seats, int = v => typeof v === 'number' && v === (v | 0);
+  M.seen[s] = now; M.clock = now; const S = M.seats, int = v => typeof v === 'number' && v === (v | 0);
   if (int(d.t) && d.t > M.pT[s]) M.pT[s] = d.t;
   M.wf[s] = int(d.wf) && d.wf >= 0 && d.wf < S ? d.wf : -1;
   if (d.q === 1) ncGone(M, s);
@@ -127,7 +138,11 @@ function ncIn(M, s, d, now) {
     if (d.lo > M.have[s] + 1) { if (!M.out) { M.out = true; M.lost = true; M.dirty = true; M.fresh = true; } return; }       // it has stopped repeating frames this machine never got: there is no catching up from here
     if (ncTake(M, s, d.lo, ncDec(d.f, NC_WIN + 8))) M.dirty = true;
   }
-  if (Array.isArray(d.a) && int(d.a[M.me]) && d.a[M.me] > M.ack[s] && d.a[M.me] <= M.hi) M.ack[s] = d.a[M.me];
+  if (Array.isArray(d.a) && int(d.a[M.me]) && d.a[M.me] > M.ack[s] && d.a[M.me] <= M.hi) {
+    M.ack[s] = d.a[M.me];
+    for (let i = M.sent.length - 1; i >= 0; i--) { const q = M.sent[i]; if (q[0] > M.ack[s]) continue; if (q[0] === M.ack[s]) { const r = now - q[1]; if (r >= 0 && r < M.rA[s]) { M.rA[s] = r; M.lat[s] = Math.max(0, (Math.min(r, M.rB[s]) - 10) / 2); } } break; }       // (there and back, the word of its arrival waiting at most a moment at the far end: the quickest of many is close to twice the road)
+  }
+  if (Array.isArray(d.ld)) M.xo[s] = int(d.ld[M.me]) ? d.ld[M.me] / 10 : null;
   if (int(d.wn) && d.wn !== M.wnOf[s]) {       // a report of two seconds this machine has not read yet: read once
     M.wnOf[s] = d.wn; M.rep[s] = true; M.late[s] = Array.isArray(d.w) && d.w[M.me] >= 0 ? +d.w[M.me] || 0 : 0; M.spare[s] = Array.isArray(d.sl) && int(d.sl[M.me]) ? d.sl[M.me] : 99;
   }
@@ -153,7 +168,8 @@ function ncHashCheck(M, s) { const h = M.their[s]; if (!h || M.bad || M.out || M
 function ncOut(M) {
   let lo = M.hi + 1; for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s] && M.ack[s] + 1 < lo) lo = M.ack[s] + 1;
   if (lo < M.hi + 1 - NC_WIN) lo = M.hi + 1 - NC_WIN; if (lo < M.lo[M.me]) lo = M.lo[M.me];
-  const mine = M.fr[M.me], o = { n: M.n, t: M.T, hb: M.hb, lo, f: ncEnc(mine.slice(lo - M.lo[M.me]), NC_FMAX), a: M.have.slice(), w: M.waited.slice(), sl: M.slack.slice(), wn: M.wn, wf: M.waitSeat };
+  if (M.hi > M.sentHi) { M.sentHi = M.hi; M.sent.push([M.hi, M.clock]); if (M.sent.length > 64) M.sent.shift(); }
+  const mine = M.fr[M.me], o = { n: M.n, t: M.T, hb: M.hb, lo, f: ncEnc(mine.slice(lo - M.lo[M.me]), NC_FMAX), a: M.have.slice(), w: M.waited.slice(), sl: M.slack.slice(), wn: M.wn, ld: M.xs.map(x => Math.round(Math.max(-99, Math.min(99, x)) * 10)), wf: M.waitSeat };
   if (M.hh) o.hh = M.hh; if (M.left || M.out) o.q = 1;       // (q: this machine is no longer playing this match, whether it chose to go or lost touch)
   let g = null, rl = null, nr = 0;
   for (let s = 0; s < M.seats; s++) if (M.gone[s]) {
@@ -200,13 +216,16 @@ function ncEnd(M) {
 }
 /* ---- time passes: dt seconds of it, at `now` ms. The match is stepped as far as it may be; returns the number of steps taken ---- */
 function ncTick(M, dt, now) {
-  let n = 0; if (M.out || M.bad || G.over) return 0;
+  let n = 0; M.clock = now; if (M.out || M.bad || G.over) return 0;
+  if (now - M.rT > 3000) { M.rT = now; for (let s = 0; s < M.seats; s++) { const r = Math.min(M.rA[s], M.rB[s]); if (r < 1e8) M.lat[s] = Math.max(0, (r - 10) / 2); M.rB[s] = M.rA[s]; M.rA[s] = 1e9; } }
   if (M.offline && now - M.offT > NC_OFFLINE) { M.out = true; M.cut = true; M.dirty = true; M.fresh = true; return 0; }
   if (now - M.hbT >= 400) { M.hbT = now; M.hb = (M.hb + 1) % 100000; M.dirty = true; }
   for (let s = 0; s < M.seats; s++) { if (!M.here[s]) ncGone(M, s); if (M.stuck[s] && M.dropAt[s] < 0 && now - M.stuck[s] > NC_STUCK) { M.out = true; M.lost = true; M.dirty = true; M.fresh = true; return 0; } }
   ncSettle(M);
-  let lead = 0; for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s] && M.pT[s] - M.T > lead) lead = M.pT[s] - M.T;
-  M.acc = Math.min(M.acc + dt * (lead >= 3 ? 1.5 : lead >= 2 ? 1.2 : 1), 0.35);       // behind the others: a little faster than the clock until it has caught up
+  let lead = 0; const here = M.T + M.stepIn / NET_STEPS;       // how many turns the furthest of the others is ahead of this machine right now: where it said it was, and the road and the time since
+  const ek = 1 - Math.exp(-dt / 0.5);
+  for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s]) { const x = M.pT[s] + (M.lat[s] + Math.min(Math.max(now - M.seen[s], 0), 400)) / NC_TURN - here, d = M.xo[s] === null ? x : (x - M.xo[s]) / 2; M.xs[s] = x; M.dx[s] += (d - M.dx[s]) * (Math.abs(d - M.dx[s]) > 2 ? 1 : ek); if (M.dx[s] > lead) lead = M.dx[s]; }       // (a jump of turns is taken at once: that is no wobble of the road)
+  M.acc = Math.min(M.acc + dt * (lead >= 3 ? 1.5 : lead >= 2 ? 1.2 : lead >= 0.5 ? 1 + 0.06 * lead : 1), 0.35);       // behind the others: a little faster than the clock until it has caught up
   const most = lead >= 2 ? 6 : 3; let waiting = -1;
   while (M.acc >= NC_STEP && n < most && !G.over) {
     if (M.stepIn === 0) { waiting = ncMissing(M, M.T); if (waiting >= 0) break; ncBegin(M); }
@@ -221,15 +240,23 @@ function ncTick(M, dt, now) {
   if (now - M.winT >= 2000) {       // what the last two seconds were like, for the others to read
     M.winT = now; M.wn = M.wn % 99999 + 1; for (let s = 0; s < M.seats; s++) { M.waited[s] = Math.round(M.wAcc[s]); M.wAcc[s] = 0; M.slack[s] = M.sN[s] >= 8 ? M.sA2[s] : M.sAcc[s]; M.sAcc[s] = M.sA2[s] = 99; M.sN[s] = 0; } M.dirty = true;
   }
-  if (!M.out) {       // how far ahead to schedule, from what the others have just reported
-    let up = 0, calm = true, any = false, others = 0;
+  if (!M.out && now - M.born < NC_WARM) {       // the first seconds: as far ahead as the road, as measured so far, needs (and what the others report of these seconds is not acted on)
+    if (now - M.born > 1200 + 1300 * M.warm) { M.warm++; let ms = 0; for (let s = 0; s < M.seats; s++) if (s !== M.me && !M.gone[s] && M.lat[s] > ms) ms = M.lat[s]; if (ms > 0) { const need = Math.min(NC_DMAX, Math.ceil((ms + 25) / NC_TURN) + 1); if (need > M.D) M.D = need; } }
+    for (let s = 0; s < M.seats; s++) M.rep[s] = false; M.calmT = now;
+  } else if (!M.out) {       // how far ahead to schedule, from what the others have just reported
+    let up = 0, calm = true, any = false, known = true, others = 0, sp = 99;
     for (let s = 0; s < M.seats; s++) {
-      if (s === M.me || M.gone[s]) continue; others++; if (M.late[s] > 100 || M.spare[s] < 2) calm = false; if (!M.rep[s]) continue; M.rep[s] = false; any = true;
+      if (s === M.me || M.gone[s]) continue; others++; if (M.late[s] > 100 || M.spare[s] < 2) calm = false; if (M.spare[s] < sp) sp = M.spare[s]; if (!M.wnOf[s] || M.spare[s] > 90) known = false; if (!M.rep[s]) continue; M.rep[s] = false; any = true;
       if (M.late[s] > 100) { const again = now - M.lateAt[s] < NC_AGAIN; M.lateAt[s] = now; if (M.spare[s] <= 0 || again) up = Math.max(up, M.late[s] > 700 && M.spare[s] <= 0 ? 2 : 1); }       // (waited, and had nothing to spare either: the road is longer than D. Waited twice in a few seconds: it keeps happening)
     }
     if (!calm || !others) M.calmT = now;
-    if (up && lead < 2 && M.D < NC_DMAX && now - M.upT > 1200) { M.D = Math.min(NC_DMAX, M.D + up); M.upT = now; M.calmT = now; if (now - M.downT < NC_AGAIN) { M.floorD = M.D; M.floorT = now; } }       // (further ahead straight after going down: that number was too low, and is left alone for a while)
-    else if (any && now - M.calmT > NC_CALM && M.D > NC_DMIN && !(now - M.floorT < NC_FLOOR && M.D <= M.floorD)) { M.D--; M.downT = now; M.calmT = now; }
+    if (up && lead < 2 && M.D < NC_DMAX && now - M.upT > 1200) {
+      M.D = Math.min(NC_DMAX, M.D + up); M.upT = now; M.calmT = now;
+      if (now - M.downT < NC_AGAIN) { M.floorK = now - M.floorT < NC_FLOOR * M.floorK + 30000 ? Math.min(M.floorK * 2, 8) : 1; M.floorD = M.D; M.floorT = now; }       // (further ahead straight after going down: that number was too low. It is left alone for a while, and for twice as long each time it proves too low again)
+    } else if (any && known && now - M.calmT > NC_CALM && M.D > NC_DMIN) {       // less far: by as many turns as still leave the others two to spare, and not under a number that is being left alone
+      const low = now - M.floorT < NC_FLOOR * M.floorK ? Math.max(NC_DMIN, M.floorD) : NC_DMIN, k = Math.min(Math.max(1, sp - 2), M.D - low);
+      if (k > 0) { M.D -= k; M.downT = now; M.calmT = now; }
+    }
   }
   return n;
 }
