@@ -378,6 +378,29 @@ const HERO_BUILD = {
     for (const [bn, r, y, a] of [['bees', 0.62, 0, 0], ['bees', 0.5, 0.2, 2.5], ['bees2', 0.7, 0, 4.2]]) { const m = glowPart(R, bn, new THREE.SphereGeometry(0.034, 6, 5), L.tend || L.glow, Math.cos(a) * r, y, Math.sin(a) * r, 0.34), ch = R.B[bn].children; m.scale.set(1, 0.8, 1.5); m.rotation.y = -a; m.userData.bee = 1; ch[ch.length - 1].userData.bee = 2; }       // (marked, body and glow, so that the view can colour them by her temper)
     return { style: 'cast' };
   },
+  hesta(R, L) {       // a herald in bronze and verdigris: scale armour to the knee, a mirror plate on the breast, her hair bound up in a tall knot with a red tassel down the back, a great gong on her left arm for a shield and the beater for it in her right hand
+    const b = R.b, zf = 0.158 * b, metal = L.metal || '#c98a3c', dark = shade(L.body, -0.28), plume = L.plume || L.cape, wood = '#5a3d28';
+    baseBody(R, { body: L.body, trim: L.trim, skin: L.skin, sleeve: shade(L.body, 0.06), fore: metal, glove: '#3a2a22', pants: L.pants, boot: L.boot });
+    const T = R.P('spine'), H = R.P('head'), Hp = R.P('hips');
+    for (let i = 0; i < 3; i++) T.cyl((0.224 - i * 0.012) * b, (0.236 - i * 0.012) * b, 0.075, i % 2 ? shade(L.body, 0.18) : L.body, { y: 0.4 - i * 0.12, sz: 0.76, c2: dark, sh: 0.8 }, 10);       // bands of scale round the chest
+    T.cyl(0.125, 0.125, 0.03, metal, { y: 0.31, z: zf + 0.012, rx: HP2, c2: shade(metal, 0.35) }, 14).sph(0.05, shade(metal, 0.45), { y: 0.31, z: zf + 0.03, sz: 0.5 }, 8, 6).tor(0.125, 0.016, L.trim, { y: 0.31, z: zf + 0.02 }, 4, 14);       // the mirror plate
+    T.cyl(0.11, 0.135, 0.075, L.trim, { y: 0.53, sz: 0.85 }, 10);
+    for (const k of [-1, 1]) { T.sph(0.17, metal, { x: k * 0.36, y: 0.5, sy: 0.6, c2: shade(metal, 0.3), sh: 0.85 }); T.sph(0.15, L.body, { x: k * 0.41, y: 0.42, sy: 0.55, sz: 0.9 }); T.tor(0.152, 0.02, L.trim, { x: k * 0.385, y: 0.455, rx: HP2 }, 4, 12); }
+    Hp.cyl(0.2 * b, 0.3 * b, 0.34, L.body, { y: -0.14, sz: 0.84, c2: dark, sh: 0.7 }, 12).cyl(0.305 * b, 0.31 * b, 0.045, L.trim, { y: -0.3, sz: 0.84 }, 12).cyl(0.205 * b, 0.215 * b, 0.07, metal, { y: 0.02, sz: 0.84 }, 12);       // the skirt of scales, and the belt
+    Hp.box(0.15, 0.36, 0.03, L.cape, { y: -0.16, z: 0.17 * b + 0.06, rx: -0.2, c2: shade(L.cape, 0.25) }).cyl(0.05, 0.05, 0.03, L.trim, { y: 0.02, z: 0.18 * b + 0.01, rx: HP2 }, 8);
+    for (const s of ['L', 'R']) { R.P('fore' + s).cyl(0.08 * b, 0.07 * b, 0.16, metal, { y: -0.14, c2: shade(metal, 0.3) }, 8).cyl(0.084 * b, 0.084 * b, 0.025, L.trim, { y: -0.06 }, 8); R.P('shin' + s).cyl(0.105 * b, 0.095 * b, 0.14, metal, { y: -0.1, c2: shade(metal, 0.3) }, 8); }
+    hairCap(H, L.hair, Math.PI * 0.56, -0.3); H.sph(0.24, L.hair, { y: 0.24, z: -0.1, sx: 1.05, sz: 0.7 });
+    for (const k of [-1, 1]) { H.sph(0.07, L.hair, { x: k * 0.225, y: 0.2, z: 0.07, sy: 1.8, sz: 0.75 }); H.sph(0.035, L.trim, { x: k * 0.272, y: 0.12, z: 0.03 }, 6, 5); }
+    H.tor(0.275, 0.022, L.trim, { y: 0.43, rx: HP2 - 0.12 }, 5, 16).cyl(0.05, 0.05, 0.02, metal, { y: 0.415, z: 0.272, rx: HP2 }, 10);       // the band across the brow, with a small disc of its own
+    H.cyl(0.075, 0.095, 0.1, L.trim, { y: 0.62, z: -0.05 }, 8).sph(0.115, L.hair, { y: 0.73, z: -0.06, sy: 1.15 }).sph(0.07, L.hair, { y: 0.86, z: -0.08 });       // the knot, through a ring
+    R.nb('tassel', 0, 0.68, -0.15, R.B.head); strip(R, 'tassel', 0.1, 0.46, 0.03, plume, { c2: shade(plume, 0.3), sh: 0.75 });
+    capeGeo(R, 0.5, 0.66, L.cape); R.P('cape').box(0.54, 0.06, 0.05, L.trim, { y: -0.02 });
+    R.P('wpnR').cyl(0.028, 0.034, 0.62, wood, { y: 0.2, c2: shade(wood, 0.2) }, 6).sph(0.04, L.trim, { y: -0.12 }, 6, 5).sph(0.13, plume, { y: 0.57, sy: 0.9, c2: shade(plume, 0.35), sh: 0.75 }, 12, 9).tor(0.08, 0.022, L.trim, { y: 0.47, rx: HP2 }, 4, 10);       // the beater: a short haft, a padded head bound in cloth
+    const gy = -0.11, gz = 0.05;       // the gong, face outward: a wide disc with a raised rim, rings beaten into it and a boss at its middle
+    R.P('wpnL').cyl(0.43, 0.43, 0.045, metal, { y: gy, z: gz, c2: shade(metal, 0.28), sh: 0.85 }, 24).tor(0.43, 0.03, shade(metal, -0.25), { y: gy, z: gz, rx: HP2 }, 5, 24).tor(0.3, 0.012, shade(metal, -0.32), { y: gy - 0.024, z: gz, rx: HP2 }, 4, 20).tor(0.2, 0.012, shade(metal, -0.32), { y: gy - 0.024, z: gz, rx: HP2 }, 4, 18)
+      .sph(0.11, shade(metal, 0.45), { y: gy - 0.03, z: gz, sy: 0.4 }, 12, 6);
+    return { style: 'smash', wl: 0 };
+  },
 };
 /* ---------- skins: extra pieces bolted onto the rig ---------- */
 const SKIN_PARTS = {
@@ -452,11 +475,12 @@ function wglow(R, key, c) {      // a glowing edge on the hero's weapon
   else if (key === 'rook') { glowPart(R, 'wpnR', new THREE.BoxGeometry(0.44, 0.07, 0.3), c, 0, 0.84, 0, 1.2); glowPart(R, 'wpnR', new THREE.BoxGeometry(0.1, 0.3, 0.3), c, 0, 0.84, 0, 0); }
   else if (key === 'bram') glowPart(R, 'wpnR', new THREE.TorusGeometry(0.135, 0.022, 5, 14), c, 0, 0.58, 0, 1.0).rotation.x = HP2;
   else if (key === 'thorn') glowPart(R, 'wpnR', new THREE.TorusGeometry(0.16, 0.047, 5, 12, 4.3), c, 0, 0.74, 0, 0.9).rotation.z = -0.6;
+  else if (key === 'hesta') { glowPart(R, 'wpnL', new THREE.TorusGeometry(0.445, 0.018, 5, 28), c, 0, -0.11, 0.05, 0).rotation.x = HP2; aura('wpnL', -0.16, 0.9, 0.05); }       // the rim of the gong alight
   else if (key === 'orin') { aura('wpnR', 0.46, 1.0); aura('wpnR', 0.86, 0.5); }       // his leaf already carries a vein of light: a skin makes the whole blade glow
   else if (key === 'mira') { const hf = 0.6; glowPart(R, 'wpnL', new THREE.BoxGeometry(0.016, hf * 2.04, 0.016), c, 0, 0, -0.21, 0); for (const k of [-1, 1]) aura('wpnL', k * hf * 1.02, 0.45, -0.21); }
 }
 function buildHeroTemplate(key, skin) {
-  const L = heroLook(key, skin), sk = SKINS[key][skin | 0] || {}, bulk = { bram: 1.28, thorn: 1.26, kaela: 0.95, rook: 1.34, vex: 0.9, kiri: 0.86, tavi: 1.02, lyra: 0.9, zephyr: 0.92, orin: 1.0, mira: 0.92, sera: 0.9, miel: 0.92 }[key] || 1;
+  const L = heroLook(key, skin), sk = SKINS[key][skin | 0] || {}, bulk = { bram: 1.28, thorn: 1.26, kaela: 0.95, rook: 1.34, vex: 0.9, kiri: 0.86, tavi: 1.02, lyra: 0.9, zephyr: 0.92, orin: 1.0, mira: 0.92, sera: 0.9, miel: 0.92, hesta: 1.2 }[key] || 1;
   const R = mkRig(bulk); R.look = L; const info = HERO_BUILD[key](R, L);
   for (const n of sk.parts || []) SKIN_PARTS[n](R, L);
   if (L.wglow) wglow(R, key, L.wglow);
@@ -676,6 +700,8 @@ const CLIPS = {
   focus:   { d: 0.7, aLx: [0, -2.7], fLx: [0, -0.1], aRx: [0, -2.1], fRx: [0, -2.1], aRz: [0, 0.35], headRx: [0, -0.3], hipRx: [0, -0.12] },
   send:    { d: 0.5, aRx: [0, -2.5, 0.16, -2.6, 0.34, -1.25, 1, -1.1], fRx: [0, -1.1, 0.16, -1.2, 0.34, -0.08, 1, -0.3], aRz: [0, -0.5, 0.34, 0.15], spRy: [0, -0.55, 0.16, -0.6, 0.34, 0.45, 1, 0.1], hipRx: [0, -0.1, 0.16, -0.12, 0.34, 0.24, 1, 0.05], aLx: [0, -1.5, 0.34, -1.45, 1, -0.9], fLx: [0, -0.1], aLz: [0, 0.3, 0.34, -0.1], headRx: [0, -0.1, 0.34, 0.08] },
   hive:    { d: 1.0, hop: 0.14, aRx: [0, -1.5, 0.25, -1.78, 1, -1.72], fRx: [0, -0.1, 0.25, -0.02], aRz: [0, -0.1], aLx: [0, -0.7, 0.25, -0.3], aLz: [0, 0.9, 0.25, 1.25], fLx: [0, -0.5, 0.25, -0.25], headRx: [0, -0.2, 0.25, -0.45], hipRx: [0, -0.05, 0.25, -0.14] },       // the crook held up at arm's length, the skep high over her, the other arm flung wide
+  gong:    { d: 0.55, aLx: [0, -1.2], fLx: [0, -0.75], aLz: [0, -0.3], aRx: [0, -1.5, 0.22, -1.6, 0.4, -0.95, 1, -0.6], aRz: [0, -1.25, 0.22, -1.35, 0.4, 0.55, 1, 0.1], fRx: [0, -0.7, 0.22, -0.8, 0.4, -0.35, 1, -0.8], spRy: [0, -0.5, 0.22, -0.55, 0.4, 0.3, 1, 0], hipRx: [0, -0.08, 0.4, 0.14, 1, 0], headRx: [0, -0.25, 0.4, -0.3, 1, 0], hipY: [0, 0, 0.4, -0.06, 1, 0] },       // the beater swung out wide and brought across onto the gong held before her
+  raise:   { d: 1.0, hop: 0.1, aLx: [0, -2.3, 0.22, -2.95], fLx: [0, -0.35, 0.22, -0.12], aLz: [0, 0.12], aRx: [0, -0.5, 0.22, -0.25], aRz: [0, -0.8, 0.22, -1.2], fRx: [0, -0.7, 0.22, -0.45], headRx: [0, -0.3, 0.22, -0.45], hipRx: [0, -0.06, 0.22, -0.14] },       // the gong lifted high over her head, the beater held wide
   toss:    { d: 0.45, aRx: [0, 0.5, 0.18, 0.5, 0.36, -1.5, 1, -1.2], fRx: [0, -0.3, 0.36, -0.1], hipRx: [0, 0.3, 0.36, 0.1], hipY: [0, -0.1, 0.36, 0] },
   fanout:  { d: 0.46, aRx: [0, -1.3, 0.2, -1.3, 0.38, -1.45, 1, -1.2], aLx: [0, -1.3, 0.2, -1.3, 0.38, -1.45, 1, -1.2], aRz: [0, 0.6, 0.2, 0.6, 0.38, -1.15, 1, -0.8], aLz: [0, -0.6, 0.2, -0.6, 0.38, 1.15, 1, 0.8], fRx: [0, -1.7, 0.2, -1.7, 0.38, -0.05], fLx: [0, -1.7, 0.2, -1.7, 0.38, -0.05], hipRx: [0, -0.14, 0.2, -0.14, 0.38, 0.32, 1, 0.05], hipY: [0, 0.03, 0.2, 0.04, 0.38, -0.08, 1, 0] },
   /* Kaela's Triple Cadence: a forehand cut across on the step in, a backhand cut back the other way, and a leap (the sim lifts her) with
@@ -695,7 +721,7 @@ const CLIP_CH = ['aLx', 'fLx', 'aLz', 'aRx', 'fRx', 'aRz', 'lLx', 'lRx', 'sLx', 
 const HERO_CLIPS = { bram: ['rush', 'guard', 'leap'], thorn: ['throw', 'slam', 'pull'], kaela: ['cadA', 'lunge', 'roar', 'cadB', null, null, null, null, null, 'cadC'], rook: [['slam', 0.78], 'roar', null], vex: ['throw', 'sweep', 'stab'],
   tavi: ['throw', 'fanout', 'vault', 'lunge', 'pull', 'vault'],
   kiri: ['toss', 'bolt', 'roar', null, null, null, 'vault', 'lunge', 'roar'],       // 6..8: the Tiger's leap, rush and the turn back
-  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'hive'] };
+  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'hive'], hesta: ['rush', 'gong', 'raise'] };
 function KF(u, a) { if (u <= a[0]) return a[1]; for (let i = 2; i < a.length; i += 2) if (u <= a[i]) return lerp(a[i - 1], a[i + 1], smooth((u - a[i - 2]) / (a[i] - a[i - 2]))); return a[a.length - 1]; }
 /* which mask is over the face: the worn one sits on the face, the other is slung behind the head */
 function kiriMasks(B, f) {
@@ -798,6 +824,11 @@ const RECALL = {
     const u = smooth(seg01(k, 0.8, 0.92)), d = 1 - u; kneel(p, d);
     p.aRx = lerp(-2.7, -0.95, d); p.fRx = lerp(-0.15, -0.75, d); p.aRz = lerp(-0.2, -0.3, d); p.aLx = lerp(-0.4, -1.05, d); p.fLx = lerp(-0.3, -0.75 + Math.sin(T * 2.2) * 0.07, d); p.aLz = lerp(0.3, 0.42, d);
     p.headRy = Math.sin(T * 1.5) * 0.55 * d; p.headRx = lerp(-0.42, -0.12 + Math.sin(T * 3) * 0.1, d); p.hipRx = lerp(-0.06, 0.1, d); },
+  hesta(p, R, T, k) {      // a slow measure beaten on the gong held out before her, her head bowed over it; at the last the gong goes up over her head
+    const u = smooth(seg01(k, 0.8, 0.92)), beat = Math.pow(Math.max(0, Math.sin(T * 3.2)), 5) * (1 - u);
+    p.aLx = lerp(-1.25, -2.9, u); p.fLx = lerp(-0.7, -0.15, u); p.aLz = lerp(-0.25, 0.1, u);
+    p.aRx = lerp(-1.25 + beat * 0.2, -0.3, u); p.aRz = lerp(-1.0 + beat * 1.45, -1.1, u); p.fRx = lerp(-0.75 + beat * 0.35, -0.5, u);
+    p.headRx = lerp(0.22, -0.45, u); p.hipRx = lerp(0.06, -0.1, u); R.y = beat * 0.02; },
 };
 function animHero(v, s, t, dt) {
   const B = v.b, st = STANCE[v.style], p = _p;

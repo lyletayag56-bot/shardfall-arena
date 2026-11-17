@@ -143,7 +143,7 @@ const ITEM_PASSIVE = {
   spellward: 'When an enemy hero hits you with a skill, gain a shield of 250 (+10% max HP) for 3s. 18s cooldown.',
   titan: 'Out of combat for 5s, regenerate 1.5% of max HP every second.',
   bastion: 'Second Wind: lethal damage instead makes you untouchable for 2s, then you return with 18% HP. 150s cooldown.',
-  wardboots: 'Stuns and roots on you end 25% sooner.',
+  wardboots: 'Stuns, roots and taunts on you end 25% sooner.',
   victorglass: `Turn of the Glass: a kill or an assist takes ${Math.round(GLASS_K * 100)}% off what is left of your ultimate's cooldown.`,
 };
 for (const k in ITEM_PASSIVE) ITEMS[k].p = ITEM_PASSIVE[k];
@@ -151,7 +151,7 @@ for (const k in ITEM_PASSIVE) ITEMS[k].p = ITEM_PASSIVE[k];
    shortens. dur: how long each use lasts, the first, the second, ... (the last entry from then on). */
 const ITEM_ACTIVE = {
   totem: { name: 'Unshaken', cd: 90, dur: [6, 5, 4], mres: 0.6, c: '#c4b5ff',
-    desc: 'Clears every slow, root and mark on you. For 6s nothing can stun, root, slow, pull or mark you, and magic damage you take is cut by 60%. Each use lasts 1s less than the one before, down to 4s. It cannot be pressed while you are stunned.',
+    desc: 'Clears every slow, root and mark on you. For 6s nothing can stun, root, slow, pull, taunt or mark you, and magic damage you take is cut by 60%. Each use lasts 1s less than the one before, down to 4s. It cannot be pressed while you are stunned or taunted.',
     fn(h, A, dur) {
       let n = 0; const keep = []; for (const b of h.buffs) { if (b.msMul && b.msMul < 1) n++; else keep.push(b); } h.buffs = keep;
       if (h.rootT > 0) { h.rootT = 0; n++; } if (h.km && h.km.until > G.t) { h.km.until = 0; n++; } if (h.om && h.om.until > G.t) { h.om.until = 0; n++; }
@@ -223,6 +223,9 @@ function cadence(h, lv, ang, n) {       // cut n of three
    is paid PLATE_GOLD for each plate's worth of it that he knocks off himself; whatever is still on at PLATE_TIME crumbles, unpaid */
 const PLATES = 4, PLATE_HP = 500, PLATE_GOLD = 100, PLATE_TIME = 300;
 const POS_OF = { Tank: 'roam', Fighter: 'top', Assassin: 'jungle', Mage: 'mid', Marksman: 'carry', Support: 'roam' };
+/* The five places of a side. top: the EXP lane, alone; jungle: the camps; mid: the middle lane; carry: the Gold lane; roam: with the
+   carry at first, then wherever the fight is. POS_SPARE: the order a side goes without them when it has fewer bots than open places. */
+const POS_KEYS = ['top', 'jungle', 'mid', 'carry', 'roam'], POS_SPARE = ['roam', 'jungle', 'carry', 'top', 'mid'];
 /* Miel's two tempers. With an allied hero within TEND_R of her she tends: what she heals and shields is TEND_K times stronger. With
    none she stings: her skills hit STING_K times harder. Her comb stands COMB_T seconds and is COMB_R across; the hive flies HIVE_T
    seconds, HIVE_R around her. */
@@ -256,6 +259,17 @@ function stingTick(u) {       // (called for every stung unit, every step)
 }
 
 /* ---------------- battle spells ---------------- */
+/* Hesta's gong. CALL_R: how far Brazen Call reaches; POOL_R, POOL_T: the reach and the life of the shield her side shares; RING_MAX:
+   how many Rings the gong holds before her next basic attack lets them out; PEAL_R: how far that peal carries. */
+const CALL_R = 300, POOL_R = 480, POOL_T = 5, RING_MAX = 4, PEAL_R = 300;
+function callT(lv) { return L(lv, 0.9, 0.1); }       // how long Brazen Call holds a hero
+function ringAdd(h) { if (h.dead) return; const n = h.pv.n || 0; if (n >= RING_MAX) return; h.pv.n = n + 1; if (n + 1 === RING_MAX) skfx(h, 'hestaR', h.x, h.y, {}); }
+function pealAmt(h) { return 40 + 0.05 * h.maxHp; }
+function peal(h) {       // the gong let out: a blow to everyone near her, and a shield for her of as much
+  const amt = pealAmt(h); skfx(h, 'hestaP', h.x, h.y, { r: PEAL_R }); sfx('gong', h.x, h.y);
+  for (const e of enemiesIn(h.team, h.x, h.y, PEAL_R)) { dmg(h, e, amt, 'magic', { n: 'Resound', ic: 'gong' }); slow(e, 0.3, 1); }
+  shield(h, amt, 3);
+}
 const SPELLS = {
   flicker: {
     name: 'Flicker', ic: 'blink', c: '#ffd76a', cd: 90, range: 420, cast: 'point', ind: { t: 'circle', r: 60 }, noRoot: true,
@@ -792,6 +806,53 @@ const HEROES = {
         } },
     ],
   },
+  /* A tank who makes herself the target. Her gong is her shield and her voice: struck, it calls out everyone near her, and whoever is
+     called out can do nothing but come at her; raised, it puts one shield over her whole side, which they all share. */
+  hesta: {
+    name: 'Hesta', title: 'Brazen Herald', cls: 'Tank', spell: 'aegis', melee: true, rate: [9, 3, 9, 5],
+    look: { body: '#2f6f6a', trim: '#d99a4a', skin: '#c9906c', hair: '#2a1a16', hat: 'crest', weapon: 'gong', cape: '#9a3d24', glow: '#ffcf7a', metal: '#c98a3c', pants: '#3a2c26', boot: '#4a3626', plume: '#c9482a' },
+    skills: [
+      { name: 'Onrush', ic: 'dash', c: '#e8a04c', max: 6, cd: [10, 8], cost: [55, 80], range: 460, cast: 'dir', noRoot: true,
+        ind: { t: 'line', w: 135 }, ai: { t: 'gap', esc: true, thru: true },
+        desc: lv => `Run forward behind the gong, through whatever stands in the way. Every enemy she runs through takes ${L(lv, 150, 36)} (+50% Attack) damage and is slowed 40% for 1.5s.`,
+        fn(h, lv, tx, ty, ang) {
+          skfx(h, 'hesta0', h.x, h.y, { ang });
+          startDash(h, ang, 460, 1150, { w: 85, hit(e) { dmg(h, e, L(lv, 150, 36) + 0.5 * h.ad, 'phys', { skill: true }); slow(e, 0.4, 1.5); skfx(h, 'hesta0h', e.x, e.y, { ang }); } });
+        } },
+      { name: 'Brazen Call', ic: 'gong', c: '#ffcf7a', max: 6, cd: [14, 11], cost: [70, 95], cast: 'self',
+        ind: { t: 'self', r: CALL_R }, ai: { t: 'self', r: CALL_R },
+        desc: lv => `Strike the gong. Enemies within reach take ${L(lv, 100, 28)} (+40% Attack) magic damage and are taunted for ${callT(lv).toFixed(1)}s: they can do nothing but come at her and hit her with basic attacks. She gains ${L(lv, 24, 6)} Armor and Magic Resist for 3s.`,
+        fn(h, lv) {
+          const pts = [];
+          addBuff(h, { k: 'brazen', t: 3, armor: L(lv, 24, 6), mr: L(lv, 24, 6) });
+          for (const e of enemiesIn(h.team, h.x, h.y, CALL_R)) {
+            dmg(h, e, L(lv, 100, 28) + 0.4 * h.ad, 'magic', { skill: true });
+            if (!e.dead && taunt(e, h, callT(lv)) && e.kind === 'hero') { ringAdd(h); if (pts.length < 16) pts.push(e.x, e.y); }
+          }
+          skfx(h, 'hesta1', h.x, h.y, { r: CALL_R, pts });
+        } },
+      { name: 'Stand as One', ic: 'linked', c: '#ffe2a8', max: 3, cd: [55, 45], cost: [130, 170], cast: 'self', ult: true,
+        ind: { t: 'self', r: POOL_R }, ai: { t: 'allyAoE', r: POOL_R, ult: true, rally: true },
+        desc: lv => `Raise the gong. For ${POOL_T}s she and every allied hero within reach of her stand under one shield of ${L(lv, 700, 450)} (+20% of her max HP) that they all share: whatever would hurt any of them comes off it first. An ally who steps out of reach leaves it, and one who steps in joins it.`,
+        fn(h, lv) {
+          /* one shield object in the list of everyone it covers: what any of them is hit for comes off the same number. It keeps its own
+             time (until) and goes with her; sync puts it on whoever of her side is in reach and takes it off whoever is not. */
+          const pool = { v: L(lv, 700, 450) + 0.2 * h.maxHp, t: POOL_T, until: G.t + POOL_T, pool: true, by: h }; pool.v0 = pool.v;
+          const sync = a => {
+            const on = pool.v > 0.5;
+            for (const p of G.heroes) {
+              if (p.team !== h.team || p.dead) continue;
+              const i = p.shields.indexOf(pool), inR = on && hyp(p.x - h.x, p.y - h.y) <= POOL_R + p.r * 0.6;
+              if (inR && i < 0) { p.shields.push(pool); if (p !== h) skfx(h, 'hesta2a', p.x, p.y, { tid: p.id }); } else if (!inR && i >= 0) p.shields.splice(i, 1);
+            }
+            if (a && !on) { a.t = 0; skfx(h, 'hesta2x', h.x, h.y, { r: POOL_R }); }       // worn through: it is over
+          };
+          sync(null);
+          skfx(h, 'hesta2', h.x, h.y, { r: POOL_R, dur: POOL_T });
+          zone(h, h.x, h.y, { dur: POOL_T, r: POOL_R, tick: 0.2, follow: h, look: 'bronze', c: '#ffe2a8', ci: 2, hit() {}, each: sync }).pool = pool;
+        } },
+    ],
+  },
 };
 /* passives: small hooks the sim calls (basic, cast, hit, hurt, dmgMul, takedown, healMul, healed) */
 const PASSIVES = {
@@ -842,6 +903,10 @@ const PASSIVES = {
     moods: [{ name: 'Tending', ic: 'heart', look: 'tend' }, { name: 'Stinging', ic: 'sting', look: 'sting' }], mood(h) { return tending(h) ? 0 : 1; },       // (which of the two she is in: for the view to show)
     healMul(h) { return tending(h) ? TEND_K : 1; },
     dmgMul(h, t, f) { return f.skill && !tending(h) ? STING_K : 1; } },
+  hesta: { name: 'Resound', ic: 'gong', c: '#ffcf7a', stacks: RING_MAX,
+    desc: `Blows ring in her gong. Each time an enemy hero damages her, and each enemy hero she taunts, adds a Ring, up to ${RING_MAX}. At ${RING_MAX} her next basic attack strikes the gong and spends them: enemies within reach of her take 40 (+5% of her max HP) magic damage and are slowed 30% for 1s, and she is shielded for the same amount for 3s.`,
+    hurt(h, src, a, f) { if ((f && f.dot) || G.t - (h.pv.t || -9) < 0.5) return; h.pv.t = G.t; ringAdd(h); },
+    basic(h, t, ctx) { if ((h.pv.n || 0) < RING_MAX) return; h.pv.n = 0; ctx.big = true; peal(h); } },
 };
 /* a sprung ward (or an arrow that carried one): it clings to its catch for a second, then bursts around them */
 function wardBurst(h, lv, e) {
@@ -977,13 +1042,20 @@ const SKINS = {
     { name: 'Frost Apiary', look: { body: '#e6f3fa', trim: '#6fc3e8', hair: '#dfeaf2', cape: '#2f6f96', glow: '#aee9ff', band: '#2f6f96', straw: '#cfe9f5', veil: '#f4fbff', glove: '#7fa9c0', wood: '#5c7f96', pants: '#5c8298', boot: '#35586c', tend: '#e8fbff', sting: '#4fa8ff' },
       sk: ['#8fe0ff', '#dff6ff', '#6fb8ff'], aura: '#aee9ff' },
   ],
+  hesta: [
+    { name: 'Brazen Herald' },
+    { name: 'Storm Drum', look: { body: '#27305e', trim: '#cfd8ff', hair: '#e8ecff', cape: '#141a3c', metal: '#8fa3e6', glow: '#9fd0ff', plume: '#6f9bff', pants: '#161b3a', boot: '#20264a', wglow: '#9fd0ff' },
+      sk: ['#9fd0ff', '#dfe9ff', '#7fa8ff'], parts: ['pauldrons', 'gem'], aura: '#9fd0ff' },
+    { name: 'Lantern Festival', look: { body: '#a3241f', trim: '#ffd76a', hair: '#1a1210', cape: '#f2a23a', metal: '#f2c14e', glow: '#ffe08a', plume: '#ffd76a', pants: '#5a1814', boot: '#3a1210', wglow: '#ffb347' },
+      sk: ['#ffb347', '#ffe08a', '#ff7a4a'], parts: ['banner', 'scarf'], aura: '#ffd76a' },
+  ],
 };
 const _looks = {};
 function heroLook(key, skin) { const k = key + (skin | 0); return _looks[k] || (_looks[k] = Object.assign({}, HEROES[key].look, (SKINS[key][skin | 0] || {}).look)); }
 function skinColor(key, skin, i) { const s = SKINS[key][skin | 0]; return (s && s.sk && s.sk[i]) || HEROES[key].skills[i].c; }
 /* distinct cast sounds per skill (0 = default) */
 const SKILL_SND = { bram: ['whoosh', 'guard', 0], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
-  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'] };
+  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'] };
 for (const k of HERO_KEYS) HEROES[k].passive = PASSIVES[k];
 for (const k of HERO_KEYS) {
   const d = HEROES[k]; d.key = k; d.base = d.base || CLASS_BASE[d.cls]; d.build = BUILDS[d.cls]; d.pos = POS_OF[d.cls];
@@ -995,7 +1067,7 @@ for (const k of HERO_KEYS) {
    many of its skills stun, root, pull or throw. The bots read these when they choose what to buy. */
 for (const k of HERO_KEYS) {
   const d = HEROES[k], caster = d.cls === 'Mage' || d.cls === 'Support'; let m = 0, p = caster ? 0 : 1.5, cc = 0;
-  for (const s of d.skills) for (const q of [s, s.two, s.three, s.alt]) { if (!q) continue; const src = String(q.fn); m += (src.match(/'magic'/g) || []).length; p += (src.match(/'phys'/g) || []).length; if (/stun|root|pull|into the air|knock/i.test(q.desc(1))) cc++; }
+  for (const s of d.skills) for (const q of [s, s.two, s.three, s.alt]) { if (!q) continue; const src = String(q.fn); m += (src.match(/'magic'/g) || []).length; p += (src.match(/'phys'/g) || []).length; if (/stun|root|pull|into the air|knock|taunt/i.test(q.desc(1))) cc++; }
   d.magic = m + p > 0 ? m / (m + p) : caster ? 1 : 0; if (caster && d.magic < 0.6) d.magic = 0.6; d.ccN = cc;
 }
 /* difficulty presets for bots */

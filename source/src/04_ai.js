@@ -473,7 +473,7 @@ function aiDecide(h) {
       let s = e.hp / e.maxHp + e._d / 1800;
       if (org >= 2) {       // the one the others are already on, the one who cannot get away, the one the call is about
         let on = 0; for (const p of G.heroes) if (p.team === T && p !== h && !p.dead && p.ai && p.ai.tgt === e) on++;
-        s -= 0.2 * Math.min(on, 2); if (e.stunT > 0.3 || e.rootT > 0.3) s -= 0.12; if (call && call.tgt === e) s -= 0.5;
+        s -= 0.2 * Math.min(on, 2); if (e.stunT > 0.3 || e.rootT > 0.3 || e.tauntT > 0.3) s -= 0.12; if (call && call.tgt === e) s -= 0.5;       // (taunted: as good as held)
       }
       if (s < ts) { ts = s; tgt = e; }
     }
@@ -639,10 +639,14 @@ function aiCombat(h, t, foes) {
         if (d <= s.range + A.r * 0.4) { let fr = null, fd = A.r * 1.5; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead) { const q = hyp(p.x - t.x, p.y - t.y); if (q < fd && hyp(p.x - h.x, p.y - h.y) < s.range + A.r) { fd = q; fr = p; } }
           c = fr ? { x: (fr.x + t.x) / 2, y: (fr.y + t.y) / 2 } : aiAim(h, t, 0, 0.25); }
         break;
-      case 'gap': if (d > h.range + 70 && d <= s.range + h.range + 60 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h)) c = { x: t.x, y: t.y }; break;
+      case 'gap': if (A.thru) { if (d > h.range + 40 && d <= s.range + 70 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h) && !turretThreat(h.team, h.x + (t.x - h.x) / d * s.range, h.y + (t.y - h.y) / d * s.range, 40, h)) c = { x: t.x, y: t.y }; break; }       // (thru: a run that goes through its target and on: from where it still reaches him, and not if it ends under a turret)
+        if (d > h.range + 70 && d <= s.range + h.range + 60 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h)) c = { x: t.x, y: t.y }; break;
       case 'kite': if (d <= h.range + 120 && h.rootT <= 0) { const an = fatan2(h.y - t.y, h.x - t.x) + (rnd() < .5 ? 1 : -1) * (d < 300 ? 0.4 : 1.2); const x = h.x + fcos(an) * 280, y = h.y + fsin(an) * 280; if (walkable(x, y)) c = { x, y }; } break;
       case 'buff': if (d <= h.range + 260) c = { x: h.x, y: h.y }; break;
       case 'shield': if (d <= A.r || (hpF < 0.6 && d < 650)) c = { x: h.x, y: h.y }; break;
+      case 'allyAoE':       // (rally: a shield for the whole side, raised as the fight is joined: a friend within its reach, two of theirs at hand, and somebody already hurt)
+        if (A.rally && d <= 620 && foes.length >= 2) { let fr = 0, hurt = hpF < 0.8; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead && hyp(p.x - h.x, p.y - h.y) <= A.r) { fr++; if (p.hp / p.maxHp < 0.8) hurt = true; } if (fr >= 1 && hurt) c = { x: h.x, y: h.y }; }
+        break;
       case 'target': if (d <= s.range && (!A.finisher || tF < 0.62)) c = { x: t.x, y: t.y }; break;
       case 'form':       // two masks: go in as the Tiger once the far skills are spent on a marked, stunned or weak target; back out when the claws are spent or it gets too hot
         if (!h.form) { if (d <= 540 && hpF > 0.45 && (h.cds[0] > 0.5 && h.cds[1] > 0.5 || d < 260) && (t.stunT > 0.4 || (markOf(t) > 0 && tF < 0.8) || tF < 0.4) && foes.length <= 2 && hpF > tF - 0.25 && !turretThreat(h.team, t.x, t.y, 40, h)) c = { x: h.x, y: h.y }; }

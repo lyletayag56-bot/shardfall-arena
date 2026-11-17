@@ -64,29 +64,33 @@ function newGame(opts) {
   }
   updateStructureLocks();
   // heroes
-  const need = ['top', 'jungle', 'mid', 'carry', 'roam'];
+  const need = POS_KEYS;
   const fits = { top: ['Fighter'], jungle: ['Assassin', 'Fighter'], mid: ['Mage'], carry: ['Marksman'], roam: ['Tank', 'Support'] };
   /* keys: the heroes to draw from. A recording made when there were fewer is played with the heroes there were (opts.roster: how many).
      A hero with roles can be drawn for the place of any of them, and plays the role of the place it was drawn for; the player's
-     hero plays the role the player chose (opts.player.role). */
+     hero plays the role the player chose (opts.player.role).
+     A player may ask for a place (pos: one of POS_KEYS) whatever the hero: it is theirs, and the bots of their side take the places
+     nobody asked for. Two players of one side may ask for the same place; the side then has more places open than bots to fill
+     them, and goes without the ones it can best do without (POS_SPARE, first to last). */
   const keys = opts.roster ? HERO_KEYS.slice(0, opts.roster) : HERO_KEYS;
   const roleAt = (k, pos) => { const rs = HEROES[k].roles; if (rs) for (let i = 0; i < rs.length; i++) if (rs[i].pos === pos) return i; return -1; };
   const roleOf = (def, i) => def.roles ? Math.max(0, Math.min(def.roles.length - 1, i | 0)) : 0, posOf = (def, i) => def.roles ? def.roles[i].pos : def.pos;
   const humans = opts.humans || null; if (humans) G.humans = humans.map(() => null);
   for (const team of [BLUE, RED]) {
     const taken = {}, roster = [];
-    const left = opts.practice ? [] : duel ? ['mid'] : need.slice();
-    if (humans) humans.forEach((p, seat) => {       // each takes the place its hero is made for, or the first that is free
-      if (p.team !== team || !left.length || taken[p.hero]) return;
-      const def = HEROES[p.hero], ri = roleOf(def, p.role), want = duel ? 'mid' : posOf(def, ri), pos = left.includes(want) ? want : left[0]; taken[def.key] = 1;
-      roster.push({ key: def.key, pos, seat, spell: p.spell, skin: p.skin | 0, role: ri, name: typeof p.name === 'string' && p.name ? p.name.slice(0, 14) : '' }); left.splice(left.indexOf(pos), 1);
+    const left = opts.practice ? [] : duel ? ['mid'] : need.slice(), cap = left.length;
+    if (humans) humans.forEach((p, seat) => {       // each takes the place it asked for; one that asked for none, the place its hero is made for, or the first that is free
+      if (p.team !== team || roster.length >= cap || taken[p.hero]) return;
+      const def = HEROES[p.hero], ri = roleOf(def, p.role), asked = !duel && need.includes(p.pos) ? p.pos : null, want = duel ? 'mid' : posOf(def, ri), pos = asked || (left.includes(want) ? want : left[0]); taken[def.key] = 1;
+      roster.push({ key: def.key, pos, seat, spell: p.spell, skin: p.skin | 0, role: ri, name: typeof p.name === 'string' && p.name ? p.name.slice(0, 14) : '' }); if (left.includes(pos)) left.splice(left.indexOf(pos), 1);
     });
     else if (team === BLUE && opts.player) {
-      const def = HEROES[opts.player.hero], ri = roleOf(def, opts.player.role), pos = duel ? 'mid' : posOf(def, ri); taken[def.key] = 1;
+      const def = HEROES[opts.player.hero], ri = roleOf(def, opts.player.role), pos = duel ? 'mid' : need.includes(opts.player.pos) ? opts.player.pos : posOf(def, ri); taken[def.key] = 1;
       roster.push({ key: def.key, pos, player: true, spell: opts.player.spell, role: ri });
       left.splice(left.indexOf(pos), 1);
     }
     if (opts.force && opts.force.team === team) { const def = HEROES[opts.force.key], ri = roleOf(def, opts.force.role), pos = posOf(def, ri); if (left.includes(pos)) { taken[def.key] = 1; roster.push({ key: def.key, pos, role: ri }); left.splice(left.indexOf(pos), 1); } }       // tests: put a given hero on a given side
+    while (left.length > Math.max(0, cap - roster.length)) left.splice(left.indexOf(POS_SPARE.find(q => left.includes(q))), 1);       // (two players in one place: fewer bots than places)
     if (duel) { for (const pos of left) { const pick = opts.foe && team === RED && HEROES[opts.foe.hero] ? opts.foe.hero : null, pool = keys.filter(k => !taken[k]), key = pick || pool[(rnd() * pool.length) | 0]; taken[key] = 1; roster.push({ key, pos, role: pick ? roleOf(HEROES[key], opts.foe.role) : 0 }); } }       // a duel: any hero will do for the other side (or the one asked for)
     else for (const pos of left) {
       const pool = keys.filter(k => !taken[k] && (fits[pos].includes(HEROES[k].cls) || roleAt(k, pos) >= 0));
@@ -121,7 +125,7 @@ function newUnit(kind, team, x, y, o) {
   const u = Object.assign({
     id: ++G.uid, kind, team, x, y, r: 30, hp: 1, maxHp: 1, armor: 0, mr: 0, ad: 0, range: 120, asp: 1, ms: 0, msBase: 0,
     face: team === RED ? Math.PI * 0.75 : -Math.PI / 4, vx: 0, vy: 0, atkCd: 0, windT: 0, windup: 0.25, windTgt: null,
-    buffs: [], stunT: 0, rootT: 0, shields: [], dead: false, vis: [true, true], bush: -1, revealT: 0,
+    buffs: [], stunT: 0, rootT: 0, tauntT: 0, tauntBy: null, shields: [], dead: false, vis: [true, true], bush: -1, revealT: 0,
     lastDmgT: -99, lastHeroHit: null, lastHeroHitT: -99, anim: rnd() * 10, atkAnim: 0, flash: 0, moving: false,
   }, o);
   G.units.push(u); return u;
@@ -346,6 +350,20 @@ function knockUp(u, dur, ht) {
   fx('air', u.x, u.y, { id: u.id, dur, big: u.r > 45 ? 1 : 0 }); sfx('whoosh', u.x, u.y); return true;
 }
 function root(u, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const sb = steadyOf(u); if (sb) { blocked(u, sb); return; } if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75; logHold(u, 'root', dur); u.rootT = Math.max(u.rootT, dur); if (u.kind === 'hero') { u.dash = null; u.recallT = 0; } }
+/* Taunted: for a moment a unit can do nothing but come at whoever called it out and hit him with its basic attack. No skill, no
+   spell, no item, no recall, no step of its own choosing. Whatever shrugs off a stun shrugs this off and whatever shortens one
+   shortens this. It ends early if whoever called it out falls or cannot be touched. Returns whether it took hold. */
+function taunt(u, by, dur) {
+  if (u.kind === 'turret' || u.kind === 'crystal' || u.dead || u.locked || !by || by.dead || by === u) return false;
+  const sb = steadyOf(u); if (sb) { blocked(u, sb); return false; }
+  if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75;
+  logHold(u, 'taunt', dur); u.tauntT = Math.max(u.tauntT || 0, dur); u.tauntBy = by; if (u.windTgt !== by) u.windT = 0;
+  if (u.kind === 'hero') { u.dash = null; u.recallT = 0; u.atkTarget = by; u.chase = true; }
+  else if (u.kind === 'minion') { u.tgt = by; u.thinkT = Math.max(u.thinkT, dur); }
+  else if (u.kind === 'monster') { u.aggro = by; u.calmT = 0; }
+  by.revealT = Math.max(by.revealT, G.t + dur);       // (whoever is called out sees who is calling)
+  fx('taunt', u.x, u.y, { id: u.id, by: by.id, dur: u.tauntT }); return true;
+}
 function shield(u, amt, dur) { u.shields.push({ v: amt, t: dur }); }
 function shieldOf(u) { let s = 0; for (const x of u.shields) s += x.v; return s; }
 function heal(src, u, amt) {
@@ -385,7 +403,7 @@ function dmg(src, tgt, amt, type, f) {
   let left = a;
   if (tgt.shields.length) { for (const s of tgt.shields) { const use = Math.min(s.v, left); s.v -= use; left -= use; if (left <= 0) break; } }
   if (tgt.kind === 'hero' && left >= tgt.hp && tgt.has.bastion && tgt.reviveCd <= G.t) {
-    tgt.hp = 1; tgt.reviveT = 2; tgt.reviveCd = G.t + 150; tgt.locked = true; tgt.buffs = tgt.buffs.filter(b => b.k === 'azure' || b.k === 'crimson'); tgt.stunT = tgt.rootT = 0; tgt.dash = tgt.leap = tgt.disp = tgt.air = null; tgt.z = 0; tgt.windT = 0; tgt.atkTarget = null; tgt.recallT = 0; tgt.mvx = tgt.mvy = 0;
+    tgt.hp = 1; tgt.reviveT = 2; tgt.reviveCd = G.t + 150; tgt.locked = true; tgt.buffs = tgt.buffs.filter(b => b.k === 'azure' || b.k === 'crimson'); tgt.stunT = tgt.rootT = 0; tgt.tauntT = 0; tgt.tauntBy = null; tgt.dash = tgt.leap = tgt.disp = tgt.air = null; tgt.z = 0; tgt.windT = 0; tgt.atkTarget = null; tgt.recallT = 0; tgt.mvx = tgt.mvy = 0;
     fx('revive', tgt.x, tgt.y, { id: tgt.id }); sfx('ult', tgt.x, tgt.y); ev({ t: 'revive', id: tgt.id });
     return a;
   }
@@ -409,7 +427,7 @@ function dmg(src, tgt, amt, type, f) {
     if (pv && pv.dealt) pv.dealt(src, tgt, a, f);
     if (f.skill) { if (pv && pv.hit) pv.hit(src, tgt, a); if (src.has.frostdiadem && tgt.hp > 0) slow(tgt, 0.2, 1.5); }
     if (tgt.kind === 'hero') {
-      const tp = tgt.def.passive; if (tp && tp.hurt) tp.hurt(tgt, src, a);
+      const tp = tgt.def.passive; if (tp && tp.hurt) tp.hurt(tgt, src, a, f);
       if (f.skill && tgt.has.spellward && tgt.wardCd <= G.t && tgt.hp > 0) { tgt.wardCd = G.t + 18; shield(tgt, 250 + 0.1 * tgt.maxHp, 3); fx('ring', tgt.x, tgt.y, { c: '#7ad0c4', r: 110 }); }
       if (f.basic && tgt.has.ironbark && tgt.hp > 0 && !src.dead) dmg(tgt, src, amt * 0.2, 'magic', { reflect: true, noVamp: true });
     }
@@ -471,7 +489,7 @@ function heroDeath(u, kh, src) {
   const vs = u.streak; u.deaths++; u.streak = 0; u.multi = 0; u.locked = false; u.reviveT = 0;
   u.respawnT = G.practice ? 3 : 4 + u.level * 1.6 + Math.min(G.t / 60, 20) * 0.7;
   const hadBuffs = ['azure', 'crimson'].filter(k => hasBuff(u, k));
-  u.buffs = []; u.shields = []; u.stunT = u.rootT = 0; u.dash = u.leap = u.disp = u.air = null; u.recallT = 0; u.windT = 0; u.atkTarget = null; u.mvx = u.mvy = 0; u.z = 0;
+  u.buffs = []; u.shields = []; u.stunT = u.rootT = 0; u.tauntT = 0; u.tauntBy = null; u.dash = u.leap = u.disp = u.air = null; u.recallT = 0; u.windT = 0; u.atkTarget = null; u.mvx = u.mvy = 0; u.z = 0;
   for (const r of u.re) if (r && r.pts) for (const q of r.pts) if (q.prop) q.prop.t = 0;
   u.re = [null, null, null]; u.mend = null; u.om = null; endFlurry(u); if (u.form) { u.form = 0; u.cds[0] = u.cds[1] = 0; recalc(u); }
   const E = 1 - u.team; G.kills[E]++;
@@ -658,7 +676,7 @@ function useMark(h, e) {
   skfx(h, 'markx', e.x, e.y, { tid: e.id, n: e.km.n }); dmg(h, e, 100 + 14 * h.level + 0.4 * h.ap, 'magic', { skill: true, n: 'Spirit mark', ic: 'mask' }); return true;
 }
 function setForm(h, f) { h.form = f; h.cds[0] = h.cds[1] = 0; h.re[0] = h.re[1] = null; h.atkTarget = null; h.windT = 0; recalc(h); }
-function zone(h, x, y, o) { G.areas.push({ type: 'zone', x, y, r: o.r, t: o.dur, dur: o.dur, tick: o.tick, acc: o.tick, team: h.team, src: h, hit: o.hit, each: o.each || null, follow: o.follow || null, hold: o.hold ? { stay: o.hold.stay, root: o.hold.root, k: 0, by: {} } : null, c: o.c, look: o.look || 'zone', ci: o.ci, cx: G.cx }); }       // hit: every enemy in it, each tick; each: once a tick, whoever is in it (what it does for its own side); hold: { stay, root }: an enemy that has been in it for `stay` seconds running is rooted for `root`, once
+function zone(h, x, y, o) { const a = { type: 'zone', x, y, r: o.r, t: o.dur, dur: o.dur, tick: o.tick, acc: o.tick, team: h.team, src: h, hit: o.hit, each: o.each || null, follow: o.follow || null, hold: o.hold ? { stay: o.hold.stay, root: o.hold.root, k: 0, by: {} } : null, c: o.c, look: o.look || 'zone', ci: o.ci, cx: G.cx }; G.areas.push(a); return a; }       // hit: every enemy in it, each tick; each: once a tick, whoever is in it (what it does for its own side); hold: { stay, root }: an enemy that has been in it for `stay` seconds running is rooted for `root`, once
 /* a zone that holds: by[id] is how many ticks running (n) that unit has been in it, as of which tick (k), and whether it has been held by it already */
 function zoneHold(a, e) {
   const H = a.hold, s = H.by[e.id] || (H.by[e.id] = { n: 0, k: -9, held: false }); s.n = s.k === H.k - 1 ? s.n + 1 : 1; s.k = H.k;
@@ -785,8 +803,9 @@ function fireBasic(u, t) {
 /* ---------------- per-unit tick ---------------- */
 function tickCommon(u, dt) {
   if (u.stunT > 0) u.stunT -= dt; if (u.rootT > 0) u.rootT -= dt;
+  if (u.tauntT > 0) { u.tauntT -= dt; const by = u.tauntBy; if (u.tauntT <= 0 || !by || by.dead || by.locked) { u.tauntT = 0; u.tauntBy = null; if (u.kind === 'hero' && u.atkTarget === by) { u.atkTarget = null; u.chase = false; } } }
   if (u.flash > 0) u.flash -= dt; if (u.atkAnim > 0) u.atkAnim -= dt * 3 * Math.max(1, u.asp);
-  if (u.shields.length) { for (const s of u.shields) s.t -= dt; u.shields = u.shields.filter(s => s.t > 0 && s.v > 0.5); }
+  if (u.shields.length) { for (const s of u.shields) { if (s.pool) s.t = s.by.dead ? 0 : s.until - G.t; else s.t -= dt; } u.shields = u.shields.filter(s => s.t > 0 && s.v > 0.5); }       // (pool: a shield shared by several, in each one's list: it keeps its own time, and goes with whoever raised it)
   if (u.sg) stingTick(u);
   if (u.buffs.length) { let ch = false; for (const b of u.buffs) { b.t -= dt; if (b.sh && !(b.sh.v > 0.5 && b.sh.t > 0)) b.t = 0; if (b.t <= 0) ch = true; } if (ch) u.buffs = u.buffs.filter(b => b.t > 0); }       // sh: gone with the shield it came with
   if (u.kind !== 'hero' && u.msBase) { let m = 1; for (const b of u.buffs) if (b.msMul && b.msMul < m) m = b.msMul; u.ms = u.msBase * m; }
@@ -883,7 +902,7 @@ function tickMonster(m, dt) {
 }
 
 /* ---------------- heroes ---------------- */
-function startRecall(h) { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.dash || h.leap) return false; h.recallT = 6; h.atkTarget = null; h.windT = 0; fx('recall', h.x, h.y, { id: h.id }); return true; }
+function startRecall(h) { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap) return false; h.recallT = 6; h.atkTarget = null; h.windT = 0; fx('recall', h.x, h.y, { id: h.id }); return true; }
 /* the second cast skill i is waiting for, if any: within its window, after whatever had to land first, and not while a refreshed
    skill is to be thrown again before its follow-up (more) */
 function recastOf(h, i) { const r = h.re[i]; return r && r.until > G.t && !(r.ready > G.t) && !(r.more && h.cds[i] <= 0 && h.mp >= skillCost(skDef(h, i), h.sk[i])) ? r : null; }
@@ -892,20 +911,20 @@ function recastOf(h, i) { const r = h.re[i]; return r && r.until > G.t && !(r.re
 function chainHold(h, i) { const r = h.re[i]; return !!(r && r.hold && r.until > G.t); }
 function stageDef(s0, re) { return re ? (re.n === 3 && s0.three) || s0.two || s0 : s0; }
 function castMend(h) {       // the built-in heal
-  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.healCd > 0 || G.over || (h.hp >= h.maxHp - 1 && h.mp >= h.maxMp - 1)) return false;       // nothing to restore: it is not spent
+  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.healCd > 0 || G.over || (h.hp >= h.maxHp - 1 && h.mp >= h.maxMp - 1)) return false;       // nothing to restore: it is not spent
   h.healCd = MEND.cd; h.mend = { n: MEND.n, acc: 0 }; addBuff(h, { k: 'mend', t: MEND.dur, aura: MEND.c });
   skfx(h, 'mend', h.x, h.y, { c: MEND.c }); sfx('holy', h.x, h.y); return true;
 }
 /* The item a hero can press (one at most is of any use: the first in the bag), whether it can be pressed now, and pressing it. */
 function activeItem(h) { for (const k of h.items) if (ITEMS[k].act) return k; return null; }
-function itemReady(h) { return !!activeItem(h) && !h.dead && !(h.reviveT > 0) && !(h.stunT > 0) && !(h.actCd > 0) && !G.over; }
+function itemReady(h) { return !!activeItem(h) && !h.dead && !(h.reviveT > 0) && !(h.stunT > 0) && !(h.tauntT > 0) && !(h.actCd > 0) && !G.over; }
 function useItem(h) {
   if (!itemReady(h)) return false;
   const A = ITEMS[activeItem(h)].act, dur = A.dur[Math.min(h.actN, A.dur.length - 1)];
   A.fn(h, A, dur); h.actCd = A.cd; h.actN++; h.revealT = G.t + 1.2; return true;
 }
 function castSkill(h, i, tx, ty) {
-  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.disp || h.castLock > 0 || G.over) return false;
+  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || h.castLock > 0 || G.over) return false;
   const f0 = h.form;
   if ((h.dash || h.leap) && !(h.def.fluid && i < 3)) return false;       // a fluid hero throws and flashes in the middle of his own dash
   const sp = i === 3, s0 = sp ? SPELLS[h.spell] : skDef(h, i);
@@ -988,7 +1007,7 @@ function pracClear() {       // every enemy hero leaves the map, and every frien
 }
 function pracWaves(on) { G.practice.waves = !!on; G.waveT = on ? 2 : 1e9; if (!on) for (const u of G.units) if (u.kind === 'minion') u.dead = true; }
 function pracCamps() { for (const c of G.camps) if (!c.units.length) c.respT = 0; }
-function pracRefresh(h) { h.cds = [0, 0, 0]; h.spellCd = 0; h.healCd = 0; h.actCd = 0; h.actN = 0; h.hp = h.maxHp; h.mp = h.maxMp; h.stunT = h.rootT = 0; }
+function pracRefresh(h) { h.cds = [0, 0, 0]; h.spellCd = 0; h.healCd = 0; h.actCd = 0; h.actN = 0; h.hp = h.maxHp; h.mp = h.maxMp; h.stunT = h.rootT = 0; h.tauntT = 0; h.tauntBy = null; }
 function pracGo(h, x, y) { const p = nearestWalkable(x, y); h.x = p.x; h.y = p.y; h.dash = h.leap = h.disp = h.air = null; h.z = 0; h.recallT = 0; h.atkTarget = null; h.vx = h.vy = 0; }
 function tickHero(h, dt) {
   if (G.practice) {
@@ -1032,7 +1051,8 @@ function tickHero(h, dt) {
   if (h.disp) return;
   if (h.stunT > 0) { h.dash = null; return; }
   if (h.dash) { stepDash(h, dt); return; }
-  if (h.isPlayer) playerControl(h); else if (h.ai) aiTick(h, dt); else { h.mvx = h.mvy = 0; h.atkTarget = null; }       // a dummy just stands there
+  if (h.tauntT > 0) { h.mvx = h.mvy = 0; h.atkTarget = h.tauntBy; h.chase = true; }       // called out: at whoever did it, and nothing else (a player's stick and a bot's plans wait)
+  else if (h.isPlayer) playerControl(h); else if (h.ai) aiTick(h, dt); else { h.mvx = h.mvy = 0; h.atkTarget = null; }       // a dummy just stands there
   if (h.dead) return;
   if (h.castLock > 0) return;
   // recall
@@ -1048,7 +1068,7 @@ function tickHero(h, dt) {
       const ok = moveUnit(h, h.mvx, h.mvy, h.ms * dt);
       if (h.ai && (!ok || h.vx * h.mvx + h.vy * h.mvy < h.ms * 0.3) && h.ai.repT > 0.12) h.ai.repT = 0.12;       // a bot held up by a wall plans its way again at once
     }
-  } else if (h.atkTarget && canTarget(h, h.atkTarget)) {
+  } else if (h.atkTarget && (canTarget(h, h.atkTarget) || (h.tauntT > 0 && h.atkTarget === h.tauntBy))) {
     const t = h.atkTarget, d = hyp(t.x - h.x, t.y - h.y) - t.r;
     if (d <= h.range) { h.face = fatan2(t.y - h.y, t.x - h.x); attackStep(h, t); }
     else if (h.windT > 0 && d <= h.range + 90) { /* finishing the swing */ }
@@ -1231,7 +1251,7 @@ const KIT_V = 21, KIT_0 = 19;       // which state of the heroes' skills a match
 const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }
@@ -1249,7 +1269,7 @@ function simHash() {
 }
 function recNew(opts) {
   return { dt: bufNew(16384), ev: bufNew(8192), chk: [], steps: 0, last: 0, mc: MOVE_NONE, bits: 0, hint: 0, marks: [],
-    opts: Object.assign({ seed: G.seed0, diff: G.diff, roster: opts.roster || HERO_KEYS.length, kit: G.kit, player: { hero: opts.player.hero, spell: opts.player.spell, skin: opts.player.skin | 0, role: opts.player.role | 0 } }, opts.mode === 'duel' ? { mode: 'duel', foe: opts.foe ? { hero: opts.foe.hero, role: opts.foe.role | 0 } : null } : null) };
+    opts: Object.assign({ seed: G.seed0, diff: G.diff, roster: opts.roster || HERO_KEYS.length, kit: G.kit, player: Object.assign({ hero: opts.player.hero, spell: opts.player.spell, skin: opts.player.skin | 0, role: opts.player.role | 0 }, POS_KEYS.includes(opts.player.pos) ? { pos: opts.player.pos } : null) }, opts.mode === 'duel' ? { mode: 'duel', foe: opts.foe ? { hero: opts.foe.hero, role: opts.foe.role | 0 } : null } : null) };
 }
 function recEv(R, k) { bufVar(R.ev, R.steps - R.last); R.last = R.steps; bufPut(R.ev, k); }
 function recMark(R, o) {       // what the timeline of a recording shows
@@ -1302,11 +1322,11 @@ function actFor(h, k, a, b, c) {
 const NET_DU = 240, NET_STEPS = 2, NET_HOLD = { [A_BUY]: 1, [A_SELL]: 1, [A_LEVEL]: 1 };
 function actCan(h, k, a) {       // would this go through if it were done now? (so that a press is answered at once: it is done a moment later)
   switch (k) {
-    case A_CAST: { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.disp || G.over) return false; const sp = a === 3; if (sp) return !(h.spellCd > 0); if (!(h.sk[a] >= 1)) return false; if (recastOf(h, a)) return true; if (chainHold(h, a) || h.cds[a] > 0) return false; return h.mp >= skillCost(skDef(h, a), h.sk[a]); }
-    case A_MEND: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.healCd > 0 || G.over || (h.hp >= h.maxHp - 1 && h.mp >= h.maxMp - 1));
+    case A_CAST: { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || G.over) return false; const sp = a === 3; if (sp) return !(h.spellCd > 0); if (!(h.sk[a] >= 1)) return false; if (recastOf(h, a)) return true; if (chainHold(h, a) || h.cds[a] > 0) return false; return h.mp >= skillCost(skDef(h, a), h.sk[a]); }
+    case A_MEND: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.healCd > 0 || G.over || (h.hp >= h.maxHp - 1 && h.mp >= h.maxMp - 1));
     case A_ITEM: return itemReady(h);
     case A_LEVEL: return canLevel(h, a);
-    case A_RECALL: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.dash || h.leap);
+    case A_RECALL: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap);
     case A_BUY: return canBuy(h, a);
     case A_SELL: return !!h.items[a];
   }

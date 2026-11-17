@@ -111,7 +111,7 @@ function eclipseExtras(v, u, t, dt, ux, uz, c) {
   }
 }
 /* Each hero's recall has its own colour and its own small weather, to go with the way they wait. */
-const RECALL_C = { bram: '#ffd27a', thorn: '#8fe07a', kaela: '#ff7a8a', rook: '#e0b890', vex: '#b48cff', tavi: '#ffd76a', kiri: '#8fe6ff', lyra: '#9fb8ff', zephyr: '#9ff0e0', orin: '#ffb35c', mira: '#c8f08a', sera: '#fff0b0', miel: '#ffc94a' };
+const RECALL_C = { bram: '#ffd27a', thorn: '#8fe07a', kaela: '#ff7a8a', rook: '#e0b890', vex: '#b48cff', tavi: '#ffd76a', kiri: '#8fe6ff', lyra: '#9fb8ff', zephyr: '#9ff0e0', orin: '#ffb35c', mira: '#c8f08a', sera: '#fff0b0', miel: '#ffc94a', hesta: '#ffcf7a' };
 function recallAccent(u, k, t, dt, c) {
   const x = u.x * S3, z = u.y * S3, E = FX.add, rnd = Math.random, a = rnd() * TAU, T = k * 6;
   switch (u.key) {
@@ -127,6 +127,7 @@ function recallAccent(u, k, t, dt, c) {
     case 'orin': if (rnd() < dt * 12) E.emit(x + Math.cos(a) * rnd() * 0.9, 0.05, z + Math.sin(a) * rnd() * 0.9, (rnd() - .5) * 0.5, 0.9 + rnd() * 1.1, (rnd() - .5) * 0.5, 1.3, 0.09, 0.01, rnd() < 0.4 ? '#ffe9a0' : c, 1, -0.2, 0.3); break;       // embers, as from a camp fire
     case 'mira': if (rnd() < dt * 12) { const r = rnd() * 1.2; E.emit(x + Math.cos(a) * r, 2.4 + rnd() * 0.8, z + Math.sin(a) * r, Math.cos(t * 2) * 0.6, -0.7, Math.sin(t * 2) * 0.6, 2.2, 0.15, 0.09, rnd() < 0.4 ? '#ffffff' : c, 0.95, 0.1, 1); } break;       // feathers coming down
     case 'miel': if (rnd() < dt * (10 + k * 26)) { const r = 1.7 - k * 1.1 + rnd() * 0.3, w = 1.8 + k * 2.4; E.emit(x + Math.cos(a) * r, 0.5 + rnd() * 1.5, z + Math.sin(a) * r, -Math.sin(a) * w - Math.cos(a) * 0.9, (rnd() - .5) * 0.8, Math.cos(a) * w - Math.sin(a) * 0.9, 0.7, 0.1, 0.02, rnd() < 0.3 ? '#ffffff' : c, 0.95, 0, 0.2); } break;       // the hive coming home: bees circling in, closer and faster
+    case 'hesta': if (Math.pow(Math.max(0, Math.sin(T * 3.2)), 5) > 0.9 && k < 0.8 && rnd() < dt * 26) ring3(x, z, 0.35, 1.5 + k, 0.7, c, 0.45, true, 0.5); if (rnd() < dt * 8) E.emit(x + Math.cos(a) * 0.9, 0.3 + rnd() * 1.4, z + Math.sin(a) * 0.9, Math.cos(a) * 0.6, 0.3, Math.sin(a) * 0.6, 0.7, 0.1, 0.02, rnd() < 0.4 ? '#ffffff' : c, 0.9, 0, 0.2); break;       // each stroke of the beater sends a ring out
     case 'sera': if (rnd() < dt * 20) { const r = rnd() * 0.9; E.emit(x + Math.cos(a) * r, 0.1 + rnd() * 0.6, z + Math.sin(a) * r, 0, 1.1 + rnd() * 1.4 + k * 2, 0, 1.2, 0.12, 0.02, rnd() < 0.4 ? '#ffffff' : c, 0.95, 0, 0); } if (rnd() < dt * (1 + k * 6)) glint3(x + (rnd() - .5) * 1.2, 1.6 + rnd() * 1.6, z + (rnd() - .5) * 1.2, 0.6 + rnd() * 0.8, 0.4, '#ffffff'); break;       // light rising round her
   }
 }
@@ -232,7 +233,7 @@ function heroExtras(v, u, t, dt) {
   const sa = SKINS[u.key][u.skin].aura; if (sa && Math.random() < dt * (u.moving ? 7 : 3)) FX.add.emit(ux + (Math.random() - .5) * 0.5, 0.2 + Math.random() * 1.3, uz + (Math.random() - .5) * 0.5, 0, 0.5, 0, 0.8, 0.12, 0.02, sa, 0.75, -0.1, 0);
   if (hasBuff(u, 'sprint') && u.moving && Math.random() < dt * 30) FX.add.emit(ux + (Math.random() - .5) * 0.5, 0.1 + Math.random() * 1.2, uz + (Math.random() - .5) * 0.5, -u.vx * S3 * 0.5, 0, -u.vy * S3 * 0.5, 0.3, 0.13, 0.02, '#c8fff0', 0.8, 0, 0);
   if (aura || v.auraM) { const m = lazyFx(v, 'auraM', () => { const q = new THREE.Mesh(FG.plane, fxMat('#ffffff', 0.75, { map: GX.tex.swirl })); q.position.y = 0.05; return q; }); m.visible = !!aura; if (aura) { m.material.color.copy(lin(aura)); const s = 2.1 + Math.sin(t * 5) * 0.12; m.scale.set(s, 1, s); m.rotation.y = -t * 4; } }
-  const sh = shieldOf(u) > 1, pz = sh && hasBuff(u, 'poise'), bc = pz ? skinColor(u.key, u.skin, 0) : '#cfe4ff';
+  const sh = shieldOf(u) > 1, pz = sh && hasBuff(u, 'poise'), pl = sh && !pz ? u.shields.find(s => s.pool) : null, bc = pz ? skinColor(u.key, u.skin, 0) : pl ? skinColor(pl.by.key, pl.by.skin, 2) : '#cfe4ff';       // (pl: under a shield its side shares: in the colour of whoever raised it)
   if (sh || v.bub) { const m = lazyFx(v, 'bub', () => { const q = new THREE.Mesh(FG.sphere, fxMat('#cfe4ff', 0.3, { side: THREE.FrontSide, map: GX.tex.hex })); q.position.y = 1.05; return q; }); m.visible = sh; if (sh) { if (v.bubC !== bc) { v.bubC = bc; m.material.color.copy(lin(bc)); } const s = 1.02 + Math.sin(t * 6) * 0.03; m.scale.set(s, s * 1.15, s); m.rotation.y = t * (pz ? 2.4 : 0.8); m.material.opacity = (pz ? 0.38 : 0.3) + Math.sin(t * 6) * 0.06; } }
   if (pz && Math.random() < dt * 30) { const a = t * 7 + Math.random() * 0.9, q = Math.random() < 0.5 ? 0 : Math.PI; FX.add.emit(ux + Math.cos(a + q) * 0.62, 0.15 + Math.random() * 0.5, uz + Math.sin(a + q) * 0.62, -Math.sin(a + q) * 2.4, 2.2, Math.cos(a + q) * 2.4, 0.5, 0.13, 0.02, Math.random() < 0.3 ? '#ffffff' : bc, 0.9, 0, 0.8); }       // leaves on the wind round a steadied hunter
   const im = immuneOf(u);
@@ -422,6 +423,9 @@ function drawOverlay(dt) {
     if (!w2s(v.root.position.x, v.top + (u.z || 0) * S3, v.root.position.z, p)) continue;       // (over the figure as it is drawn: in a networked match that glides a little behind the unit itself)
     const px = p.x, by = p.y, col = tcol(u.team, V.team);
     if (px < -80 || px > V.vw + 80 || by < -60 || by > V.vh + 60) continue;
+    if (u.tauntT > 0) { const r = (8.5 + Math.sin(t * 14) * 1.2) * us, cx = px + 3 * us, cy = by - (u.kind === 'hero' ? 39 : 20) * us;       // taunted: a red mark over the head for as long as it lasts
+      g.fillStyle = TAUNT_C; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill(); g.lineWidth = 1.5; g.strokeStyle = 'rgba(0,0,0,0.6)'; g.stroke();
+      g.fillStyle = '#fff'; g.fillRect(cx - 1.4 * us, cy - 5 * us, 2.8 * us, 6.2 * us); g.beginPath(); g.arc(cx, cy + 3.9 * us, 1.6 * us, 0, TAU); g.fill(); }
     if (u.stunT > 0) { g.fillStyle = '#ffe36a'; for (let j = 0; j < 3; j++) { const a = t * 6 + j * TAU / 3; g.beginPath(); g.arc(px + Math.cos(a) * 15 * us, by + 16 * us + Math.sin(a) * 5 * us, 3.4 * us, 0, TAU); g.fill(); } }
     if (u.kind === 'hero') {
       const w = 80 * us, h = 8.5 * us, x = px - w / 2 + 7 * us, y = by - h - 4 * us, mine = u === me;

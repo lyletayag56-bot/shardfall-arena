@@ -199,6 +199,10 @@ function makeFxTextures() {
   }, { wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping });
   GX.tex.hex.repeat.set(10, 3);
   // a round of honeycomb: cells out to the rim, some of them full
+  GX.tex.rings = canvasTex(256, 256, g => {       // a sound going out: rings, closer and fainter toward the middle
+    g.strokeStyle = '#fff'; for (let i = 1; i <= 6; i++) { g.globalAlpha = 0.12 + i * 0.13; g.lineWidth = 1.5 + i * 0.9; g.beginPath(); g.arc(128, 128, 14 + i * 18, 0, TAU); g.stroke(); }
+    g.globalAlpha = 1; const r = g.createRadialGradient(128, 128, 0, 128, 128, 126); r.addColorStop(0, 'rgba(255,255,255,0.3)'); r.addColorStop(0.5, 'rgba(255,255,255,0.06)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 256, 256);
+  });
   GX.tex.comb = canvasTex(256, 256, g => {
     g.strokeStyle = '#fff'; g.fillStyle = '#fff'; g.lineJoin = 'round'; const rr = 21, w = rr * Math.sqrt(3);
     let s = 11; const R = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };

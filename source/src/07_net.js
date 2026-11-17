@@ -17,7 +17,7 @@
    NET.ok: 0 not asked yet, 1 connected, -1 this view cannot connect. chan: the table (null: not at one). P: the pages at the table,
    as read. hs: this page hosts. go: what the host started. M: the match in progress, as the turn exchange holds it (ncNew).
    ============================================================ */
-const NETV = 4;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
+const NETV = 5;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
 const NET_AWAY = 6000;        // ms the page of a seat may be missing from the table during a match before the seat counts as gone (connections are refreshed now and then, and that is no leaving)
 const NET_GO_MS = 15000;      // ms the host keeps saying how a match started
 const NET_BYTES = 3900;       // the most a page may keep in a room is 4 KiB
@@ -117,12 +117,12 @@ function netShareNow() {
 function netTableLost() { if (NET.ok !== 1) return; netStop(NET.M ? 'The connection to the table was lost, and the match goes on without this device.' : 'The connection to the table was lost. You can join it again from the list.', 2); }
 function netMine() {       // this page's own row at the table, as it stands now (what the room sends back says the same a moment later)
   const p = NET.P.find(q => q.me), h = UI.hero; if (!p) return;
-  p.nm = netNick(NET.nick) || 'Player'; p.tm = NET.team; p.h = h; p.k = UI.skins[h] | 0; p.sp = UI.spell; p.r = roleIx(h); p.rd = NET.ready; p.pt = NET.pt; p.st = !!NET.M; p.hs = !!NET.hs;
+  p.nm = netNick(NET.nick) || 'Player'; p.tm = NET.team; p.h = h; p.k = UI.skins[h] | 0; p.sp = UI.spell; p.r = roleIx(h); p.ps = POS_KEYS.indexOf(laneOf(h)); p.rd = NET.ready; p.pt = NET.pt; p.st = !!NET.M; p.hs = !!NET.hs;
   NET.P.sort((a, b) => a.pt - b.pt || (a.peer < b.peer ? -1 : 1));
 }
 function netSay() {       // this page's place at the table, and during a match its part in the turn exchange
   if (!NET.chan) return; const h = UI.hero, M = NET.M, now = performance.now(); if (!M) netMine();
-  const T = { v: NETV, sim: SIM_NAME, c: NET.code, nm: NET.nick, tm: NET.team, h, k: UI.skins[h] | 0, sp: UI.spell, r: roleIx(h), rd: NET.ready ? 1 : 0, pt: NET.pt, st: M ? 1 : 0, ln: NET.lastN };
+  const T = { v: NETV, sim: SIM_NAME, c: NET.code, nm: NET.nick, tm: NET.team, h, k: UI.skins[h] | 0, sp: UI.spell, r: roleIx(h), ps: POS_KEYS.indexOf(laneOf(h)), rd: NET.ready ? 1 : 0, pt: NET.pt, st: M ? 1 : 0, ln: NET.lastN };
   if (NET.web) T.dl = NET.dlSaid = netLines();
   if (NET.hs) { T.hs = 1; T.ht = NET.ht; T.cfg = NET.cfg; if (NET.go && now - NET.goT < NET_GO_MS) T.go = NET.go; }
   if (M) { T.m = ncOut(M); const ch = chatOut(now); if (ch) T.ch = ch; } else if (NET.quitN) T.m = { n: NET.quitN, q: 1 };
@@ -135,7 +135,7 @@ function netTablePeers(peers) {
   for (const p of peers) {
     if (!p || p.kind === 'agent') continue; if (p.sameTab) NET.me = p.peer;
     const T = p.presence && p.presence.T; if (!T || typeof T !== 'object' || T.c !== NET.code || typeof p.peer !== 'string') continue;
-    P.push({ peer: p.peer, me: !!p.sameTab, raw: p.presence, T, nm: netNick(T.nm) || 'Player', tm: T.tm === 1 ? 1 : 0, h: HEROES[T.h] ? T.h : HERO_KEYS[0], k: T.k | 0, sp: SPELLS[T.sp] ? T.sp : null, r: T.r | 0, rd: T.rd === 1, pt: +T.pt || 0,
+    P.push({ peer: p.peer, me: !!p.sameTab, raw: p.presence, T, nm: netNick(T.nm) || 'Player', tm: T.tm === 1 ? 1 : 0, h: HEROES[T.h] ? T.h : HERO_KEYS[0], k: T.k | 0, sp: SPELLS[T.sp] ? T.sp : null, r: T.r | 0, ps: POS_KEYS[T.ps] ? T.ps | 0 : -1, rd: T.rd === 1, pt: +T.pt || 0,
       ok: T.v === NETV && T.sim === SIM_NAME, hs: T.hs === 1, ht: +T.ht || 0, st: T.st === 1, ln: Math.min(Math.max(T.ln | 0, 0), 1e9) });
   }
   P.sort((a, b) => a.pt - b.pt || (a.peer < b.peer ? -1 : 1)); NET.P = P;
@@ -172,7 +172,7 @@ function netQuick(all) {
 }
 function netHostStart() {
   if (!NET.hs || NET.M || netCanStart()) return; const { S } = netSeats(), seats = [];
-  for (const p of S[0].concat(S[1])) seats.push([p.peer, p.tm, p.h, Math.min(Math.max(p.k, 0), SKINS[p.h].length - 1), p.sp || HEROES[p.h].spell, p.r, p.nm]);
+  for (const p of S[0].concat(S[1])) seats.push([p.peer, p.tm, p.h, Math.min(Math.max(p.k, 0), SKINS[p.h].length - 1), p.sp || HEROES[p.h].spell, p.r, p.nm, p.ps]);
   let n = NET.lastN; for (const p of NET.P) if (p.ln > n) n = p.ln;       // (a number no page at the table has seen: whoever hosts)
   const go = NET.go = { n: n + 1, seed: ((Math.random() * 2147483646) | 0) + 1, md: NET.cfg.md, df: NET.cfg.df.slice(), ts: netQuick(S[0].concat(S[1])) ? 1 : 2, seats }; NET.goT = performance.now();
   setTimeout(() => { if (NET.go === go) { NET.go = null; if (NET.chan && !NET.M) netSay(); } }, NET_GO_MS + 200);
@@ -187,7 +187,7 @@ function netGo(go) {
   for (const q of seats) {       // (what a host says is read like anything else: a start that makes no sense is no start)
     if (!ok) break; if (!Array.isArray(q) || typeof q[0] !== 'string' || q[0].length > 80 || !HEROES[q[2]] || peers.includes(q[0])) { ok = false; break; }
     const tm = q[1] === 1 ? 1 : 0, d = HEROES[q[2]]; if (++cnt[tm] > (duel ? 1 : 5) || taken[tm][q[2]]) { ok = false; break; } taken[tm][q[2]] = 1;
-    peers.push(q[0]); humans.push({ team: tm, hero: q[2], skin: Math.min(Math.max(q[3] | 0, 0), SKINS[q[2]].length - 1), spell: SPELLS[q[4]] ? q[4] : d.spell, role: Math.min(Math.max(q[5] | 0, 0), (d.roles ? d.roles.length : 1) - 1), name: netNick(q[6]) || 'Player' });
+    peers.push(q[0]); humans.push({ team: tm, hero: q[2], skin: Math.min(Math.max(q[3] | 0, 0), SKINS[q[2]].length - 1), spell: SPELLS[q[4]] ? q[4] : d.spell, role: Math.min(Math.max(q[5] | 0, 0), (d.roles ? d.roles.length : 1) - 1), name: netNick(q[6]) || 'Player', pos: POS_KEYS[q[7]] });       // (pos: the lane asked for)
   }
   if (!ok) { netSay(); return; }
   const me = peers.indexOf(NET.me);
@@ -200,7 +200,7 @@ function netGo(go) {
   if (NET.web) { const M = NET.M; let ms = 0, all = peers.length > 1; for (const q of peers) if (q !== NET.me) { const v = linkInfo(q); if (!v.direct) all = false; if (v.ms > ms) ms = v.ms; } if (all && ms > 0) M.D = Math.min(NC_D0 * M.k, Math.max(NC_DMIN, Math.ceil((ms / 2 + 25) / M.turn) + 1)); }       // (with a direct line to everyone, how short the road is, is known already: no need to begin a turn further ahead than it takes)
   NET.abs = humans.map(() => 0); NET.prev = new Map(); NET.ready = false; NET.quitN = 0; NET.note = ''; NET.waitShown = false; NET.offT = 0; NET.say = { duel, df, n: humans.length, foes };
   UI.mode = 'net'; $('mp').hidden = true; enterPlay();
-  banner(duel ? '1v1 · Mid lane' : foes ? 'Friends against friends' : 'Playing together', duel ? (foes ? 'Against ' + humans[1 - me].name : 'Break their turrets, then the crystal') : `${humans.length} ${humans.length === 1 ? 'player' : 'players'} · bots fill the other places`, '#f2c14e');
+  banner(duel ? '1v1 · Mid lane' : foes ? 'Friends against friends' : 'Playing together', duel ? (foes ? 'Against ' + humans[1 - me].name : 'Break their turrets, then the crystal') : `${LANES[G.player.pos].name} · ${humans.length} ${humans.length === 1 ? 'player' : 'players'} · bots fill the other places`, '#f2c14e');
   hint((G.player.team === RED ? 'Your side starts at the top right this time: your own team is still the blue one on your screen. ' : '') + (duel ? 'One lane, two turrets and the crystal. ' : mine > 1 ? 'Your friends are on your side. ' : '') + 'Your hero answers the stick at once. Skills and attacks land a moment after the press, on every screen at the same time: that is what keeps everyone in the same match.', 11);
   snd('horn'); chatReset(); netSay(); netLobbySay();
 }
@@ -218,7 +218,7 @@ function netEndSay() { const s = NET.M && NET.say; return !s ? '' : s.duel ? (s.
 const AH = { on: false, x: 0, y: 0, face: 0, moving: false, u: { x: 0, y: 0, r: 0, id: 0 }, sampT: 0, hi: -1 };
 function netAhead() {
   const M = NET.M, me = G.player; AH.on = false; AH.moving = false;
-  if (!M || !me || !me.isPlayer || M.out || G.over || me.dead || me.leap || me.disp || me.dash || me.air || me.reviveT > 0) return AH;
+  if (!M || !me || !me.isPlayer || M.out || G.over || me.dead || me.leap || me.disp || me.dash || me.air || me.reviveT > 0 || me.tauntT > 0) return AH;       // (taunted: the stick does nothing, so there is nothing to forecast)
   const now = performance.now(); if (M.hi !== AH.hi) { AH.hi = M.hi; AH.sampT = now; }       // (when this machine last put a frame of its own on the way)
   const w0 = _wx, w1 = _wy, g0 = _sgx, g1 = _sgy, U = AH.u, sp = me.ms * NC_STEP;       // the sim's own scratch values are put back as they were
   U.x = me.x; U.y = me.y; U.r = me.r; U.id = me.id;
@@ -315,9 +315,13 @@ function netRender(force) {
     const { S, out } = netSeats(), host = NET.P.find(p => p.peer === NET.host), duel = NET.cfg.md === 'duel', why = netCanStart(), hs = !!NET.hs;
     const lv = t => hs ? `<div class="mplv" role="group" aria-label="${t ? 'Red' : 'Blue'} bots">${DIFFS.map((d, i) => `<button class="chip plain" data-df="${t}" data-d="${i}" aria-pressed="${NET.cfg.df[t] === i}">${d.name}</button>`).join('')}</div>` : `<small>${DIFFS[NET.cfg.df[t]].name}</small>`;
     const via = p => { if (!NET.web || p.me) return ''; const v = linkInfo(p.peer), ms = v.ms > 0 ? ' ' + Math.max(10, Math.round(v.ms / 10) * 10) + ' ms' : ''; return v.direct ? ' · direct' + ms : ' · relay' + (ms ? ' ~' + ms.trim() : ''); };
-    const seat = p => `<div class="mps${p.me ? ' me' : ''}${p.rd ? ' rd' : ''}${p.clash ? ' bad' : ''}"><img src="${portrait(p.h, Math.min(Math.max(p.k, 0), SKINS[p.h].length - 1))}" alt=""><div><b>${esc(netName(p))}${p.peer === NET.host ? '<em>Host</em>' : ''}</b><span>${esc(HEROES[p.h].name)}${HEROES[p.h].roles ? ' · ' + HEROES[p.h].roles[Math.min(Math.max(p.r, 0), HEROES[p.h].roles.length - 1)].cls : ''}${p.clash ? ' · taken on this side' : ''}${via(p)}</span></div><i>${p.st ? 'Playing' : p.rd && p.peer !== NET.host ? 'Ready' : ''}</i></div>`;
+    const seat = p => `<div class="mps${p.me ? ' me' : ''}${p.rd ? ' rd' : ''}${p.clash ? ' bad' : ''}"><img src="${portrait(p.h, Math.min(Math.max(p.k, 0), SKINS[p.h].length - 1))}" alt=""><div><b>${esc(netName(p))}${p.peer === NET.host ? '<em>Host</em>' : ''}</b><span>${esc(HEROES[p.h].name)}${HEROES[p.h].roles ? ' · ' + HEROES[p.h].roles[Math.min(Math.max(p.r, 0), HEROES[p.h].roles.length - 1)].cls : ''}${!duel && POS_KEYS[p.ps] ? ' · ' + LANES[POS_KEYS[p.ps]].name : ''}${p.clash ? ' · taken on this side' : ''}${via(p)}</span></div><i>${p.st ? 'Playing' : p.rd && p.peer !== NET.host ? 'Ready' : ''}</i></div>`;
     const bots = t => duel ? (S[t].length ? '' : S[1 - t].length ? `<div class="mps bot"><div><b>A bot</b><span>plays this side</span></div>${lv(t)}</div>` : `<div class="mps bot"><div><b>Empty</b></div></div>`) : `<div class="mps bot"><div><b>${5 - S[t].length} ${5 - S[t].length === 1 ? 'bot' : 'bots'}</b></div>${S[t].length < 5 ? lv(t) : ''}</div>`;
-    const side = (t, nm) => `<div class="mptm ${t ? 'e' : 'a'}"><h3>${nm}</h3>${S[t].map(seat).join('')}${bots(t)}</div>`;
+    const twice = t => {       // two of a side in one lane: which lanes nobody takes then (as the match will have it)
+      if (duel) return ''; const got = S[t].map(p => POS_KEYS[p.ps]).filter(Boolean), left = POS_KEYS.filter(k => !got.includes(k)), dup = POS_KEYS.filter(k => got.filter(g => g === k).length > 1); if (!dup.length) return '';
+      const none = []; while (left.length > 5 - S[t].length) none.push(left.splice(left.indexOf(POS_SPARE.find(q => left.includes(q))), 1)[0]);
+      return `<p class="meta mpdup">${dup.map(k => LANES[k].name).join(' and ')} taken more than once${none.length ? ': nobody takes the ' + none.map(k => LANES[k].name).join(' or the ') : ''}.</p>`; };
+    const side = (t, nm) => `<div class="mptm ${t ? 'e' : 'a'}"><h3>${nm}</h3>${S[t].map(seat).join('')}${bots(t)}${twice(t)}</div>`;
     h = `<div class="mphead"><div><b>${host ? esc(host.me ? 'Your table' : host.nm + '’s table') : 'Table'}</b><span>${NET_MD[NET.cfg.md]} · ${NET.web ? 'send your friends the link below' : 'your friends find it under Friends'}</span></div>${hs ? `<div class="chips" role="group" aria-label="Kind of match">${['team', 'duel'].map(k => `<button class="chip plain" data-md="${k}" aria-pressed="${NET.cfg.md === k}">${k === 'team' ? '5v5' : '1v1'}</button>`).join('')}</div>` : ''}</div>` + note + (NET.down ? `<p class="mpnote">The connection has dropped. Trying to get it back…</p>` : '')
       + (NET.web ? `<div class="mplink"><span>Invite link</span><code id="mpLink">${esc(netLink(NET.code))}</code><button class="btn sm" data-copy>${NET.copied ? 'Copied' : 'Copy'}</button>${typeof navigator.share === 'function' ? '<button class="btn sm" data-share>Share</button>' : ''}</div>` : '')
       + `<div class="mpteams">${side(0, 'Blue')}${side(1, 'Red')}</div>`
@@ -326,6 +330,7 @@ function netRender(force) {
       + `<div class="row mpgo"><div class="chips" role="group" aria-label="Your side">${[0, 1].map(t => `<button class="chip plain ${t ? 'e' : 'a'}" data-tm="${t}" aria-pressed="${NET.team === t}">${t ? 'Red' : 'Blue'}</button>`).join('')}</div>${hs ? `<button class="btn go" data-start${why ? ' disabled' : ''}>Start the match</button>` : `<button class="btn${NET.ready ? ' on' : ' go'}" data-ready aria-pressed="${NET.ready}">${NET.ready ? 'Ready ✓' : 'I am ready'}</button>`}<span class="meta" role="status">${esc(hs ? (why || (NET.P.length > 1 ? 'Everyone is ready.' : 'Start alone against bots, or wait for your friends.')) : why ? (host ? host.nm : 'The host') + ' starts the match when everyone is ready. ' + why : 'Everyone is ready: ' + (host ? host.nm : 'the host') + ' can start the match.')}</span></div>`
       + `<div class="mpmine"><p class="eyebrow">Your hero</p><div class="pheroes mph">${HERO_KEYS.map(k => `<button data-hero="${k}" aria-pressed="${k === UI.hero}"${S[NET.team].some(p => !p.me && p.h === k) ? ' class="tk"' : ''}><img src="${portrait(k, UI.skins[k] | 0)}" alt="">${esc(HEROES[k].name)}</button>`).join('')}</div>`
       + (HEROES[UI.hero].roles ? `<div class="roles" role="group" aria-label="Role to play ${HEROES[UI.hero].name} in"><span>Play as</span>${HEROES[UI.hero].roles.map((r, i) => `<button class="chip plain" data-role="${i}" aria-pressed="${i === roleIx(UI.hero)}">${r.cls}</button>`).join('')}</div>` : '')
+      + (duel ? '' : `<div class="chips lanes mpln" role="group" aria-label="The lane you take">${POS_KEYS.map(k => `<button class="chip${k === laneOwn(UI.hero) ? ' own' : ''}" data-lane="${k}" aria-pressed="${k === laneOf(UI.hero)}"><span class="ii">${icon(LANES[k].ic, LANES[k].c)}</span>${LANES[k].name}</button>`).join('')}</div>`)
       + `<div class="mpopt"><div class="chips" role="group" aria-label="Skin">${SKINS[UI.hero].map((k, i) => `<button class="chip plain" data-skin="${i}" aria-pressed="${i === (UI.skins[UI.hero] | 0)}">${esc(k.name)}</button>`).join('')}</div><div class="chips" role="group" aria-label="Battle spell">${Object.keys(SPELLS).map(k => `<button class="chip plain" data-spell="${k}" aria-pressed="${k === UI.spell}">${esc(SPELLS[k].name)}</button>`).join('')}</div></div></div>`
       + `<div class="row"><button class="btn" data-leave>Leave the table</button><span class="meta">Closing this sheet leaves the table too.</span></div>`;
   }
@@ -355,8 +360,9 @@ function bindNet() {
     else if (d.join) { snd('ui'); netSit(d.join, false); }
     else if (d.leave != null) { snd('ui'); netLeaveTable(); }
     else if (d.tm) { NET.team = +d.tm ? 1 : 0; NET.pt = Date.now(); NET.ready = false; snd('ui'); netSay(); netRender(true); }
-    else if (d.hero) { if (HEROES[d.hero]) { UI.hero = d.hero; UI.spell = HEROES[UI.hero].spell; NET.ready = false; snd('ui'); syncMenu(); netSay(); netRender(true); } }
-    else if (d.role) { UI.roles[UI.hero] = +d.role; NET.ready = false; snd('ui'); syncMenu(); netSay(); netRender(true); }
+    else if (d.hero) { if (HEROES[d.hero]) { heroSet(d.hero); NET.ready = false; snd('ui'); syncMenu(); netSay(); netRender(true); } }
+    else if (d.role) { roleSet(+d.role); NET.ready = false; snd('ui'); syncMenu(); netSay(); netRender(true); }
+    else if (d.lane) { laneSet(d.lane); NET.ready = false; snd('ui'); syncMenu(); netSay(); netRender(true); }
     else if (d.skin) { if (SKINS[UI.hero][+d.skin]) { UI.skins[UI.hero] = +d.skin; const im = document.querySelector(`.hc[data-h="${UI.hero}"] img`); if (im) im.src = portrait(UI.hero, UI.skins[UI.hero]); snd('ui'); syncMenu(); netSay(); netRender(true); } }
     else if (d.spell) { if (SPELLS[d.spell]) { UI.spell = d.spell; snd('ui'); syncMenu(); netSay(); netRender(true); } }
     else if (d.ready != null) { netMine(); netSeats(); const me = NET.P.find(p => p.me); if (me && me.clash && !NET.ready) { snd('deny'); return; } NET.ready = !NET.ready; snd('ui'); netSay(); netRender(true); }

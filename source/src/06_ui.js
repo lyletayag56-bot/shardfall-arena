@@ -77,21 +77,29 @@ const ICONS = {
   cut1: `<path ${F} d="M3 19c7 0 15-6 16-15 2.5 9-4.5 18-16 15z"/>`,
   cut2: `<path ${F} opacity=".4" d="M3 19c7 0 15-6 16-15 2.5 9-4.5 18-16 15z"/><path ${F} d="M21 19c-7 0-15-6-16-15-2.5 9 4.5 18 16 15z"/>`,
   cut3: `<path ${F} d="M11.5 19.2l-5.600-7.400h3.500c.4-4.600 3-8 8.600-10.100-3.200 3.100-4.400 6.200-4.300 10.100h3.400z"/><path d="M2.500 21.500h19M4.500 17.500l-2-2M19.500 17.500l2-2"/>`,
+  gong: `<path d="M3 3h18M7.5 3l1.6 3.4M16.5 3l-1.6 3.4"/><circle ${F} cx="12" cy="13.6" r="7.9"/><circle cx="12" cy="13.6" r="3.5" stroke="#0d1b21" stroke-width="1.7"/>`,
+  linked: `<path d="M2.6 16.5a9.4 9.4 0 0 1 18.8 0"/><circle ${F} cx="12" cy="13.6" r="2.7"/><circle ${F} cx="6.3" cy="17.3" r="2.1"/><circle ${F} cx="17.7" cy="17.3" r="2.1"/><path d="M2.6 21.4h18.8"/>`,
+  lnExp: `<path ${F} d="M12 2.6l7.4 7.6h-4.6v4.6H9.2v-4.6H4.6z"/><path d="M7 18.2h10M9.2 21.6h5.6"/>`,
+  lnJungle: `<path ${F} d="M12 2.4l5.6 6.8h-2.8l4.8 6.2H4.4l4.8-6.2H6.4z"/><path d="M12 15.4v6.2"/>`,
+  lnMid: `<rect x="3.4" y="3.4" width="17.2" height="17.2" rx="2.6"/><path d="M6.4 17.6L17.6 6.4"/><circle ${F} cx="12" cy="12" r="2.7"/>`,
+  lnGold: `<circle ${F} cx="12" cy="12" r="9.2"/><path d="M12 6.4l3.9 5.6-3.9 5.6-3.9-5.6z" stroke="#0d1b21" stroke-width="1.7"/>`,
+  lnRoam: `<circle cx="12" cy="12" r="9.2"/><path ${F} d="M16.4 7.6l-2.6 6.2-6.2 2.6 2.6-6.2z"/>`,
   bramble: `<circle ${F} cx="12" cy="12" r="3.1"/><path d="M12 2.6c2.1 2.3 2.1 4.3 0 6.3M12 21.4c-2.1-2.3-2.1-4.3 0-6.3M2.6 12c2.3-2.1 4.3-2.1 6.3 0M21.4 12c-2.3 2.1-4.3 2.1-6.3 0"/><path d="M5.4 5.4l3.2 3.2M18.6 5.4l-3.2 3.2M5.4 18.6l3.2-3.2M18.6 18.6l-3.2-3.2"/>`,
 };
 function icon(name, color) { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"${color ? ` style="color:${color}"` : ''}>${(ICONS[name] || ICONS.orb).replace(/(\d)\.(\d)00/g, '$1.$2')}</svg>`; }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-const UI = { state: 'menu', paused: false, ended: false, hero: 'kaela', spell: 'execute', diff: 0, skins: {}, roles: {}, nav: null, mute: false, touch: false,       // roles: which of its roles each hero that has more than one is played in
+const UI = { state: 'menu', paused: false, ended: false, hero: 'kaela', spell: 'execute', diff: 0, skins: {}, roles: {}, lanes: {}, nav: null, mute: false, touch: false,       // roles: which of its roles each hero that has more than one is played in
   keys: {}, mouse: { x: 0, y: 0 }, aimKey: -1, joy: { id: null, x: 0, y: 0, cx: 0, cy: 0 }, sk: null, atkPtr: 0, mouseAtk: false,
   banners: [], bannerT: 0, last: {}, hints: {}, hintT: 0, lastT: 0, demoT: 0, demoFocus: null, shopCat: 'For you', boardHold: false, endT: 0, refreshT: 0,
   pan: null, panK: 3, aimCam: true };       // panK: how far the view goes for a finger's travel when the battlefield is dragged · aimCam: the camera leans after a long aim
 const PAN_MIN = 0.5, PAN_MAX = 6, PAN_STEP = 0.25;
 function prefs(save) {
   try {
-    if (save) localStorage.setItem('shardfall', JSON.stringify({ hero: UI.hero, spell: UI.spell, diff: UI.diff, mute: UI.mute, zoom: V.zoomK, skins: UI.skins, roles: UI.roles, nick: UI.nick || undefined, direct: UI.direct === false ? false : undefined, flip: LAND.flip, pan: UI.panK, aimCam: UI.aimCam, wd: UI.wd || undefined }));
+    if (save) localStorage.setItem('shardfall', JSON.stringify({ hero: UI.hero, spell: UI.spell, diff: UI.diff, mute: UI.mute, zoom: V.zoomK, skins: UI.skins, roles: UI.roles, lanes: UI.lanes, nick: UI.nick || undefined, direct: UI.direct === false ? false : undefined, flip: LAND.flip, pan: UI.panK, aimCam: UI.aimCam, wd: UI.wd || undefined }));
     else { const p = JSON.parse(localStorage.getItem('shardfall') || '{}'); if (HEROES[p.hero]) UI.hero = p.hero; if (SPELLS[p.spell]) UI.spell = p.spell; if (DIFFS[p.diff]) UI.diff = p.diff; UI.mute = !!p.mute; LAND.flip = !!p.flip; if (p.zoom > 0.7 && p.zoom < 1.35) V.zoomK = p.zoom; if (p.pan >= PAN_MIN && p.pan <= PAN_MAX) UI.panK = +p.pan; if (p.aimCam === false) UI.aimCam = false; if (p.direct === false) UI.direct = false; if (typeof p.nick === 'string') UI.nick = p.nick.replace(/[^\p{L}\p{N} _.\-]/gu, '').slice(0, 14); if (Array.isArray(p.wd) && DIFFS[p.wd[0]] && DIFFS[p.wd[1]]) UI.wd = [p.wd[0] | 0, p.wd[1] | 0]; if (p.skins && typeof p.skins === 'object') for (const k of HERO_KEYS) { const n = p.skins[k] | 0; if (n > 0 && n < SKINS[k].length) UI.skins[k] = n; }
-      if (p.roles && typeof p.roles === 'object') for (const k of HERO_KEYS) { const n = p.roles[k] | 0, rs = HEROES[k].roles; if (rs && n > 0 && n < rs.length) UI.roles[k] = n; } }
+      if (p.roles && typeof p.roles === 'object') for (const k of HERO_KEYS) { const n = p.roles[k] | 0, rs = HEROES[k].roles; if (rs && n > 0 && n < rs.length) UI.roles[k] = n; }
+      if (p.lanes && typeof p.lanes === 'object') for (const k of HERO_KEYS) if (POS_KEYS.includes(p.lanes[k])) UI.lanes[k] = p.lanes[k]; }
   } catch (e) { /* storage unavailable: defaults are fine */ }
 }
 
@@ -144,10 +152,11 @@ const SND = {
   buzz: v => { tone(196, 262, 0.3, 'sawtooth', 0.075 * v); tone(211, 281, 0.3, 'sawtooth', 0.065 * v); tone(392, 524, 0.22, 'square', 0.02 * v, 0.02); noise(0.22, 0.1 * v, 2600, 2.5); },       // two notes a little apart: the beat between them is the buzz
   arrow: v => { tone(920, 300, 0.13, 'triangle', 0.2 * v); noise(0.09, 0.26 * v, 2800, 2); },
   eclipse: v => { tone(74, 44, 0.6, 'sine', 0.4 * v); tone(880, 1480, 0.32, 'triangle', 0.07 * v, 0.04); tone(1320, 660, 0.4, 'sine', 0.05 * v, 0.1); noise(0.45, 0.16 * v, 5200, 4, 0.02); },
+  gong: v => { tone(98, 92, 1.1, 'sine', 0.5 * v); tone(147, 141, 0.9, 'sine', 0.22 * v); tone(261, 247, 0.7, 'triangle', 0.12 * v); tone(392, 370, 0.5, 'sine', 0.06 * v, 0.01); noise(0.09, 0.3 * v, 900, 0.8); noise(0.5, 0.08 * v, 3200, 3); },       // a low note that hangs, its overtones a little flat, and the knock of the beater
   win: v => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, f, 0.4, 'triangle', 0.25 * v, i * 0.13)); },
   lose: v => { [392, 349, 311, 262].forEach((f, i) => tone(f, f, 0.5, 'triangle', 0.25 * v, i * 0.2)); },
 };
-const SND_GAP = { coin: 0.07, plate: 0.1, eclipse: 0.08, hit: 0.05, tick: 0.09, shoot: 0.06, zap: 0.1, skill: 0.05, boom: 0.08, thud: 0.08, whoosh: 0.05, slash: 0.05, slam: 0.06, arrow: 0.05, wind: 0.08, chain: 0.06, dark: 0.05, bolt: 0.05, ice: 0.06, holy: 0.06, buzz: 0.08 };
+const SND_GAP = { coin: 0.07, plate: 0.1, eclipse: 0.08, hit: 0.05, tick: 0.09, shoot: 0.06, zap: 0.1, skill: 0.05, boom: 0.08, thud: 0.08, whoosh: 0.05, slash: 0.05, slam: 0.06, arrow: 0.05, wind: 0.08, chain: 0.06, dark: 0.05, bolt: 0.05, ice: 0.06, holy: 0.06, buzz: 0.08, gong: 0.12 };
 function snd(n, v) {
   if (UI.mute || !AU.ctx || AU.ctx.state !== 'running' || !SND[n]) return;
   const now = AU.ctx.currentTime; if (now - (AU.last[n] || -9) < (SND_GAP[n] || 0.02)) return; AU.last[n] = now;
@@ -168,14 +177,16 @@ function skillsHtml(def, lvFn) {
   return (p ? `<div class="sk" style="--c:${p.c}"><div class="ii">${icon(p.ic, p.c)}</div><div><b>${esc(p.name)}<small>Passive</small></b><p>${esc(p.desc)}</p></div></div>` : '') + def.skills.map((s, i) => [s, s.alt].filter(Boolean).map((q, f) => `<div class="sk${f ? ' alt' : ''}" style="--c:${q.c}"><div class="ii">${icon(q.ic, q.c)}</div><div><b>${esc(q.name)}<small>${SK_LABEL[i]}${s.alt ? ' · ' + def.forms.names[f] : ''}</small></b><p>${esc(q.desc(lvFn ? lvFn(i) : 1))}</p></div></div>`).join('')).join('');
 }
 function buildMenu() {
-  $('roster').innerHTML = HERO_KEYS.map(k => { const d = HEROES[k]; return `<button class="hc" data-h="${k}" aria-pressed="false"><img src="${portrait(k, UI.skins[k])}" alt=""><b>${d.name}</b><small${d.cls2 ? ' class="dual"' : ''}>${d.cls2 ? d.cls + ' / ' + d.cls2 : d.cls}</small></button>`; }).join('');
-  $('roster').addEventListener('click', e => { const b = e.target.closest('.hc'); if (!b) return; UI.hero = b.dataset.h; UI.spell = HEROES[UI.hero].spell; snd('ui'); syncMenu(); });
+  $('roster').innerHTML = HERO_KEYS.map(k => { const d = HEROES[k]; return `<button class="hc" data-h="${k}" aria-pressed="false"><img src="${portrait(k, UI.skins[k])}" alt=""><i class="hl"></i><b>${d.name}</b><small${d.cls2 ? ' class="dual"' : ''}>${d.cls2 ? d.cls + ' / ' + d.cls2 : d.cls}</small></button>`; }).join('');
+  $('roster').addEventListener('click', e => { const b = e.target.closest('.hc'); if (!b) return; heroSet(b.dataset.h); snd('ui'); syncMenu(); });
+  $('lanes').innerHTML = POS_KEYS.map(k => `<button class="chip" data-ln="${k}" aria-pressed="false"><span class="ii">${icon(LANES[k].ic, LANES[k].c)}</span>${LANES[k].name}</button>`).join('');
+  $('lanes').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; laneSet(b.dataset.ln); snd('ui'); syncMenu(); });
   $('spells').innerHTML = Object.keys(SPELLS).map(k => `<button class="chip" data-s="${k}" aria-pressed="false"><span class="ii">${icon(SPELLS[k].ic, SPELLS[k].c)}</span>${SPELLS[k].name}</button>`).join('');
   $('spells').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; UI.spell = b.dataset.s; snd('ui'); syncMenu(); });
   $('diffs').innerHTML = DIFFS.map((d, i) => `<button class="chip plain" data-d="${i}" aria-pressed="false">${d.name}</button>`).join('');
   $('diffs').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; UI.diff = +b.dataset.d; snd('ui'); syncMenu(); });
   $('skins').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; UI.skins[UI.hero] = +b.dataset.k; snd('ui'); const im = document.querySelector(`.hc[data-h="${UI.hero}"] img`); if (im) im.src = portrait(UI.hero, UI.skins[UI.hero]); syncMenu(); });
-  $('dhead').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; UI.roles[UI.hero] = +b.dataset.r; snd('ui'); syncMenu(); });
+  $('dhead').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; roleSet(+b.dataset.r); snd('ui'); syncMenu(); });
   $('btnStart').addEventListener('click', () => { auInit(); startMatch(); });
   $('btnWatch').addEventListener('click', () => { auInit(); snd('ui'); openReps(); });
   $('btnWatchBots').addEventListener('click', () => { auInit(); $('reps').hidden = true; startWatch(); });
@@ -188,12 +199,41 @@ function buildMenu() {
   $('btnHow').addEventListener('click', () => { const h = $('how'); h.hidden = !h.hidden; $('btnHow').setAttribute('aria-expanded', String(!h.hidden)); if (!h.hidden) h.scrollIntoView({ block: 'nearest', behavior: HAS_TOUCH ? 'auto' : 'smooth' }); });       // a browser ignores taps while it glides a page itself
   syncMenu();
 }
-const LANE_TEXT = { top: 'Top lane', jungle: 'Jungle', mid: 'Mid lane', carry: 'Bottom lane', roam: 'Bottom lane, roaming' };
+/* The five places of a side, as the menu and the table offer them (in the order of POS_KEYS). where: the ground it is played on;
+   best: the classes made for it; does: what whoever takes it is there to do. */
+const LANES = {
+  top: { name: 'EXP Lane', ic: 'lnExp', c: '#8fd0ff', where: 'the top lane', best: 'Fighters', does: 'The top lane, on your own. Hold it and outgrow whoever stands against you.' },
+  jungle: { name: 'Jungle', ic: 'lnJungle', c: '#8fe07a', where: 'your jungle', best: 'Assassins', does: 'No lane of your own: the creep camps between the lanes are yours. Clear them, then turn up where a fight can be won.' },
+  mid: { name: 'Mid Lane', ic: 'lnMid', c: '#c9a4ff', where: 'the middle lane', best: 'Mages', does: 'The middle lane, on your own: the shortest road to either side of the map.' },
+  carry: { name: 'Gold Lane', ic: 'lnGold', c: '#f2c14e', where: 'the bottom lane', best: 'Marksmen', does: 'The bottom lane, with the roamer beside you. Farm it, and carry the fights that come later.' },
+  roam: { name: 'Roam', ic: 'lnRoam', c: '#ffb38a', where: 'the bottom lane', best: 'Tanks and Supports', does: 'Start in the bottom lane beside the gold laner, then go wherever your side needs a shield or someone to start the fight.' },
+};
 const roleIx = k => { const rs = HEROES[k].roles; return rs ? Math.min(rs.length - 1, UI.roles[k] | 0) : 0; };       // the role a hero is set to be played in (0 for a hero with one)
+/* The lane a hero is set to be played in. Every hero has one it is made for (a hero of two roles, one for each role); the player may
+   put it in any other, and that is remembered hero by hero (UI.lanes). The bots of the player's side take the lanes left over. */
+const laneOwn = k => { const d = HEROES[k]; return d.roles ? d.roles[roleIx(k)].pos : d.pos; };
+const laneOf = k => POS_KEYS.includes(UI.lanes[k]) ? UI.lanes[k] : laneOwn(k);
+const spellFor = (k, ln) => ln === 'jungle' ? 'retribution' : HEROES[k].spell !== 'retribution' ? HEROES[k].spell : 'execute';       // the jungle and Retribution go together
+function heroSet(k) { if (!HEROES[k]) return; UI.hero = k; UI.spell = spellFor(k, laneOf(k)); UI.spellWas = null; }
+function laneSet(ln) {
+  if (!POS_KEYS.includes(ln)) return; const k = UI.hero, was = laneOf(k), rs = HEROES[k].roles;
+  if (rs) { const i = rs.findIndex(r => r.pos === ln); if (i >= 0) UI.roles[k] = i; }       // a lane that one of its roles is made for: that role comes with it
+  if (ln === laneOwn(k)) delete UI.lanes[k]; else UI.lanes[k] = ln;
+  if (ln === 'jungle') { if (UI.spell !== 'retribution') { UI.spellWas = UI.spell; UI.spell = 'retribution'; } }
+  else if (was === 'jungle' && UI.spell === 'retribution') UI.spell = UI.spellWas && UI.spellWas !== 'retribution' ? UI.spellWas : spellFor(k, ln);
+}
+function roleSet(i) { const k = UI.hero, was = laneOf(k); UI.roles[k] = i; delete UI.lanes[k]; if (laneOf(k) !== was) { const ln = laneOf(k); if (ln === 'jungle') UI.spell = 'retribution'; else if (was === 'jungle' && UI.spell === 'retribution') UI.spell = spellFor(k, ln); } }       // a role brings its own lane
+function laneNote(k) {       // what the menu says under the lanes
+  const ln = laneOf(k), own = laneOwn(k), L = LANES[ln], d = HEROES[k];
+  return L.does + (ln !== own ? ` ${d.name} is made for the ${LANES[own].name}; your side's bots take the four places you leave.` : ' Your side\'s bots take the other four places.')
+    + (ln === 'jungle' ? (UI.spell === 'retribution' ? ' Retribution is set as your battle spell.' : ' Without Retribution the camps hit harder and fall slower.') : '');
+}
 function syncMenu() {
   const d = HEROES[UI.hero];
   document.querySelectorAll('.hc').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.h === UI.hero)));
   document.querySelectorAll('#spells .chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === UI.spell)));
+  document.querySelectorAll('.hc .hl').forEach(el => { const ln = laneOwn(el.parentElement.dataset.h); if (el.dataset.ln !== ln) { el.dataset.ln = ln; el.innerHTML = icon(LANES[ln].ic, LANES[ln].c); el.title = 'Made for the ' + LANES[ln].name; } });       // on every card, the lane that hero is made for
+  { const ln = laneOf(UI.hero), own = laneOwn(UI.hero); document.querySelectorAll('#lanes .chip').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.ln === ln)); b.classList.toggle('own', b.dataset.ln === own); b.setAttribute('aria-label', LANES[b.dataset.ln].name + (b.dataset.ln === own ? ' (made for ' + d.name + ')' : '')); }); $('laneDesc').textContent = laneNote(UI.hero); }
   document.querySelectorAll('#diffs .chip').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.d === UI.diff)));
   $('spellDesc').textContent = SPELLS[UI.spell].desc + ' ' + SPELLS[UI.spell].cd + 's cooldown.';
   const R4 = ['Durability', 'Offense', 'Control', 'Mobility'];
@@ -201,8 +241,8 @@ function syncMenu() {
   showcaseSet(UI.hero, sk);
   $('skins').innerHTML = SKINS[UI.hero].map((s, i) => { const L = heroLook(UI.hero, i); return `<button class="chip${s.epic ? ' epic' : ''}" data-k="${i}" aria-pressed="${i === sk}"><span class="sw" style="background:linear-gradient(135deg,${L.body} 0 50%,${L.trim} 50% 100%)"></span>${esc(s.name)}${s.epic ? '<em>Epic</em>' : ''}</button>`; }).join('');
   const ri = roleIx(UI.hero), ro = d.roles && d.roles[ri];       // a hero with two roles: which to play is chosen here, and decides the lane and the build
-  $('dhead').innerHTML = `<h3>${d.name}</h3><p>${esc(d.title)}</p>` + (ro ? `<div class="roles" role="group" aria-label="Role to play ${d.name} in"><span>Play as</span>${d.roles.map((r, i) => `<button class="chip plain" data-r="${i}" aria-pressed="${i === ri}">${r.cls}</button>`).join('')}</div><p><b>${ro.cls}</b> · ${LANE_TEXT[ro.pos]}</p><p class="does">${esc(ro.does)}</p>`
-    : `<p><b>${d.cls2 ? d.cls + ' / ' + d.cls2 : d.cls}</b> · ${LANE_TEXT[d.pos]}</p>`);
+  $('dhead').innerHTML = `<h3>${d.name}</h3><p>${esc(d.title)}</p>` + (ro ? `<div class="roles" role="group" aria-label="Role to play ${d.name} in"><span>Play as</span>${d.roles.map((r, i) => `<button class="chip plain" data-r="${i}" aria-pressed="${i === ri}">${r.cls}</button>`).join('')}</div><p><b>${ro.cls}</b> · ${LANES[laneOf(UI.hero)].name}</p><p class="does">${esc(ro.does)}</p>`
+    : `<p><b>${d.cls2 ? d.cls + ' / ' + d.cls2 : d.cls}</b> · ${LANES[laneOf(UI.hero)].name}</p>`);
   $('detail').innerHTML = `<div class="rates">${R4.map((n, i) => `<div class="rate"><span>${n}</span><i style="--v:${d.rate[i]}"></i></div>`).join('')}</div>
     <div class="skl">${skillsHtml(d)}</div>`;
   prefs(true);
@@ -229,11 +269,18 @@ function enterPlay() {       // the screen side of starting any kind of match
 }
 function startMatch() {
   UI.mode = 'std';
-  newGame({ seed: (Math.random() * 1e9) | 0, fx: true, diff: UI.diff, rec: true, player: { hero: UI.hero, spell: UI.spell, skin: UI.skins[UI.hero] | 0, role: roleIx(UI.hero) } });       // rec: the match is recorded, to be watched again
+  newGame({ seed: (Math.random() * 1e9) | 0, fx: true, diff: UI.diff, rec: true, player: { hero: UI.hero, spell: UI.spell, skin: UI.skins[UI.hero] | 0, role: roleIx(UI.hero), pos: laneOf(UI.hero) } });       // rec: the match is recorded, to be watched again
   enterPlay(); const me = G.player;
-  banner('Welcome to Shardfall', 'Minions march in 10 seconds', '#f2c14e');
-  hint(me.pos === 'jungle' ? 'You are the jungler. Clear the creep camps in your jungle, then help a lane.' : me.pos === 'roam' ? 'You are the support. Head to the bottom lane with your carry and keep them alive. Learn a skill with the gold +.' : `Head to the ${LANE_TEXT[me.pos].toLowerCase()} and follow your minions. Learn a skill with the gold +.`, 10);
+  banner('Welcome to Shardfall', LANES[me.pos].name + ' · minions march in 10 seconds', '#f2c14e');
+  hint(laneHint(me), 10);
   snd('horn');
+}
+/* what a player is told as the match begins: where the place they took is, and what it is for */
+function laneHint(me) {
+  const p = me.pos;
+  return p === 'jungle' ? 'You took the Jungle. Clear the creep camps on your side of the river, then help a lane.' + (me.spell === 'retribution' ? '' : ' You have no Retribution: the camps will be slow.')
+    : p === 'roam' ? 'You took the Roam. Start in the bottom lane beside your gold laner, then go where the fight is. Learn a skill with the gold +.'
+    : `You took the ${LANES[p].name}: head to ${LANES[p].where} and follow your minions.${p === 'carry' ? ' Your roamer comes with you.' : ''} Learn a skill with the gold +.`;
 }
 /* ---------------- practice ---------------- */
 /* UI.prac holds what the player has set, so it carries over when they switch hero or come back later. */
@@ -269,7 +316,7 @@ function bindPractice() {
   const me = () => G.player, ahead = d => { const m = me(); return [m.x + Math.cos(m.face) * d, m.y + Math.sin(m.face) * d]; };
   $('prac').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b || !G || !G.practice) return; const m = me(), P = UI.prac;
-    if (b.dataset.h) { if (b.dataset.h !== m.key) { UI.hero = b.dataset.h; UI.spell = HEROES[UI.hero].spell; syncMenu(); startPractice(); openModal('prac'); } return; }
+    if (b.dataset.h) { if (b.dataset.h !== m.key) { heroSet(b.dataset.h); syncMenu(); startPractice(); openModal('prac'); } return; }
     if (b.dataset.lv) { pracSetLevel(+b.dataset.lv); return; }
     if (b.dataset.g) { const g = b.dataset.g; m.gold = g === 'max' ? 99999 : g === '0' ? 0 : Math.min(99999, m.gold + +g); P.gold = m.gold; snd('gold'); renderPrac(); return; }
     switch (b.id) {
@@ -316,7 +363,7 @@ const fmtTime = t => String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(
 function mvpScore(h) { return h.kills * 3 + h.assists * 1.5 - h.deaths * 1.5 + h.stats.dmgHero / 2500 + h.stats.dmgTurret / 1200 + h.stats.heal / 4000; }
 function boardHtml(full) {
   let mvp = null; if (full) for (const h of G.heroes) if (h.team === G.winner && (!mvp || mvpScore(h) > mvpScore(mvp))) mvp = h;
-  const T0 = myT(), row = h => `<tr class="${h.team === T0 ? 'a' : 'e'}${h === G.player ? ' me' : ''}"><td><div class="who"><img src="${portrait(h.key, h.skin)}" alt="">${h === G.player ? 'You' : esc(h.name)}${h === mvp ? '<span class="tag">MVP</span>' : ''}</div></td><td>${h.level}</td><td>${h.kills} / ${h.deaths} / ${h.assists}</td><td>${h.stats.cs}</td><td>${(h.goldEarned / 1000).toFixed(1)}k</td>${full ? `<td>${Math.round(h.stats.dmgHero / 100) / 10}k</td><td>${Math.round(h.stats.dmgTurret / 100) / 10}k</td>` : ''}<td><span class="mini">${h.items.map(k => `<span class="ii">${icon(ITEMS[k].ic, ITEMS[k].c)}</span>`).join('')}</span></td></tr>`;
+  const T0 = myT(), lanes = !G.duel && !G.practice, row = h => `<tr class="${h.team === T0 ? 'a' : 'e'}${h === G.player ? ' me' : ''}"><td><div class="who"><img src="${portrait(h.key, h.skin)}" alt="">${lanes && (h.team === T0 || !G.player) && LANES[h.pos] ? `<i class="ln" title="${LANES[h.pos].name}" role="img" aria-label="${LANES[h.pos].name}">${icon(LANES[h.pos].ic, LANES[h.pos].c)}</i>` : ''}${h === G.player ? 'You' : esc(h.name)}${h === mvp ? '<span class="tag">MVP</span>' : ''}</div></td><td>${h.level}</td><td>${h.kills} / ${h.deaths} / ${h.assists}</td><td>${h.stats.cs}</td><td>${(h.goldEarned / 1000).toFixed(1)}k</td>${full ? `<td>${Math.round(h.stats.dmgHero / 100) / 10}k</td><td>${Math.round(h.stats.dmgTurret / 100) / 10}k</td>` : ''}<td><span class="mini">${h.items.map(k => `<span class="ii">${icon(ITEMS[k].ic, ITEMS[k].c)}</span>`).join('')}</span></td></tr>`;
   const head = `<tr><th>Hero</th><th>Lvl</th><th>K / D / A</th><th>CS</th><th>Gold</th>${full ? '<th>Hero dmg</th><th>Turret dmg</th>' : ''}<th>Items</th></tr>`;
   const n = full ? 8 : 6, wd = !G.player && !G.practice && UI.state === 'watch' && UI.w && UI.w.diffs, lv = T => wd ? ' (' + DIFFS[wd[T]].name + ')' : '';       // bots watched: each side's level beside its name
   return `<table class="tbl">${head}<tr class="sep"><td colspan="${n}" style="color:var(--ally)">${G.player || G.practice ? 'Your team' : 'Blue team' + lv(BLUE)} · ${G.kills[T0]}</td></tr>${G.heroes.filter(h => h.team === T0).map(row).join('')}<tr class="sep"><td colspan="${n}" style="color:var(--enemy)">${G.player || G.practice ? 'Enemy team' : 'Red team' + lv(RED)} · ${G.kills[1 - T0]}</td></tr>${G.heroes.filter(h => h.team === 1 - T0).map(row).join('')}</table>`;
@@ -437,8 +484,9 @@ function updateHud(dt) {
   // quick buy
   const pk = prioItem(me), nb = pk ? stepTo(me, pk) : nextStep(me), can = !!nb, wait = !can && pk ? prioWait(me, pk) : '', qk = can ? nb + ':' + itemPrice(me, nb) + (pk ? '*' : '') : wait ? pk + '|' + wait : '';       // towards the item the player put first, if any
   if (UI.last.qk !== qk) { UI.last.qk = qk; const q = $('quick'); q.hidden = !can && !wait; q.classList.toggle('wait', !can && !!wait); q.classList.toggle('prio', !!pk); q.dataset.k = can ? nb : '';
-    if (can) { const it = ITEMS[nb], pr = itemPrice(me, nb); q.innerHTML = `<span class="ii">${icon(it.ic, it.c)}</span><span>${esc(it.name)}<br><small>${it.part ? 'Part' : pr < it.cost ? 'Forge' : 'Buy'} · ${pr}g</small></span>`; q.setAttribute('aria-label', `Buy ${it.name} for ${pr} gold`); if (!UI.hints.buy) { UI.hints.buy = 1; hint('You can afford ' + it.name + (nb !== wantItem(me) ? ', a part of ' + ITEMS[wantItem(me)].name : '') + '. Tap the gold chip under your purse to buy it.', 7); } }
+    if (can) { const it = ITEMS[nb], pr = itemPrice(me, nb); q.innerHTML = `<span class="ii">${icon(it.ic, it.c)}</span><span>${esc(it.name)}<br><small>${it.part ? 'Part' : pr < it.cost ? 'Forge' : 'Buy'} · ${pr}g</small></span>`; q.setAttribute('aria-label', `Buy ${it.name} for ${pr} gold`); }
     else if (wait) { const it = ITEMS[pk]; q.innerHTML = `<span class="ii">${icon(it.ic, it.c)}</span><span>${esc(it.name)}<br><small>${wait}</small></span>`; q.setAttribute('aria-label', `${it.name}, your priority: ${wait}. Opens the shop`); } }
+  if (can && !UI.hints.buy && !(UI.hintT > 0)) { UI.hints.buy = 1; hint('You can afford ' + ITEMS[nb].name + (nb !== wantItem(me) ? ', a part of ' + ITEMS[wantItem(me)].name : '') + '. Tap the gold chip under your purse to buy it.', 7); }       // (said once, when nothing else is being said: the first thing a match says is where to go)
   // team portraits: health and respawn timers (enemy health only while they are in sight)
   for (const p of UI.tps) {
     const h = p.h, tx = h.dead ? String(Math.ceil(h.respawnT)) : '';
@@ -487,7 +535,7 @@ function segBar(by, total, thin, widthPct) {
   const parts = DTY_ORDER.filter(k => by[k] > 0.5), say = parts.map(k => `${DTY[k][0]} ${fmtN(by[k])} (${pct(by[k], total)})`).join(', ');
   return `<div class="seg${thin ? ' thin' : ''}" role="img" aria-label="${esc(say)}"${widthPct != null ? ` style="width:${Math.max(3, widthPct).toFixed(1)}%"` : ''}>` + parts.map(k => `<i style="flex:${Math.max(1, Math.round(by[k]))} 1 0;background:${DTY[k][1]}" title="${DTY[k][0]}: ${fmtN(by[k])} (${pct(by[k], total)})"></i>`).join('') + '</div>';
 }
-function holdText(e) { return e.cc === 'air' ? `Thrown into the air for ${e.d.toFixed(1)}s` : e.cc === 'stun' ? `Stunned for ${e.d.toFixed(1)}s` : e.cc === 'root' ? `Rooted for ${e.d.toFixed(1)}s` : e.cc === 'pull' ? 'Pulled off your feet' : `Slowed by ${Math.round(e.p * 100)}% for ${e.d.toFixed(1)}s`; }
+function holdText(e) { return e.cc === 'taunt' ? `Taunted for ${e.d.toFixed(1)}s` : e.cc === 'air' ? `Thrown into the air for ${e.d.toFixed(1)}s` : e.cc === 'stun' ? `Stunned for ${e.d.toFixed(1)}s` : e.cc === 'root' ? `Rooted for ${e.d.toFixed(1)}s` : e.cc === 'pull' ? 'Pulled off your feet' : `Slowed by ${Math.round(e.p * 100)}% for ${e.d.toFixed(1)}s`; }
 function recapHtml(rc) {
   const d = recapData(rc), k = rc.killer, cr = rc.credit, as = rc.assists, top = d.src.length ? d.src[0].a : 1;
   const helpers = as.map(a => a.who), who = k.wk === 'hero' ? k.who : k.wk === 'minion' && k.who === 'Minions' ? 'A minion' : k.who;

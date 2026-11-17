@@ -732,7 +732,21 @@ const SKFX = {
   miel2(e, x, z, c) { const r = e.r * S3; flash3(x, 1.4, z, 4.5, 0.35, c); ring3(x, z, 0.3, r, 0.55, c, 0.9); ring3(x, z, 0.2, r * 0.8, 0.8, '#ffffff', 0.45, true); pillar3(x, z, 0.9, 4.2, 0.8, c, 0.4); decal3(GX.tex.swirl, x, z, r, 1.1, c, 0.6, { spin: -3, r0: r * 0.3 });       // the whole hive out at once
     for (let i = 0; i < 40; i++) { const q = Math.random() * TAU, sp = 3 + Math.random() * 5; FX.add.emit(x, 0.8 + Math.random() * 1.2, z, Math.cos(q) * sp - Math.sin(q) * 2.5, 0.5 + Math.random() * 1.5, Math.sin(q) * sp + Math.cos(q) * 2.5, 0.5 + Math.random() * 0.3, 0.13, 0.02, Math.random() < 0.3 ? '#ffffff' : c, 1, 0, 1.2); }
     FX.shake = Math.max(FX.shake, 0.1); },
+  /* Hesta */
+  hesta0(e, x, z, c) { const a = e.ang, mx = x + Math.cos(a) * 0.6, mz = z + Math.sin(a) * 0.6; ring3(x, z, 0.3, 1.3, 0.35, c, 0.8, true); smoke(x, 0.1, z, 6, '#d8cfb4', 0.6, 0.5, 0.35); vring3(mx, 1.1, mz, a, 0.3, 1.0, 0.3, c, 0.85); glint3(mx, 1.2, mz, 1.4, 0.3, '#ffffff'); },       // off she goes, the gong before her
+  hesta0h(e, x, z, c) { flash3(x, 1, z, 2.0, 0.2, c); ring3(x, z, 0.2, 1.0, 0.28, '#ffffff', 0.7, true); sparks(x, 0.9, z, 9, c, 4, 0.14, 0.35, 1); vring3(x, 1.0, z, e.ang, 0.2, 0.8, 0.25, c, 0.8); },       // someone she ran through
+  hesta1(e, x, z, c) {       // the gong struck: the sound goes out in rings, and a line of it runs to everyone it has called out
+    const r = e.r * S3, P = e.pts || []; flash3(x, 1.2, z, 3.6, 0.3, c); decal3(GX.tex.rings, x, z, r, 0.75, c, 0.85, { r0: r * 0.25, gk: 0.45, rot: 0 });
+    for (let i = 0; i < 4; i++) later(i * 0.09, () => ring3(x, z, r * 0.15, r * (1 - i * 0.05), 0.5, i % 2 ? '#ffffff' : c, 0.85 - i * 0.12, i > 0, 0.07 + i * 0.25));
+    sparks(x, 1.1, z, 14, c, r * 2.4, 0.14, 0.45, 0.9); FX.shake = Math.max(FX.shake, 0.14);
+    for (let i = 0; i < P.length; i += 2) { const px = P[i] * S3, pz = P[i + 1] * S3; streak3(x, z, px, pz, 0.3, 0.4, TAUNT_C, 1.0, 0.8); } },
+  hesta2(e, x, z, c) { const r = e.r * S3; flash3(x, 1.8, z, 5, 0.4, c); pillar3(x, z, 0.9, 4.4, 0.8, c, 0.45); dome3(x, z, r, 0.8, c, 0.2, { sy: 0.42 }); ring3(x, z, r * 0.2, r, 0.55, c, 0.8); rise3(x, z, r * 0.9, 20, lite(c), 1.8, 1.0, 0.14); FX.shake = Math.max(FX.shake, 0.1); },       // the gong raised: the shield goes up over everyone in reach
+  hesta2a(e, x, z, c) { ring3(x, z, 0.2, 0.95, 0.4, c, 0.85); pillar3(x, z, 0.5, 2.6, 0.5, c, 0.4); glint3(x, 2.0, z, 1.1, 0.4, '#ffffff'); },       // an ally comes under it
+  hesta2x(e, x, z, c) { const r = e.r * S3; ring3(x, z, r * 0.9, r * 1.12, 0.4, '#ffffff', 0.8, true); shards3(x, 1.2, z, 14, c, 4.5, 0.7); flash3(x, 1.2, z, 3.5, 0.3, c); },       // worn through
+  hestaR(e, x, z, c) { ring3(x, z, 1.0, 0.3, 0.4, c, 0.9, true, 1.0); glint3(x, 2.2, z, 1.3, 0.45, c); },       // the gong is full
+  hestaP(e, x, z, c) { const r = e.r * S3; flash3(x, 1.1, z, 3.2, 0.28, c); decal3(GX.tex.rings, x, z, r, 0.55, c, 0.7, { r0: r * 0.2, gk: 0.5, rot: 0 }); for (let i = 0; i < 3; i++) later(i * 0.07, () => ring3(x, z, r * 0.2, r * (1 - i * 0.1), 0.42, i ? '#ffffff' : c, 0.85 - i * 0.2, i > 0, 0.08 + i * 0.3)); sparks(x, 1.0, z, 12, c, r * 2.6, 0.14, 0.4, 0.9); FX.shake = Math.max(FX.shake, 0.1); },       // and let out
 };
+const TAUNT_C = '#ff6a4a';       // the colour of being called out: on the line that calls, on the mark over the head
 function heroById(id) { for (const h of G.heroes) if (h.id === id) return h; return null; }
 
 /* sim effect events -> visuals */
@@ -773,6 +787,7 @@ function ingestFx() {
         if (e.ult) { pillar3(x, z, 0.75, 3.4, 0.6, c, 0.5); flash3(x, 1.0, z, 3.0, 0.35, c); decal3(GX.tex.rune, x, z, 1.7, 0.8, c, 0.8, { spin: 3, r0: 0.5 }); } break;
       case 'block': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; flash3(x, 1.0, z, 1.5, 0.16, c); ring3(x, z, 0.72, 0.98, 0.22, c, 0.95, true, 1.0); sparks(x, 1.1, z, 6, '#ffffff', 2.6, 0.12, 0.3, 1); text3(x, top + 0.8, z, e.all ? 'IMMUNE' : 'STEADY', c, false, 0.7); break; }
       case 'totem': totemFx(e, x, z, c); break;
+      case 'taunt': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; ring3(x, z, 1.0, 0.4, 0.3, TAUNT_C, 0.9, true, 0.1); flash3(x, top * 0.7, z, 1.6, 0.25, TAUNT_C); if (e.id === mid) { text3(x, top + 0.9, z, 'TAUNTED', '#ff8a6a', true, 1.0); if (!UI.hints.taunt && UI.state === 'play') { UI.hints.taunt = 1; hint('Taunted: until it ends, your hero can only go for whoever called it out.', 6); } } break; }       // called out: for the one it happens to, the word for it
       case 'flurry': deathMark(e.tgt, e.id, c, FLURRY_T); ring3(x, z, 1.5, 0.5, 0.3, c, 0.9, true, 0.1); glint3(x, 2.4, z, 1.3, 0.35, c); break;       // Death Mark has landed: the mark is on
       case 'flurryHit': { const last = e.n <= 0, a = (e.ang || 0) + (e.n - 1) * 0.9;       // one of the fast attacks: a cut across the marked hero, each from another side; the last one bursts
         cut3(x, 1.0, z, last ? 2.6 : 1.9, -a + HP2, c, last ? 0.26 : 0.18); cut3(x, 1.0, z, last ? 2.0 : 1.4, -a + HP2, '#ffffff', 0.12, 0.08); flash3(x, 1.0, z, last ? 2.2 : 1.3, 0.14, c); sparks(x, 1.0, z, last ? 14 : 7, c, last ? 4.5 : 3.2, 0.14, 0.4, 1);
@@ -901,6 +916,7 @@ function areaView(a) {
     else if (a.look === 'bramble') { deco(GX.tex.crack, hostile ? '#ff8a6a' : '#9fe05a', 1.0); v.fill.material.opacity = 0.07; }       // roots spreading under the ground
     else if (a.look === 'trap') { deco(GX.tex.mark, c, 0.8); v.trap = new THREE.Group(); v.trap.add(shared(new THREE.Mesh(FG.trap, GX.mat.trap))); for (const k of [-1, 1]) { const j = shared(new THREE.Mesh(FG.jaw, GX.mat.trap)); j.rotation.x = k * 1.45; v.trap.add(j); } v.trap.position.y = 0.06; v.trap.scale.setScalar(1.35); g.add(v.trap); v.lamp = shared(halo(c, 0.6, 0.9)); v.lamp.position.y = 0.25; g.add(v.lamp); }
     else if (a.look === 'comb') { deco(GX.tex.comb, c, 1.0); v.fill.material.opacity = 0.06; }
+    else if (a.look === 'bronze') { deco(GX.tex.rings, c, 1.0); v.fill.material.opacity = 0.05; v.dome = new THREE.Mesh(FG.dome, fxMat(c, 0.1, { map: GX.tex.hex })); v.dome.scale.set(r, r * 0.42, r); v.dome.renderOrder = 4; g.add(v.dome); }       // the shield a side shares: a low dome over the ground it covers
     else if (a.look === 'hive') { deco(GX.tex.swirl, lite(c, 0.25), 1.04); v.fill.material.opacity = 0.05; v.bees = [];       // the hive in the air about her: bees on their rounds, at every distance out to its reach
       for (let i = 0; i < 16; i++) { const m = new THREE.Mesh(FG.sphere, fxMat(i % 3 ? c : '#ffffff', 0.95)); m.scale.set(0.12, 0.07, 0.07); g.add(m); v.bees.push({ m, r: r * (0.24 + 0.72 * ((i * 0.618) % 1)), y: 0.45 + ((i * 0.37) % 1) * 1.5, w: (1.5 + ((i * 0.29) % 1) * 1.9) * (i % 2 ? 1 : -1), ph: i * 2.4 }); } }
     else if (a.look === 'cyclone') { deco(GX.tex.swirl, lite(c, 0.3), 1.15); v.rings = []; for (let i = 0; i < 7; i++) { const q = new THREE.Mesh(new THREE.RingGeometry(0.87, 1, 24, 1, 0, 3.4).rotateX(-HP2), fxMat(i % 2 ? '#ffffff' : lite(c, 0.2), 0.3)); q.userData.ownGeo = 1; const k = r * (0.22 + i * 0.115); q.scale.set(k, 1, k); q.position.y = 0.15 + i * 0.4; g.add(q); v.rings.push(q); } }
@@ -932,6 +948,10 @@ function syncAreas(t, dt) {
       if (a.look === 'stars') { v.dec.material.opacity = 0.58 * fade; v.dec.rotation.y = t * 0.8; while (v.acc > 0.075) { v.acc -= 0.075; const q = Math.random() * TAU, d = Math.sqrt(Math.random()) * r * 0.92; starFall(x + Math.cos(q) * d, z + Math.sin(q) * d, Math.random() < 0.3 ? '#ffffff' : c); } if (Math.random() < dt * 16) { const q = Math.random() * TAU, d = Math.sqrt(Math.random()) * r; FX.add.emit(x + Math.cos(q) * d, 0.05, z + Math.sin(q) * d, 0, 1.4, 0, 0.7, 0.13, 0.03, c, 0.9, 0, 0); } }
       else if (a.look === 'comb') { v.dec.material.opacity = (0.46 + 0.1 * Math.sin(t * 3 + a.x)) * fade; v.dec.rotation.y = 0.3 + t * 0.1; v.fill.material.opacity = 0.06 * fade;
         if (v.acc > 0.1) { v.acc = 0; const q = Math.random() * TAU, d = Math.sqrt(Math.random()) * r * 0.92; FX.add.emit(x + Math.cos(q) * d, 0.08, z + Math.sin(q) * d, 0, 0.8 + Math.random() * 0.6, 0, 0.9, 0.13, 0.03, Math.random() < 0.3 ? '#ffffff' : c, 0.9, 0, 0); } }
+      else if (a.look === 'bronze') { const pf = a.pool ? clamp(a.pool.v / a.pool.v0, 0, 1) : 1;       // (it thins as it is worn down)
+        v.dec.material.opacity = (0.12 + 0.16 * pf) * fade; v.dec.rotation.y = 0; { const q = r * 2 * (0.94 + 0.06 * Math.sin(t * 4)); v.dec.scale.set(q, 1, q); } v.fill.material.opacity = 0.05 * fade; v.rim.material.opacity = (0.45 + 0.5 * pf) * fade;
+        v.dome.material.opacity = (0.03 + 0.08 * pf) * fade * (0.85 + 0.15 * Math.sin(t * 5)); v.dome.rotation.y = -t * 0.3;
+        if (v.acc > 0.7) { v.acc = 0; ring3(x, z, r * 0.15, r * 0.97, 0.9, c, 0.22, true, 0.08); } }
       else if (a.look === 'hive') { v.dec.material.opacity = 0.26 * fade; v.dec.rotation.y = -t * 1.7; v.fill.material.opacity = 0.05 * fade;
         for (const b of v.bees) { const q = b.ph + t * b.w; b.m.position.set(Math.cos(q) * b.r, b.y + Math.sin(t * 5 + b.ph) * 0.2, Math.sin(q) * b.r); b.m.rotation.y = -q - (b.w > 0 ? HP2 : -HP2); b.m.material.opacity = 0.95 * fade; }
         while (v.acc > 0.045) { v.acc -= 0.045; const b = v.bees[(Math.random() * v.bees.length) | 0], bp = b.m.position; FX.add.emit(x + bp.x, bp.y, z + bp.z, 0, 0, 0, 0.32, 0.1, 0.02, Math.random() < 0.25 ? '#ffffff' : c, 0.7, 0, 0); } }
