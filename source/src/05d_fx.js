@@ -744,6 +744,27 @@ const SKFX = {
     for (let i = 0; i < 40; i++) { const q = Math.random() * TAU, sp = 3 + Math.random() * 5; FX.add.emit(x, 0.8 + Math.random() * 1.2, z, Math.cos(q) * sp - Math.sin(q) * 2.5, 0.5 + Math.random() * 1.5, Math.sin(q) * sp + Math.cos(q) * 2.5, 0.5 + Math.random() * 0.3, 0.13, 0.02, Math.random() < 0.3 ? '#ffffff' : c, 1, 0, 1.2); }
     FX.shake = Math.max(FX.shake, 0.1); },
   /* Hesta */
+  lyra2r(e, x, z, c) {       // a Starfall has taken hold of somebody
+    starBind(e.tid, c, e.dur || 2); flash3(x, 1.0, z, 2.6, 0.25, c); pillar3(x, z, 0.5, 3.4, 0.45, c, 0.45); ring3(x, z, 1.9, 0.5, 0.3, c, 0.9, true, 0.1); glint3(x, 2.4, z, 1.5, 0.4, '#ffffff'); sparks(x, 0.3, z, 10, c, 2.2, 0.13, 0.5, 2.2, -1);
+    if (UI.state === 'play') snd('ice', 0.5); if (V.me && e.tid === V.me.id) text3(x, 3.0, z, 'STARBOUND', c, true, 1.1); },
+  sorrel0(e, x, z, c) {       // Fade Out: the cape drawn over, and the air closes where she stood
+    ring3(x, z, 1.5, 0.3, 0.32, c, 0.7, true, 0.1); ring3(x, z, 1.1, 0.2, 0.42, '#ffffff', 0.4, true, 0.6); smoke(x, 0.2, z, 6, '#cfd8cc', 0.7, 0.6, 0.5);
+    for (let i = 0; i < 12; i++) { const a = Math.random() * TAU, r = 0.9 + Math.random() * 0.6; FX.alpha.emit(x + Math.cos(a) * r, 0.2 + Math.random() * 1.4, z + Math.sin(a) * r, -Math.cos(a) * 1.9, 0.3, -Math.sin(a) * 1.9, 0.45, 0.1, 0.04, i % 3 ? '#b9a8c8' : '#dfe6c8', 0.85, 0.3, 1); } },
+  sorrel1(e, x, z, c) {       // Blast Charge: thrown low, it bursts in a fan before her
+    const a = e.ang, r = e.r * S3, ca = Math.cos(a), sa = Math.sin(a), mx = x + ca * r * 0.5, mz = z + sa * r * 0.5;
+    slash3(x, z, a, NADE_A, r, 0.34, c, 0.08, { op: 0.34, flat: 1 }); later(0.03, () => slash3(x, z, a, NADE_A, r * 1.04, 0.26, '#ffffff', 0.1, { thin: 1, op: 0.3, edge: 0.75 }));
+    flash3(mx, 0.8, mz, 4.2, 0.26, '#ffe2b0'); flash3(mx, 0.8, mz, 2.4, 0.18, '#ffffff'); ring3(mx, mz, 0.3, r * 0.55, 0.35, c, 0.9); scorch3(mx, mz, r * 0.42, 2.4);
+    smoke(mx, 0.3, mz, 10, '#8a8f96', 0.9, 0.9, 0.9); sparks(mx, 0.6, mz, 18, c, 5, 0.18, 0.5, 1.2, 5); debris(mx, 0.3, mz, 10, '#7a5c3a', 3.2, 0.2, 0.7); streak3(x, z, mx, mz, 0.12, 0.14, '#ffe9b0', 0.9, 0.9); FX.shake = Math.max(FX.shake, 0.16); },
+  sorrel1h(e, x, z, c) { flash3(x, 1.0, z, 1.6, 0.18, c); sparks(x, 1.0, z, 7, '#ffe2b0', 3.4, 0.13, 0.35, 1); smoke(x, 0.2, z, 3, '#d8cfb4', 0.4, 0.4, 0.3); },
+  sorrel2(e, x, z, c) { ring3(x, z, 1.6, 0.35, 0.4, c, 0.8, true, 0.1); glint3(x, 1.6, z, 1.6, 0.45, '#ffffff'); if (UI.state === 'play') snd('cock', 0.9); snipeSight(e.id, e.tid, c); },       // Four Rounds: she settles to it (the line to her mark is drawn by snipeSight, from whichever end is in view)
+  sorrel2t(e, x, z, c) { const tv = V.views.get(e.tid), top = (tv && tv.top) || 1.7; ring3(x, z, 2.4, 0.7, 0.4, c, 0.9, true, 0.1); glint3(x, top + 0.5, z, 1.4, 0.4, c); snipeSight(e.id, e.tid, c);
+    if (V.me && e.tid === V.me.id) { text3(x, top + 0.9, z, 'IN HER SIGHTS', '#ff8a6a', true, 1.2); if (UI.state === 'play') snd('deny', 0.9); } },
+  sorrel2s(e, x, z, c) {       // a round leaves the long gun
+    const v = V.views.get(e.id), a = e.ang; let mx = x + Math.cos(a) * 1.3, my = 1.1, mz = z + Math.sin(a) * 1.3; if (v && v.root.visible) { const m = muzzleOf(v); mx = m.x; my = m.y; mz = m.z; }
+    flash3(mx, my, mz, 2.6, 0.14, '#ffffff'); flash3(mx, my, mz, 3.6, 0.2, c); vring3(mx, my, mz, a, 0.12, 0.7, 0.22, c, 0.9); sparks(mx, my, mz, 6, '#ffe9b0', 4, 0.12, 0.25, 0.6); smoke(mx, my, mz, 3, '#dfe6ea', 0.35, 0.5, 0.2);
+    streak3(mx, mz, mx + Math.cos(a) * 9, mz + Math.sin(a) * 9, 0.16, 0.16, c, my, 0.8); if (V.me && e.id === V.me.id) FX.shake = Math.max(FX.shake, 0.1); },
+  sorrel2h(e, x, z, c) { const a = e.ang || 0; flash3(x, 1.0, z, 2.4, 0.2, c); flash3(x, 1.0, z, 1.3, 0.12, '#ffffff'); cut3(x, 1.0, z, 2.2, -a + HP2, c, 0.2); ring3(x, z, 0.2, 1.2, 0.28, c, 0.85, true, 0.9);
+    for (let i = 0; i < 9; i++) { const q = a + (Math.random() - .5) * 0.9, s = 3 + Math.random() * 4; FX.add.emit(x, 1.0, z, Math.cos(q) * s, 0.5 + Math.random() * 1.5, Math.sin(q) * s, 0.35, 0.13, 0.02, i % 3 ? c : '#ffffff', 0.95, 4, 1); } },
   hesta0(e, x, z, c) { const a = e.ang, mx = x + Math.cos(a) * 0.6, mz = z + Math.sin(a) * 0.6; ring3(x, z, 0.3, 1.3, 0.35, c, 0.8, true); smoke(x, 0.1, z, 6, '#d8cfb4', 0.6, 0.5, 0.35); vring3(mx, 1.1, mz, a, 0.3, 1.0, 0.3, c, 0.85); glint3(mx, 1.2, mz, 1.4, 0.3, '#ffffff'); },       // off she goes, the gong before her
   hesta0h(e, x, z, c) { flash3(x, 1, z, 2.0, 0.2, c); ring3(x, z, 0.2, 1.0, 0.28, '#ffffff', 0.7, true); sparks(x, 0.9, z, 9, c, 4, 0.14, 0.35, 1); vring3(x, 1.0, z, e.ang, 0.2, 0.8, 0.25, c, 0.8); },       // someone she ran through
   hesta1(e, x, z, c) {       // the gong struck: the sound goes out in rings, and a line of it runs to everyone it has called out
@@ -787,6 +808,49 @@ function hiveSync(v, a, t, dt, x, z, fade, c) {
   while (v.acc > 0.07) { v.acc -= 0.07; const b = v.bees[(Math.random() * v.bees.length) | 0], bp = b.m.position; FX.add.emit(x + bp.x, bp.y, z + bp.z, 0, -0.15, 0, 0.3, 0.07, 0.02, Math.random() < 0.3 ? '#ffffff' : c, 0.55, 0, 0); }
   if (Math.random() < dt * 6) for (const h of G.heroes) { if (h.team !== a.team || h.dead || Math.hypot(h.x - a.x, h.y - a.y) > a.r) continue; FX.add.emit(h.x * S3 + (Math.random() - .5) * 0.5, 0.4, h.y * S3 + (Math.random() - .5) * 0.5, 0, 1.5, 0, 0.7, 0.12, 0.03, '#ffe9a8', 0.9, 0, 0); }       // honey for friends
 }
+/* Held by a Starfall: a cage of starlight. Five bars of light stand round whoever it holds, a small star at the head of each, a ring
+   joining their heads and another their feet, and a five-pointed star drawn on the ground between them; the whole of it turns slowly.
+   It closes in as it takes hold, lasts while the root does and breaks into sparks when the root ends (sooner, if something frees
+   them). It stands up out of the ground so that it shows over the Starfall's own light. */
+function starBind(tid, c, dur) {
+  const g = new THREE.Group(), star = new THREE.Group(), line = fxMat(c, 0.9), bar = fxMat(c, 0.7), N = 5, P = [], top = new THREE.Mesh(FG.ringThin, fxMat('#ffffff', 0.8)); g.add(star); g.add(top); star.position.y = 0.08;
+  for (let i = 0; i < N; i++) { const a0 = i / N * TAU, a1 = (i + 2) / N * TAU, x0 = Math.cos(a0), z0 = Math.sin(a0), x1 = Math.cos(a1), z1 = Math.sin(a1), m = shared(new THREE.Mesh(FG.plane, line));
+    m.position.set((x0 + x1) / 2, 0, (z0 + z1) / 2); m.rotation.y = -Math.atan2(z1 - z0, x1 - x0); m.scale.set(Math.hypot(x1 - x0, z1 - z0), 1, 0.07); star.add(m); }
+  star.add(shared(new THREE.Mesh(FG.ring, line)));
+  for (let i = 0; i < N; i++) { const s = shared(new THREE.Mesh(FG.oct, glowMat('#ffffff'))), h = shared(halo(c, 0.8, 0.9)), b = shared(new THREE.Mesh(FG.beam, bar)), w = shared(new THREE.Mesh(FG.beam, glowMat('#ffffff'))); b.rotation.x = HP2; w.rotation.x = HP2; g.add(s); g.add(h); g.add(b); g.add(w); P.push({ a: i / N * TAU, s, h, b, w }); }
+  g.renderOrder = 4; let done = false; const life = dur + 0.3;
+  const e = fxAdd(g, life, k => {
+    const v = V.views.get(tid), u = v && v.u, T = k * life, on = !!(u && !u.dead && v.root.visible) && (u.rootT > 0 || T < 0.2);
+    g.visible = on;
+    if (!on) { if (!done && u && T > 0.2) { done = true; if (v.root.visible && !u.dead) { const x = u.x * S3, z = u.y * S3; sparks(x, 1.0, z, 14, c, 3.6, 0.14, 0.45, 1.2); shards3(x, 1.2, z, 6, c, 3.2, 0.5); ring3(x, z, 0.4, 1.5, 0.3, c, 0.7, true, 0.1); } } return; }
+    const t = V.t, grip = easeOut(Math.min(1, T / 0.25)), R = (u.r * S3 + 0.42) * (1.7 - 0.7 * grip), ht = ((v.top || 1.7) * 0.72 + 0.2) * (0.3 + 0.7 * grip), ux = u.x * S3, uz = u.y * S3, pulse = 0.78 + 0.22 * Math.sin(t * 9);
+    g.position.set(ux, 0, uz); g.rotation.y = t * 1.1; star.scale.set(R, 1, R); line.opacity = 0.9 * Math.min(1, T / 0.15) * pulse; bar.opacity = 0.85 * grip * pulse; top.position.y = ht; top.scale.set(R, 1, R); top.material.opacity = 0.8 * grip;
+    for (const p of P) { const px = Math.cos(p.a) * R, pz = Math.sin(p.a) * R;
+      p.b.position.set(px, ht / 2, pz); p.b.scale.set(0.06, 0.06, ht); p.w.position.set(px, ht / 2, pz); p.w.scale.set(0.017, 0.017, ht);
+      p.s.position.set(px, ht + 0.08, pz); p.s.scale.set(0.1, 0.22, 0.1); p.s.rotation.y = t * 4 + p.a; p.h.position.set(px, ht + 0.08, pz); }
+    if (Math.random() < FX.dt * 18) { const q = Math.random() * TAU; FX.add.emit(ux + Math.cos(q) * R, 0.1 + Math.random() * ht, uz + Math.sin(q) * R, 0, 0.9 + Math.random(), 0, 0.5, 0.12, 0.02, Math.random() < 0.4 ? '#ffffff' : c, 0.9, 0, 0); }
+  });
+  e.mat = line; e.mat2 = bar;
+}
+/* Four Rounds, for the eye: a thread of light from the muzzle of her gun to her mark, and on the mark a ring that closes as each round
+   comes due, with four ticks turning about it. It lasts as long as she is counting at that mark and is drawn from whichever end is in
+   view (S._fx: once for a count, though both ends ask for it). */
+function snipeSight(hid, tid, c) {
+  const hv0 = V.views.get(hid), h = hv0 && hv0.u, S = h && h.snipe; if (!S || S._fx) return; S._fx = 1;
+  const g = new THREE.Group(), beam = new THREE.Group(), rm = fxMat(c, 0.95), a = new THREE.Mesh(FG.beam, fxMat(c, 0.5)), b = new THREE.Mesh(FG.beam, fxMat('#ffffff', 0.8)), r = new THREE.Mesh(FG.ringThin, rm), r2 = new THREE.Mesh(FG.ring, fxMat(c, 0.4)), dot = shared(halo(c, 0.8, 0.9)), tick = [];
+  beam.add(a); beam.add(b); g.add(beam); g.add(r); g.add(r2); g.add(dot); for (let i = 0; i < 4; i++) { const m = shared(new THREE.Mesh(FG.plane, rm)); g.add(m); tick.push(m); }
+  g.renderOrder = 4;
+  fxAdd(g, SNIPE_AIM + SNIPE_GAP * SNIPE_N + 0.6, () => {
+    const hv = V.views.get(hid), u = hv && hv.u, tv = V.views.get(tid), tg = tv && tv.u, on = !!(u && tg && u.snipe === S && !tg.dead);
+    g.visible = on; if (!on) return;
+    const t = V.t, sh = hv.root.visible, st = seen(tg), tx = tg.x * S3, tz = tg.y * S3, ty = 1.0 + (tg.z || 0) * S3; let mx = u.x * S3, my = 1.15, mz = u.y * S3; if (sh) { const m = muzzleOf(hv); mx = m.x; my = m.y; mz = m.z; }
+    const len = Math.hypot(tx - mx, ty - my, tz - mz), q = 1 - clamp(S.acc / SNIPE_GAP, 0, 1), fl = 0.7 + 0.3 * Math.sin(t * 34);
+    beam.visible = seen(u) && len > 0.3; beam.position.set((mx + tx) / 2, (my + ty) / 2, (mz + tz) / 2); beam.lookAt(tx, ty, tz); a.scale.set(0.035, 0.035, len); b.scale.set(0.011, 0.011, len); a.material.opacity = 0.42 * fl; b.material.opacity = 0.7 * fl;
+    const r0 = tg.r * S3 + 0.42, rr = r0 * (1.9 - 0.95 * q); r.visible = r2.visible = dot.visible = st; for (const m of tick) m.visible = st;
+    r.position.set(tx, 0.075, tz); r.scale.set(rr, 1, rr); r2.position.set(tx, 0.07, tz); r2.scale.set(r0, 1, r0); r2.rotation.y = t * 1.6; rm.opacity = 0.55 + 0.4 * q; dot.position.set(tx, ty, tz); dot.scale.setScalar(0.45 + 0.5 * q);
+    tick.forEach((m, i) => { const an = i * HP2 + t * 1.6; m.position.set(tx + Math.cos(an) * (r0 + 0.24), 0.075, tz + Math.sin(an) * (r0 + 0.24)); m.rotation.y = -an; m.scale.set(0.36, 1, 0.06); });
+  });
+}
 function heroById(id) { for (const h of G.heroes) if (h.id === id) return h; return null; }
 
 /* sim effect events -> visuals */
@@ -827,6 +891,9 @@ function ingestFx() {
         if (e.ult) { pillar3(x, z, 0.75, 3.4, 0.6, c, 0.5); flash3(x, 1.0, z, 3.0, 0.35, c); decal3(GX.tex.rune, x, z, 1.7, 0.8, c, 0.8, { spin: 3, r0: 0.5 }); } break;
       case 'block': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; flash3(x, 1.0, z, 1.5, 0.16, c); ring3(x, z, 0.72, 0.98, 0.22, c, 0.95, true, 1.0); sparks(x, 1.1, z, 6, '#ffffff', 2.6, 0.12, 0.3, 1); text3(x, top + 0.8, z, e.all ? 'IMMUNE' : 'STEADY', c, false, 0.7); break; }
       case 'totem': totemFx(e, x, z, c); break;
+      case 'pierce': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; shards3(x, 1.2, z, 9, c, 4.4, 0.6); ring3(x, z, 1.1, 0.4, 0.24, '#ffffff', 0.9, true, 0.9); flash3(x, 1.1, z, 2.0, 0.18, '#ffffff'); text3(x, top + 0.8, z, 'PIERCED', '#ff8a6a', false, 0.9); break; }       // a hold has gone through the totem
+      case 'camo': { const h = heroById(e.id); if (!e.on && h && (V.team < 0 || h.team === V.team)) ring3(x, z, 0.3, 1.2, 0.3, '#ffffff', 0.45, true, 0.1); break; }       // out from under the cape (the going under is the skill's own effect)
+      case 'snipe': break;
       case 'mood': if (e.id === mid) snd('ui'); break;       // a temper changed (what it looks like is the view's business: see moodExtras)
       case 'taunt': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; ring3(x, z, 1.0, 0.4, 0.3, TAUNT_C, 0.9, true, 0.1); flash3(x, top * 0.7, z, 1.6, 0.25, TAUNT_C); if (e.id === mid) { text3(x, top + 0.9, z, 'TAUNTED', '#ff8a6a', true, 1.0); if (!UI.hints.taunt && UI.state === 'play') { UI.hints.taunt = 1; hint('Taunted: until it ends, your hero can only go for whoever called it out.', 6); } } break; }       // called out: for the one it happens to, the word for it
       case 'flurry': deathMark(e.tgt, e.id, c, FLURRY_T); ring3(x, z, 1.5, 0.5, 0.3, c, 0.9, true, 0.1); glint3(x, 2.4, z, 1.3, 0.35, c); break;       // Death Mark has landed: the mark is on
@@ -862,7 +929,7 @@ function projColor(p) { const s = p.src; return p.ci != null && s && s.kind === 
 function projDrop(v) { v.dead = true; FX.group.remove(v.m); v.m.traverse(x => { if (x.material && (x.userData.own === 1 || (x.material.blending === THREE.AdditiveBlending && x.isMesh))) x.material.dispose(); }); if (v.chain) { FX.group.remove(v.chain); v.chain.geometry.dispose(); v.chain.material.dispose(); } }
 function projView(p) {
   const g = new THREE.Group(), c = projColor(p), add = (geo, hex, sx, sy, sz) => { const m = new THREE.Mesh(geo, glowMat(hex)); m.scale.set(sx, sy, sz); g.add(m); return m; };
-  const tail = (len, w, hex, op) => { const m = new THREE.Mesh(FG.plane, fxMat(hex || c, op || 0.7, { map: GX.tex.streak })); m.scale.set(len, 1, w); m.position.x = -len / 2; g.add(m); const u = m.clone(); u.material = m.material; u.rotation.x = HP2; g.add(u); return m; };
+  const tail = (len, w, hex, op) => { const m = new THREE.Mesh(FG.plane, fxMat(hex || c, op || 0.7, { map: GX.tex.streak })); m.scale.set(len, 1, w); m.position.x = -len / 2; g.add(m); const u = m.clone(); u.material = m.material; u.rotation.x = HP2; g.add(u); m._tw = u; return m; };       // (_tw: its twin, set on edge)
   const sk = p.src && p.src.kind === 'hero' ? SKINS[p.src.key][p.src.skin] : null, look = (sk && sk.proj && sk.proj[p.look]) || p.look;       // a skin may throw something of its own
   const v = { m: g, p, look, spin: null, chain: null, c, ts: 0.14, y0: 0, rings: 0, acc: 0, cor: null };
   switch (look) {
@@ -882,6 +949,9 @@ function projView(p) {
       g.add(v.spin); add(FG.shaft, '#e9dcc0', 0.9, 1.2, 1.2).position.x = -0.42; g.add(halo(c, 1.3, 0.8)); tail(2.0, 0.3, '#8fd04a', 0.7); tail(1.1, 0.12, c, 0.9); v.rings = 0.08; v.ts = 0.15; v.leaf = 1; break; }
     case 'seed': add(FG.oct, '#ffffff', 0.15, 0.06, 0.06); add(FG.oct, c, 0.24, 0.1, 0.1).material = fxMat(c, 0.7); g.add(halo(c, 0.9, 0.8)); tail(1.2, 0.16, '#8fd04a', 0.8); tail(0.7, 0.07, '#ffffff', 0.9); v.ts = 0.1; v.arc = 1.0; v.leaf = 1; break;
     case 'pellet': add(FG.sphere, shade(c, 0.3), 0.07, 0.07, 0.07); g.add(halo(c, 0.45, 0.7)); v.ts = 0; break;
+    case 'slug': add(FG.oct, '#fff4d0', 0.26, 0.045, 0.045); g.add(halo('#ffe2b0', 0.45, 0.6)); tail(1.5, 0.09, '#ffe9b0', 0.6); v.ts = 0.05; break;       // a plain round from the long gun: small, quick, a pale line behind it
+    case 'longshot': add(FG.oct, '#ffffff', 0.6, 0.07, 0.07); add(FG.oct, c, 0.9, 0.045, 0.2).material = fxMat(c, 0.7); g.add(halo(c, 1.2, 0.85)); v.tails = [[tail(3.4, 0.24, c, 0.85), 3.4], [tail(1.9, 0.09, '#ffffff', 0.95), 1.9]]; v.rings = 0.05; v.ts = 0.14; break;       // a Long Shot: the shard's own light in it
+    case 'round': add(FG.oct, '#ffffff', 0.8, 0.09, 0.09); add(FG.oct, c, 1.1, 0.05, 0.26).material = fxMat(c, 0.75); g.add(halo(c, 1.7, 0.9)); v.tails = [[tail(5.0, 0.3, c, 0.9), 5.0], [tail(2.8, 0.12, '#ffffff', 0.95), 2.8]]; v.rings = 0.035; v.ts = 0.2; break;       // one of the four: a long bright line
     case 'bolt': add(FG.sphere, '#ffffff', 0.26, 0.13, 0.13); g.add(halo(c, 1.5, 0.9)); tail(1.3, 0.26, c, 0.8); v.ts = 0.24; break;
     case 'dart': v.spin = add(FG.oct, '#e8e2f5', 0.5, 0.05, 0.18); g.add(halo(c, 0.9, 0.7)); tail(1.5, 0.22, c, 0.8); v.ts = 0.12; break;
     case 'lance': add(FG.oct, '#ffffff', 0.95, 0.09, 0.09); add(FG.oct, c, 1.3, 0.05, 0.24); g.add(halo(c, 1.3, 0.6)); tail(2.4, 0.3, c, 0.7); v.rings = 0.06; v.ts = 0.2; break;
@@ -911,6 +981,7 @@ function syncProjs(dt) {
     const vis = V.team < 0 || p.team === V.team || nearCam(p.x, p.y, 0), px = p.x * S3, pz = p.y * S3;
     v.m.visible = vis; v.m.position.set(px, y, pz); v.m.rotation.y = -p.ang;
     if (v.grow) v.m.scale.setScalar(1 + (p.k || 0) * 1.1);
+    if (v.tails) { v.trav = (v.trav || 0) + p.speed * dt * S3; for (const [m, len] of v.tails) { const l = Math.max(0.05, Math.min(len, v.trav)); m.scale.x = l; m.position.x = -l / 2; m._tw.scale.x = l; m._tw.position.x = -l / 2; } }       // a long line of light is paid out from the muzzle: it never reaches back behind whoever fired it
     if (v.sw) { v.age = (v.age || 0) + dt; for (const b of v.sw) { const q = b.a + v.age * 7; b.m.position.set(b.ox + Math.sin(v.age * 9 + b.ph) * 0.05, Math.cos(q) * b.r, Math.sin(q) * b.r); b.m.rotation.set(Math.sin(v.age * 6 + b.ph) * 0.25, 0, 0); b.wing.scale.y = Math.cos(v.age * 55 + b.ph); } }
     if (v.spin) v.spin.rotation.x += dt * 26; if (v.spinY) v.spinY.rotation.y += dt * 34; if (v.cor) v.cor.material.rotation -= dt * 7;
     if (v.chain) { const s = p.src; v.chain.visible = vis; chainSet(v.chain, s.x * S3 + Math.cos(p.ang) * 0.4, s.y * S3 + Math.sin(p.ang) * 0.4, px, pz, 0.95, v.look === 'hook' ? 0.15 : 0.19); }

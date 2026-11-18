@@ -70,7 +70,24 @@ function seen(u) { return V.team < 0 || u.team === V.team || u.team === NEUTRAL 
 /* A hero in tall grass is drawn see-through and the grass is left as it is. A body made of many parts, simply blended, shows its parts
    through one another; so while he is in the grass his shape is first laid down in the depth buffer alone (one colourless twin per part,
    a hair behind it), and the parts are then blended over that: each pixel of him is blended once. What glows on him is dimmed to match. */
-const BUSH_OP = 0.58;
+const BUSH_OP = 0.58, CAMO_OP = 0.36;       // (CAMO_OP: a hero under her own cape, as her own side sees her)
+/* Under her cape she is not shown to the other side. But the air where she stands is not quite still, and whoever is watching for it can
+   tell: a faint ring opening on the ground now and then, a wisp or two above it. */
+function camoNear(u, T) {       // but for the cape she would be in plain sight of that side: one of theirs is near enough, and no grass hides her from him
+  for (const w of G.units) { if (w.team !== T || w.dead || w.kind === 'monster') continue; const sr = w.kind === 'hero' ? 980 : w.kind === 'minion' ? 720 : 900, dx = w.x - u.x, dy = w.y - u.y; if (dx * dx + dy * dy <= sr * sr && (u.bush < 0 || w.bush === u.bush)) return true; }
+  return false;
+}
+function camoHint(v, u, dt) {
+  v.chT = (v.chT || 0) - dt; if (v.chT > 0) return; v.chT = 0.34 + Math.random() * 0.12; if (!camoNear(u, V.team)) return;       // (out of everybody's sight anyway, she gives nothing away)
+  const x = u.x * S3, z = u.y * S3; ring3(x, z, 0.25, 0.85, 0.5, '#dfeee8', 0.22, true, 0.06);
+  for (let i = 0; i < 2; i++) FX.add.emit(x + (Math.random() - .5) * 0.5, 0.3 + Math.random() * 1.1, z + (Math.random() - .5) * 0.5, 0, 0.5, 0, 0.5, 0.2, 0.05, '#cfe6e0', 0.16, 0, 0);
+}
+/* The long gun fires: a flash at its mouth, a wisp of smoke; a Long Shot flashes in the shard's own colour, with a ring thrown forward. */
+function rifleFlash(v, u) {
+  const m = muzzleOf(v), ls = G.t - (u.pv.shot == null ? -9 : u.pv.shot) < 0.3, c = ls ? skinColor(u.key, u.skin, 2) : '#ffe2b0';
+  flash3(m.x, m.y, m.z, ls ? 2.4 : 1.3, 0.12, '#ffffff'); flash3(m.x, m.y, m.z, ls ? 3.2 : 1.8, 0.16, c); if (ls) vring3(m.x, m.y, m.z, u.face, 0.1, 0.6, 0.2, c, 0.85);
+  sparks(m.x, m.y, m.z, ls ? 6 : 3, '#ffe9b0', 3.5, 0.11, 0.22, 0.5); smoke(m.x, m.y, m.z, 2, '#dfe6ea', 0.3, 0.45, 0.15);
+}
 function dimOf(m) { if (!m._dim) { const c = m._dim = m.clone(); c.transparent = true; c.opacity = (m.opacity == null ? 1 : m.opacity) * BUSH_OP * 0.9; c.depthWrite = false; } return m._dim; }
 function heroBush(v, on) {
   v.gh = on;
@@ -111,7 +128,7 @@ function eclipseExtras(v, u, t, dt, ux, uz, c) {
   }
 }
 /* Each hero's recall has its own colour and its own small weather, to go with the way they wait. */
-const RECALL_C = { bram: '#ffd27a', thorn: '#8fe07a', kaela: '#ff7a8a', rook: '#e0b890', vex: '#b48cff', tavi: '#ffd76a', kiri: '#8fe6ff', lyra: '#9fb8ff', zephyr: '#9ff0e0', orin: '#ffb35c', mira: '#c8f08a', sera: '#fff0b0', miel: '#ffc94a', hesta: '#ffcf7a' };
+const RECALL_C = { bram: '#ffd27a', thorn: '#8fe07a', kaela: '#ff7a8a', rook: '#e0b890', vex: '#b48cff', tavi: '#ffd76a', kiri: '#8fe6ff', lyra: '#9fb8ff', zephyr: '#9ff0e0', orin: '#ffb35c', mira: '#c8f08a', sera: '#fff0b0', miel: '#ffc94a', hesta: '#ffcf7a', sorrel: '#9fe0c8' };
 function recallAccent(u, k, t, dt, c) {
   const x = u.x * S3, z = u.y * S3, E = FX.add, rnd = Math.random, a = rnd() * TAU, T = k * 6;
   switch (u.key) {
@@ -128,6 +145,7 @@ function recallAccent(u, k, t, dt, c) {
     case 'mira': if (rnd() < dt * 12) { const r = rnd() * 1.2; E.emit(x + Math.cos(a) * r, 2.4 + rnd() * 0.8, z + Math.sin(a) * r, Math.cos(t * 2) * 0.6, -0.7, Math.sin(t * 2) * 0.6, 2.2, 0.15, 0.09, rnd() < 0.4 ? '#ffffff' : c, 0.95, 0.1, 1); } break;       // feathers coming down
     case 'miel': if (rnd() < dt * (10 + k * 26)) { const r = 1.7 - k * 1.1 + rnd() * 0.3, w = 1.8 + k * 2.4; E.emit(x + Math.cos(a) * r, 0.5 + rnd() * 1.5, z + Math.sin(a) * r, -Math.sin(a) * w - Math.cos(a) * 0.9, (rnd() - .5) * 0.8, Math.cos(a) * w - Math.sin(a) * 0.9, 0.7, 0.1, 0.02, rnd() < 0.3 ? '#ffffff' : c, 0.95, 0, 0.2); } break;       // the hive coming home: bees circling in, closer and faster
     case 'hesta': if (Math.pow(Math.max(0, Math.sin(T * 3.2)), 5) > 0.9 && k < 0.8 && rnd() < dt * 26) ring3(x, z, 0.35, 1.5 + k, 0.7, c, 0.45, true, 0.5); if (rnd() < dt * 8) E.emit(x + Math.cos(a) * 0.9, 0.3 + rnd() * 1.4, z + Math.sin(a) * 0.9, Math.cos(a) * 0.6, 0.3, Math.sin(a) * 0.6, 0.7, 0.1, 0.02, rnd() < 0.4 ? '#ffffff' : c, 0.9, 0, 0.2); break;       // each stroke of the beater sends a ring out
+    case 'sorrel': if (rnd() < dt * 9) { const r = 0.6 + rnd() * 1.3; FX.alpha.emit(x + Math.cos(a) * r, 0.05 + rnd() * 0.5, z + Math.sin(a) * r, 0.5, 0.25 + rnd() * 0.4, 0.2, 2.0, 0.1, 0.05, rnd() < 0.5 ? '#c9b8d8' : '#e8e2c8', 0.85, 0.05, 0.6); } if (rnd() < dt * (1 + k * 5)) glint3(x + Math.cos(a) * 1.2, 0.4 + rnd() * 1.4, z + Math.sin(a) * 1.2, 0.5, 0.35, c); break;       // heather and grass seed on the wind off the moor
     case 'sera': if (rnd() < dt * 20) { const r = rnd() * 0.9; E.emit(x + Math.cos(a) * r, 0.1 + rnd() * 0.6, z + Math.sin(a) * r, 0, 1.1 + rnd() * 1.4 + k * 2, 0, 1.2, 0.12, 0.02, rnd() < 0.4 ? '#ffffff' : c, 0.95, 0, 0); } if (rnd() < dt * (1 + k * 6)) glint3(x + (rnd() - .5) * 1.2, 1.6 + rnd() * 1.6, z + (rnd() - .5) * 1.2, 0.6 + rnd() * 0.8, 0.4, '#ffffff'); break;       // light rising round her
   }
 }
@@ -226,7 +244,8 @@ function moodExtras(v, u, ps, t, dt, ux, uz) {
 function heroExtras(v, u, t, dt) {
   let aura = null; const ux = u.x * S3, uz = u.y * S3, skn = SKINS[u.key][u.skin], ps = u.def.passive;
   if (ps && ps.moods) moodExtras(v, u, ps, t, dt, ux, uz);
-  if (ps && ps.stacks && (u.pv.n || 0) >= ps.stacks) { aura = ps.c; if (Math.random() < dt * 18) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.35, 0.9 + Math.random() * 0.5, uz + Math.sin(a) * 0.35, Math.cos(a) * 0.5, 0.9, Math.sin(a) * 0.5, 0.5, 0.14, 0.03, Math.random() < 0.4 ? '#ffffff' : ps.c, 0.95, 0, 1); } }       // a passive that is charged shows
+  if (ps && ps.quiet) { const rdy = (u.pv.n || 0) >= ps.stacks && !u.snipe && !u.camo; if (rdy || v.lsG) { let h = v.lsG; if (!h) { h = v.lsG = halo(skinColor(u.key, u.skin, 2), 0.6, 0.9); h.position.set(0, 0.125, 0.37); v.b.wpnR.add(h); } h.visible = rdy; if (rdy) h.scale.setScalar(0.5 + 0.14 * Math.sin(t * 7)); } }       // a Long Shot ready: a light in the glass of her gun
+  else if (ps && ps.stacks && (u.pv.n || 0) >= ps.stacks) { aura = ps.c; if (Math.random() < dt * 18) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.35, 0.9 + Math.random() * 0.5, uz + Math.sin(a) * 0.35, Math.cos(a) * 0.5, 0.9, Math.sin(a) * 0.5, 0.5, 0.14, 0.03, Math.random() < 0.4 ? '#ffffff' : ps.c, 0.95, 0, 1); } }       // a passive that is charged shows
   if (skn.fx === 'E') eclipseExtras(v, u, t, dt, ux, uz, skn.sk[0]); else if (skn.fx === 'C') cometExtras(v, u, t, dt, ux, uz, skn.sk[0]);
   { const rg = hasBuff(u, 'rage'); if (rg || v.wg) rageWings(v, u, rg, t, dt, ux, uz); }
   for (const b of u.buffs) if (b.aura) { aura = b.ci != null ? skinColor(u.key, u.skin, b.ci) : b.aura; if (Math.random() < dt * 14) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.5, 0.1, uz + Math.sin(a) * 0.5, 0, 1.7, 0, 0.7, 0.15, 0.03, aura, 0.9, 0, 0); } }
@@ -271,7 +290,7 @@ function syncViews(t, dt) {
     const hero = u.kind === 'hero';
     if (hero) { if (u.dead) v.deadT += dt; else if (v.deadT > 0) { v.deadT = 0; v.mat.opacity = 1; v.mat.transparent = false; v.b.body.rotation.x = 0; v.b.body.position.y = 0; v.face = null; } }
     const show = seen(u) && nearCam(u.x, u.y, 500) && !(hero && u.dead && v.deadT > 2.3);
-    v.root.visible = show; if (!show) { v.lastAtk = u.atkAnim; continue; }
+    v.root.visible = show; if (!show) { v.lastAtk = u.atkAnim; if (hero && u.camo && !u.dead && !seen(u) && nearCam(u.x, u.y, 200)) camoHint(v, u, dt); continue; }
     let px = u.x, py = u.y; const mine = AH.on && u === V.me && !V.replay;       // this player's own hero in a networked match: drawn where it is about to be (see netAhead)
     if (mine) { px = AH.x; py = AH.y; }
     if (G.net) { if (v.sx == null || cut || Math.abs(px - v.sx) + Math.abs(py - v.sy) > 260) { v.sx = px; v.sy = py; } else { const k = Math.min(1, dt * 28); v.sx += (px - v.sx) * k; v.sy += (py - v.sy) * k; } px = v.sx; py = v.sy; }       // a networked match is stepped thirty times a second whatever the screen does: the figures glide between the steps
@@ -293,10 +312,11 @@ function syncViews(t, dt) {
       if (v.rcK > 0.9 && !st.recall && !u.dead && hyp(u.x - v.rcX, u.y - v.rcY) > 400) v.arrT = 0.001;       // the recall went through: play the setting-down at the fountain
       v.rcK = st.recall; if (st.recall) { v.rcX = u.x; v.rcY = u.y; } if (v.arrT > 0) { v.arrT += dt / 0.6; if (v.arrT >= 1) v.arrT = 0; } st.arrive = v.arrT || 0;
       animHero(v, st, t, dt);
+      if (v.style === 'rifle') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) rifleFlash(v, u); v.a0 = st.atk; }
       if (v.style === 'hurl') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) slash3(u.x * S3 + Math.cos(u.face) * 0.25, u.y * S3 + Math.sin(u.face) * 0.25, u.face, 0.62, 1.05, 0.15, u.look.glow || u.look.trim, 1.25, { thin: 1, op: 0.5, edge: 0.7 }); v.a0 = st.atk; }       // the sweep of the throwing arm as the leaf leaves it
       { const im = !u.dead && immuneOf(u); if (im && im.shell && !(u.flash > 0)) { v.mat.emissive.copy(lin(im.shell)).multiplyScalar(0.16 + 0.05 * Math.sin(t * 6)); v.glow = 1; } else if (u.flash > 0 && !u.dead) { v.mat.emissive.setScalar(0.13); v.glow = 1; } else if (v.glow !== 0) { v.mat.emissive.setScalar(0); v.glow = 0; } }
       { const quick = v.style === 'reap' || SKINS[u.key][u.skin].fx === 'C', f0 = quick ? 0.55 : 1.7, fd = quick ? 0.25 : 0.6, fading = u.dead && v.deadT > f0;
-        const want = !u.dead && u.bush >= 0 ? BUSH_OP : 1; let bk = v.bk == null || cut ? want : v.bk; if (bk !== want) { bk += (want - bk) * Math.min(1, dt * 10); if (Math.abs(bk - want) < 0.012) bk = want; } v.bk = bk;       // in tall grass he goes see-through; the grass is left alone
+        const want = !u.dead && u.camo ? CAMO_OP : !u.dead && u.bush >= 0 ? BUSH_OP : 1; let bk = v.bk == null || cut ? want : v.bk; if (bk !== want) { bk += (want - bk) * Math.min(1, dt * 10); if (Math.abs(bk - want) < 0.012) bk = want; } v.bk = bk;       // in tall grass he goes see-through; the grass is left alone
         const gh = bk < 0.995; if (!!v.gh !== gh) heroBush(v, gh);
         const op = (fading ? clamp(1 - (v.deadT - f0) / fd, 0, 1) : 1) * bk, tr = op < 0.999; if (v.mat.transparent !== tr) v.mat.transparent = tr; v.mat.opacity = op;
         if (fading && quick && v.deadT > f0 + fd) v.o.visible = false; else if (!v.o.visible) v.o.visible = true; }       // the Eclipse skin is gone by the time its eclipse bursts

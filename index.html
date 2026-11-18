@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Shardfall Arena 3D</title><meta name="description" content="A 5v5 arena battle that runs in your browser: fourteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link."><meta property="og:type" content="website"><meta property="og:title" content="Shardfall Arena 3D"><meta property="og:description" content="A 5v5 arena battle that runs in your browser: fourteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link."><meta property="og:url" content="https://lyletayag56-bot.github.io/shardfall-arena/"><meta property="og:image" content="https://lyletayag56-bot.github.io/shardfall-arena/cover.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#081216"><link rel="canonical" href="https://lyletayag56-bot.github.io/shardfall-arena/"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Shardfall"><style>:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#081216;color:#e8f0ee}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Shardfall Arena 3D</title><meta name="description" content="A 5v5 arena battle that runs in your browser: fifteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link."><meta property="og:type" content="website"><meta property="og:title" content="Shardfall Arena 3D"><meta property="og:description" content="A 5v5 arena battle that runs in your browser: fifteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link."><meta property="og:url" content="https://lyletayag56-bot.github.io/shardfall-arena/"><meta property="og:image" content="https://lyletayag56-bot.github.io/shardfall-arena/cover.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#081216"><link rel="canonical" href="https://lyletayag56-bot.github.io/shardfall-arena/"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Shardfall"><style>:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#081216;color:#e8f0ee}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
 <style>
@@ -124,7 +124,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--gold);
 .bar { position: relative; height: 14px; background: #1b2a31; overflow: hidden; }
 .bar i { position: absolute; inset: 0 auto 0 0; width: 100%; transform-origin: left; background: var(--self); }
 .bar span { position: absolute; inset: 0; font: 700 11px/14px var(--f-ui); text-align: center; text-shadow: 0 1px 2px #000; }
-#stMp { height: 10px; } #stMp i { background: var(--mana); } #stMp span { font-size: 9px; line-height: 10px; }
+#stMp { height: 10px; } #stMp i { background: var(--mana); } #stMp span { font-size: 9px; line-height: 10px; } #stMp.focus i { background: #e9a23b; }
 #stXp { height: 3px; } #stXp i { background: var(--gold); }
 #stItems { display: grid; grid-template-columns: repeat(6, 26px); gap: 3px; }
 #stItems .slot { width: 26px; height: 26px; background: #14242b; border: 1px solid var(--line); }
@@ -159,7 +159,8 @@ body:not(.touch) #joy { display: none; }
 #bSp { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 119); bottom: calc(var(--u) * 177); }
 #bRc { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 195); bottom: calc(var(--u) * 85); }
 #bMd { width: calc(var(--u) * 48); height: calc(var(--u) * 48); right: calc(var(--u) * 52); bottom: calc(var(--u) * 212); border-color: var(--c, var(--brass)); color: var(--c, var(--gold)); box-shadow: 0 0 10px var(--c, transparent), 0 4px 10px rgba(0,0,0,.55); }       /* the temper of a passive that has two: press to change it */
-#bSp.live { box-shadow: 0 0 0 3px #ff8a4a, 0 0 20px #ff8a4a, 0 4px 10px rgba(0,0,0,.55); }       /* Inspire running: how many of its attacks are left */
+#bSp.live { box-shadow: 0 0 0 3px #ff8a4a, 0 0 20px #ff8a4a, 0 4px 10px rgba(0,0,0,.55); }
+.rb.on { box-shadow: 0 0 0 3px var(--c), 0 0 20px var(--c), 0 4px 10px rgba(0,0,0,.55); } .rb.on .cdn { color: var(--c); }       /* a skill that is at work right now: Sorrel under her cape, or counting out her rounds */       /* Inspire running: how many of its attacks are left */
 #bSp.live::before { content: attr(data-n); position: absolute; right: -7px; top: -7px; min-width: 21px; height: 21px; padding: 0 5px; box-sizing: border-box; border-radius: 11px; background: #ff8a4a; color: #1a0a04; font: 700 15px/21px var(--f-display); text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.6); z-index: 2; }       /* (on the corner, clear of the cooldown number in the middle) */
 #bHl { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 192); bottom: calc(var(--u) * 148); border-color: #4fbf74; }
 #bHl.idle { filter: saturate(.45) brightness(.8); }
@@ -671,9 +672,11 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
             <dt>Chains</dt><dd>Kaela's first skill, Triple Cadence, is three presses of one button: a step and a cut, another, and then a leap that comes down on the ground and throws whoever is in front of her into the air for a moment, unable to act. Each press has 3 seconds to follow the last; the three dots on the button show how far along you are, the icon shows what the next press does, and the cooldown starts when the chain ends. Aim each cut on its own: drag the button, or just tap and she turns on the nearest enemy. Each step stops at the first enemy in her way, so she cuts from in front of them. Her ultimate, Bloodrage, puts wings of light on her back for as long as the rage lasts: when they gutter and fold, it is over.</dd>
             <dt>Inspire</dt><dd>A battle spell for heroes who fight with basic attacks. For 5 seconds your next 8 basic attacks come 55% faster, and may go past the usual limit on attack speed; each ignores 8 Armor plus 1 for each of your levels and gives back 60 health plus 15% of your Attack and Magic. The spell button counts the attacks that are left. 75 seconds to cool.</dd>
             <dt>Lanes</dt><dd>Before a match, choose where you play under <b>Lane</b>: the <b>EXP Lane</b> (top, on your own), the <b>Jungle</b> (the creep camps between the lanes), the <b>Mid Lane</b>, the <b>Gold Lane</b> (bottom) or the <b>Roam</b> (beside the gold laner at first, then wherever the fight is). Every hero has a lane it is made for, marked with a gold dot, but any hero may take any lane, and each hero remembers the one you gave it. Your side's bots take the four places you leave, so the team is always whole. Taking the Jungle sets Retribution as your battle spell; you may change it back. At a table of friends each player chooses a lane the same way and everyone sees the choices; if two take the same lane, the table says which place then stays empty.</dd>
-            <dt>Taunt</dt><dd>Hesta, the Brazen Herald, strikes her gong with Brazen Call, and every enemy near her is taunted: marked with a red sign over the head, they can do nothing but walk at her and hit her with basic attacks. It holds 1.5 seconds at the skill's first level and 3.5 at its last. No skills, no spell, no recall, and the stick does nothing until it ends. What shrugs off a stun shrugs off a taunt. Every hero she taunts and every blow an enemy hero lands on her adds a Ring, shown as dots on her attack button; at four her next basic attack lets the gong out around her and shields her. Her ultimate, Stand as One, puts a single shield over her and every allied hero within its ring: whatever hits any of them comes off the same shield, so it is strongest for whoever is being hit hardest. Step out of the ring and you leave it.</dd>
+            <dt>Taunt</dt><dd>Hesta, the Brazen Herald, strikes her gong with Brazen Call, and every enemy near her is taunted: marked with a red sign over the head, they can do nothing but walk at her and hit her with basic attacks. It holds 1.5 seconds at the skill's first level and 3.5 at its last. No skills, no spell, no recall, and the stick does nothing until it ends. A shield that steadies its bearer shrugs it off; the Ironwill Totem does not. Every hero she taunts and every blow an enemy hero lands on her adds a Ring, shown as dots on her attack button; at four her next basic attack lets the gong out around her and shields her. Her ultimate, Stand as One, puts a single shield over her and every allied hero within its ring: whatever hits any of them comes off the same shield, so it is strongest for whoever is being hit hardest. Step out of the ring and you leave it.</dd>
             <dt>Roles</dt><dd>Miel, the Amber Hivekeeper, can be played in two roles. Choose one under her name before the match: as a <b>Support</b> she goes to the bottom lane beside the carry and the shop recommends a build that keeps her team alive; as a <b>Mage</b> she holds the middle lane alone and the build is for damage. Your team's bots fill the other places around the one you take. Each of her skills does something for allies and something to enemies at once, and her passive has two tempers that you choose between: while she tends, her heals and shields are 20% stronger (the glow about her bees turns pale and they fly unhurried); while she stings, her skills deal 20% more damage (it turns hot and they fly quick). Change it with the small round button above the ultimate, or the X key; it then keeps for a second. A Support starts tending and a Mage stinging. The badge on her portrait says which she is in: a heart or a sting. Bots play her in either role and change temper by the company they keep.</dd>
             <dt>Stings</dt><dd>Miel's first skill, Stinger Flight, leaves a sting in every enemy it goes through, shown as a bright mote circling them. A sting lasts 8 seconds, hurts every second and slows a little. Hit the same enemy again before it runs out and there are two, then three at the most: each flight that lands adds one and starts the time of all of them again, and the damage and the slow are as many times over. Keeping the swarm on one enemy is where her damage is. A sting is not a blow: it does not interrupt a recall. Her ultimate, Queen's Flight, opens with a burst that hurts and slows every enemy in reach, puts a sting in each and heals her allies at once; then the hive stays out around her for 6 seconds.</dd>
+            <dt>Sorrel</dt><dd>Sorrel, the Shardlock Sniper, is a marksman for the Gold Lane who fights from as far off as anyone can. She has <b>Focus</b> where others have mana (the amber bar): 100 of it, quick to come back, and every basic attack that hits returns some. When she has gone 5 seconds without being hurt her next basic attack is a <b>Long Shot</b>: it reaches further, is likelier to strike critically and deals true damage; a dot on her attack button and a light in the glass of her gun say one is ready, and casting any skill readies one at once. <b>Fade Out</b> hides her under her cape for 3 seconds: enemies cannot see her or single her out unless they are right beside her (they may notice the air stir where she stands), but anything that covers the ground still hits her, and attacking, casting or being hurt ends it (under it she holds her fire until you press attack). <b>Blast Charge</b> bursts in a fan in front of her, knocks enemies back and throws her back the other way. <b>Four Rounds</b> locks onto one enemy hero she can see, up to a very long way off, and fires four rounds while she kneels; a ring closes on the mark with each one. Another enemy hero can stand in the line and take a round, and stunning her or moving her cuts the count short. Fade Out or Blast Charge breaks it off early and looses one round at once. Each level of Four Rounds also makes all her basic attacks 5% likelier to strike critically.</dd>
+            <dt>Starbound</dt><dd>When Lyra's Starfall roots somebody who stayed under it, a star of light is drawn on the ground around them with a thread to each of its points, for as long as the root holds.</dd>
             <dt>Charge and Heave</dt><dd>Bram's Shield Rush no longer stops at the first hero. He runs the whole way, and every enemy in his path is hurt and pushed along in front of the shield to where the charge ends. For 4 seconds after it the skill button is lit: cast again to heave the shield up, and enemies in front of him are hurt and thrown into the air for 1 second. The second cast costs nothing. What cannot be moved (a steady hero, the Shardlord) is hurt but stays where it is.</dd>
             <dt>Chat</dt><dd>In a match with other players the speech bubble under the minimap opens the chat: pick <b>Team</b> or <b>All</b>, then tap a ready-made line or <b>Type…</b> your own (on a keyboard: Enter for the team, Shift+Enter for everyone). <b>Mute</b> hides what the others say.</dd>
             <dt>Friends</dt><dd><b>Friends</b> opens a table that everyone who has this page open can join from their own Friends list. Each player picks a side, a hero and says they are ready; the host starts. All on one side is your team against bots; on both sides is friends against friends; bots fill the empty places. Inside Claude everyone must be signed in and have the page shared with them by name; on the open web anyone with the page can join, and a table has an invite link to send. Your own hero answers the stick at once; skills and attacks land a moment after the press, on every screen at the same time. The match cannot be paused, and if someone looks away for more than a few seconds a bot plays on for them.</dd>
@@ -686,7 +689,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
             <dt>Gold</dt><dd>Last-hit minions and creeps, then buy from the shop anywhere (<kbd>P</kbd>). Complete items are forged from cheap parts: buy the parts as you can afford them and each comes off the item's price. The gold chip under your purse buys the next recommended part or item in one tap. To have another item first, press <b>Prioritize</b> on it in the shop, or press the item twice: the chip then works towards that item (its parts, then the item itself) before the rest of your build, and while nothing of it can be afforded it shows how much gold is still missing. Buying the item, or marking it again, ends it.</dd>
             <dt>Recall</dt><dd><kbd>B</kbd> channels for 6 seconds and returns you to the fountain to heal. Every hero waits it out in their own way.</dd>
             <dt>Heal</dt><dd>Every hero has Heal built in, the green button above Recall (<kbd>G</kbd>): it restores 18% of your health and 18% of your mana over 3 seconds, once a minute, whatever battle spell you picked. At full health you can still use it for the mana.</dd>
-            <dt>Pressed item</dt><dd>The Ironwill Totem (Armory, under Defense) is an item you press. Once you carry it a button appears left of your skills (<kbd>Z</kbd>): for 6 seconds nothing can stun, root, slow, pull or mark you, whatever was already slowing or rooting you is cleared, and magic damage is cut by 60%. Your hero stands a third taller while it lasts, so nobody can miss it (the size is for show: it is no easier to hit). Each use is a second shorter, down to 4, and it takes 90 seconds to come back, so save it for the fight that matters. Bots carry it too.</dd>
+            <dt>Pressed item</dt><dd>The Ironwill Totem (Armory, under Defense) is an item you press. Once you carry it a button appears left of your skills (<kbd>Z</kbd>): for 6 seconds nothing can stun, root, slow, pull or mark you, whatever was already slowing or rooting you is cleared, and magic damage is cut by 60%. Two things go through it all the same, and say PIERCED when they do: the stun of Zephyr's Tempest Beam (1 to 1.4 seconds by the skill's level) and the taunt of Hesta's Brazen Call. Your hero stands a third taller while it lasts, so nobody can miss it (the size is for show: it is no easier to hit). Each use is a second shorter, down to 4, and it takes 90 seconds to come back, so save it for the fight that matters. Bots carry it too.</dd>
             <dt>Victor's Hourglass</dt><dd>An item for whoever lives by their ultimate (Armory, under Magic): Magic Power, mana and 15% cooldown reduction, and every kill or assist takes 30% off what is left of your ultimate's cooldown. A fight that goes well gives the ultimate back sooner for the next.</dd>
             <dt>Death recap</dt><dd>When you are slain, <b>Death recap</b> (<kbd>N</kbd>) shows who hurt you in the last ten seconds, with which skills, how much of it was physical, magic or true damage, and what stunned, rooted or slowed you. <b>Replay</b> plays those last seconds again from where you stood, slowing down for the killing blow; the match goes on meanwhile, and <b>Skip</b> (<kbd>Esc</kbd>) takes you back at once. The last recap stays in the pause menu.</dd>
             <dt>Looking around</dt><dd>Drag a finger across the open battlefield (anywhere right of the stick) and the view goes the way you drag: drag right to see what lies to the right. Let go and it returns to your hero. How far it travels is <b>Drag sensitivity</b> in the pause menu: slide it, or tap &minus; and +. With a mouse, drag with the middle button. Holding the minimap jumps the view to that spot.</dd>
@@ -745,7 +748,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-const SIM_ID = '7bf6a433';
+const SIM_ID = '2b64e130';
 const SITE_URL = "https://lyletayag56-bot.github.io/shardfall-arena/";
 const TURN_URL = "";
 'use strict';
@@ -901,7 +904,7 @@ for (const k in ITEM_PASSIVE) ITEMS[k].p = ITEM_PASSIVE[k];
    shortens. dur: how long each use lasts, the first, the second, ... (the last entry from then on). */
 const ITEM_ACTIVE = {
   totem: { name: 'Unshaken', cd: 90, dur: [6, 5, 4], mres: 0.6, c: '#c4b5ff',
-    desc: 'Clears every slow, root and mark on you. For 6s nothing can stun, root, slow, pull, taunt or mark you, and magic damage you take is cut by 60%. Each use lasts 1s less than the one before, down to 4s. It cannot be pressed while you are stunned or taunted.',
+    desc: "Clears every slow, root and mark on you. For 6s nothing can stun, root, slow, pull, taunt or mark you, and magic damage you take is cut by 60%. Two things go through it all the same: the stun of Zephyr's Tempest Beam and the taunt of Hesta's Brazen Call. Each use lasts 1s less than the one before, down to 4s. It cannot be pressed while you are stunned or taunted.",
     fn(h, A, dur) {
       let n = 0; const keep = []; for (const b of h.buffs) { if (b.msMul && b.msMul < 1) n++; else keep.push(b); } h.buffs = keep;
       if (h.rootT > 0) { h.rootT = 0; n++; } if (h.km && h.km.until > G.t) { h.km.until = 0; n++; } if (h.om && h.om.until > G.t) { h.om.until = 0; n++; }
@@ -1032,6 +1035,27 @@ function peal(h) {       // the gong let out: a blow to everyone near her, and a
   for (const e of enemiesIn(h.team, h.x, h.y, PEAL_R)) { dmg(h, e, amt, 'magic', { n: 'Resound', ic: 'gong' }); slow(e, 0.3, 1); }
   shield(h, amt, 3);
 }
+/* KIT_V 23. Tempest Beam's stun, by the level of the skill: 1 to 1.4s (half a second before; a description gives no kit and says today's). */
+function beamStun(lv, kit) { return kit < 23 ? 0.5 : L(lv, 1.0, 0.2); }
+/* Sorrel. ENERGY_*: her Focus, the bar others fill with mana: its size, what comes back each second by itself and what a basic attack
+   that hits returns. LETHAL_*: the Long Shot: how long unhurt before one is ready, how much further it reaches, how much likelier it
+   is to strike critically, what it deals of an attack's damage and what more it does to minions and creeps. CAMO_*: Fade Out: how long, and from how near she is seen
+   all the same. NADE_*: Blast Charge: reach, half its angle, how far it throws and how far she springs back. SNIPE_*: Four Rounds:
+   how many, the wait before the first and between them, how far, what each unfired one takes off the cooldown, the Focus one gives
+   back, how wide a round is, how fast, and the crit chance each level of the skill gives all her attacks. */
+const ENERGY_MAX = 100, ENERGY_REGEN = 2, ENERGY_HIT = 5;
+const LETHAL_T = 5, LETHAL_RANGE = 150, LETHAL_CRIT = 0.3, LETHAL_K = 1.15, LETHAL_PVE = 1.4;
+const CAMO_T = 3, CAMO_SEE = 190;
+const NADE_R = 420, NADE_A = 0.6, NADE_PUSH = 230, NADE_HOP = 250;
+const SNIPE_N = 4, SNIPE_GAP = 0.5, SNIPE_AIM = 0.5, SNIPE_R = 1500, SNIPE_REFUND = 0.1, SNIPE_FOCUS = 10, SNIPE_W = 64, SNIPE_SPEED = 3200, SNIPE_CRIT = 0.05;
+function snipeDmg(h, lv, e) { return L(lv, 150, 60) + 0.45 * h.ad + 0.05 * (e.maxHp - e.hp); }
+/* a Long Shot is ready: a skill has just been cast, or she has gone LETHAL_T seconds without a blow landing on her or firing one */
+function lethalReady(h) { return !!h.pv.arm || G.t - Math.max(h.lastDmgT, h.pv.shot == null ? -99 : h.pv.shot) >= LETHAL_T; }
+/* Fade Out. h.camo: she is under the cloak. Their side sees her only from CAMO_SEE or while something shows her (tickVision), so
+   nothing can single her out; what covers ground still catches her. It ends with its time, with her own shot or cast, or with
+   any blow that lands on her; her skill's cooldown only runs once it has ended (tickHero). */
+function camoOn(h, lv) { addBuff(h, { k: 'camo', t: CAMO_T, msMul: 1.3, ad: L(lv, 30, 12) }); h.camo = true; h.revealT = 0; h.vis[1 - h.team] = false; fx('camo', h.x, h.y, { id: h.id, on: 1 }); }
+function camoOff(h) { if (!h.camo) return; h.camo = false; h.buffs = h.buffs.filter(b => b.k !== 'camo'); fx('camo', h.x, h.y, { id: h.id, on: 0 }); }
 const SPELLS = {
   flicker: {
     name: 'Flicker', ic: 'blink', c: '#ffd76a', cd: 90, range: 420, cast: 'point', ind: { t: 'circle', r: 60 }, noRoot: true,
@@ -1421,7 +1445,7 @@ const HEROES = {
         desc: lv => `Call down stars for ${STARFALL_T}s. Enemies inside take ${L(lv, 110, 50)} (+30% Magic) damage every 0.5s and are slowed 30%, and whoever stays under them for ${STARFALL_STAY}s is rooted for ${STARFALL_ROOT}s (once for each Starfall).`,
         fn(h, lv, tx, ty) {
           skfx(h, 'lyra2c', h.x, h.y, { tx, ty }); const late = G.kit >= 21;       // (before KIT_V 21 the stars fell for three seconds and held nobody)
-          zone(h, tx, ty, { dur: late ? STARFALL_T : 3, r: 330, tick: 0.5, look: 'stars', c: '#ffd76a', ci: 2, hold: late ? { stay: STARFALL_STAY, root: STARFALL_ROOT } : null, hit(e) { dmg(h, e, L(lv, 110, 50) + 0.3 * h.ap, 'magic', { skill: true }); slow(e, 0.3, 0.7); } });
+          zone(h, tx, ty, { dur: late ? STARFALL_T : 3, r: 330, tick: 0.5, look: 'stars', c: '#ffd76a', ci: 2, hold: late ? { stay: STARFALL_STAY, root: STARFALL_ROOT, fx: 'lyra2r' } : null, hit(e) { dmg(h, e, L(lv, 110, 50) + 0.3 * h.ap, 'magic', { skill: true }); slow(e, 0.3, 0.7); } });
         } },
     ],
   },
@@ -1445,11 +1469,11 @@ const HEROES = {
         } },
       { name: 'Tempest Beam', ic: 'beam', c: '#c8fff4', max: 3, cd: [48, 38], cost: [150, 190], range: 1300, cast: 'dir', ult: true,
         ind: { t: 'line', w: 180 }, ai: { t: 'line', speed: 2600, ult: true, r: 1150 },
-        desc: lv => `Channel for 0.6s, then unleash a huge beam: ${L(lv, 480, 240)} (+130% Magic) damage and a 0.5s stun to everything in its path.`,
+        desc: lv => `Channel for 0.6s, then unleash a huge beam: ${L(lv, 480, 240)} (+130% Magic) damage and a ${beamStun(lv).toFixed(1)}s stun to everything in its path. The Ironwill Totem does not turn this stun away.`,
         fn(h, lv, tx, ty, ang) {
           h.castLock = 0.6;
           skfx(h, 'zephyr2c', h.x, h.y, { ang });
-          beam(h, ang, { delay: 0.6, len: 1300, w: 180, c: '#c8fff4', ci: 2, hit(e) { dmg(h, e, L(lv, 480, 240) + 1.3 * h.ap, 'magic', { skill: true }); stun(e, 0.5); } });
+          beam(h, ang, { delay: 0.6, len: 1300, w: 180, c: '#c8fff4', ci: 2, hit(e) { dmg(h, e, L(lv, 480, 240) + 1.3 * h.ap, 'magic', { skill: true }); stun(e, beamStun(lv, G.kit), G.kit >= 23); } });
         } },
     ],
   },
@@ -1620,13 +1644,13 @@ const HEROES = {
         } },
       { name: 'Brazen Call', ic: 'gong', c: '#ffcf7a', max: 6, cd: [14, 11], cost: [70, 95], cast: 'self',
         ind: { t: 'self', r: CALL_R }, ai: { t: 'self', r: CALL_R },
-        desc: lv => `Strike the gong. Enemies within reach take ${L(lv, 100, 28)} (+40% Attack) magic damage and are taunted for ${callT(lv).toFixed(1)}s: they can do nothing but come at her and hit her with basic attacks. She gains ${L(lv, 24, 6)} Armor and Magic Resist for 3s.`,
+        desc: lv => `Strike the gong. Enemies within reach take ${L(lv, 100, 28)} (+40% Attack) magic damage and are taunted for ${callT(lv).toFixed(1)}s: they can do nothing but come at her and hit her with basic attacks. The Ironwill Totem does not turn this taunt away. She gains ${L(lv, 24, 6)} Armor and Magic Resist for 3s.`,
         fn(h, lv) {
           const pts = [];
           addBuff(h, { k: 'brazen', t: 3, armor: L(lv, 24, 6), mr: L(lv, 24, 6) });
           for (const e of enemiesIn(h.team, h.x, h.y, CALL_R)) {
             dmg(h, e, L(lv, 100, 28) + 0.4 * h.ad, 'magic', { skill: true });
-            if (!e.dead && taunt(e, h, callT(lv, G.kit)) && e.kind === 'hero') { ringAdd(h); if (pts.length < 16) pts.push(e.x, e.y); }
+            if (!e.dead && taunt(e, h, callT(lv, G.kit), G.kit >= 23) && e.kind === 'hero') { ringAdd(h); if (pts.length < 16) pts.push(e.x, e.y); }
           }
           skfx(h, 'hesta1', h.x, h.y, { r: CALL_R, pts });
         } },
@@ -1649,6 +1673,42 @@ const HEROES = {
           sync(null);
           skfx(h, 'hesta2', h.x, h.y, { r: POOL_R, dur: POOL_T });
           zone(h, h.x, h.y, { dur: POOL_T, r: POOL_R, tick: 0.2, follow: h, look: 'bronze', c: '#ffe2a8', ci: 2, hit() {}, each: sync }).pool = pool;
+        } },
+    ],
+  },
+  sorrel: {
+    /* a gamekeeper of the high moor with a shardlock long gun. She has Focus where others have mana (energy), a first shot that
+       counts (lethal: the Long Shot), a cloak to vanish under, a charge for whoever comes too close, and four rounds for one
+       enemy a long way off. */
+    name: 'Sorrel', title: 'Shardlock Sniper', cls: 'Marksman', spell: 'inspire', melee: false, rate: [2, 9, 4, 6], energy: true, lethal: true,
+    base: { hp: 2300, hpG: 150, mp: ENERGY_MAX, mpG: 0, ad: 118, adG: 10.5, armor: 15, armorG: 2.5, mr: 10, mrG: 1.5, as: 0.95, asG: 2.4, range: 590, ms: 245, hpRegen: 6, mpRegen: 0 },
+    look: { body: '#55624a', trim: '#c9a24a', skin: '#e0b08c', hair: '#a4502c', hat: 'cap', weapon: 'rifle', cape: '#a8452e', glow: '#7fd8ff', metal: '#8a8f98', wood: '#4a3222', pants: '#3a3530', boot: '#2e2620' },
+    skills: [
+      { name: 'Fade Out', ic: 'fade', c: '#9fe0c8', max: 6, cd: [5, 2.5], cost: [20, 20], cast: 'self', hush: true,
+        ind: { t: 'self', r: 0 }, ai: { t: 'camo', esc: true },
+        desc: lv => `Vanish under the cloak for ${CAMO_T}s. Enemies cannot see you or single you out unless they stand right beside you, though whatever covers the ground still catches you. While it lasts you move 30% faster, have +${L(lv, 30, 12)} Attack and regain Focus twice as fast. It ends when you attack, cast or are hurt, and its cooldown only starts when it ends. Under it you hold your fire until you press attack. Cast during Four Rounds, it breaks off the count and looses one round at once.`,
+        fn(h, lv) { camoOn(h, lv); recalc(h); if (h.snipe) snipeBreak(h); skfx(h, 'sorrel0', h.x, h.y, {}); } },
+      { name: 'Blast Charge', ic: 'charge', c: '#ffb35c', max: 6, cd: [12, 9], cost: [30, 30], range: NADE_R, cast: 'dir',
+        ind: { t: 'cone', a: NADE_A }, ai: { t: 'near', r: NADE_R - 100, esc: true, back: true, peel: (h, lv) => L(lv, 150, 40) + 0.5 * h.ad },
+        desc: lv => `Throw a charge that bursts in front of you: enemies in the blast take ${L(lv, 150, 40)} (+50% Attack) damage and are knocked back, and you spring back from it yourself. Cast during Four Rounds, it breaks off the count and looses one round at once.`,
+        fn(h, lv, tx, ty, ang) {
+          if (h.snipe) snipeBreak(h); camoOff(h);
+          const c = fcos(ang), s = fsin(ang); skfx(h, 'sorrel1', h.x, h.y, { ang, r: NADE_R });
+          for (const e of enemiesInCone(h.team, h.x, h.y, NADE_R, ang, NADE_A)) {
+            dmg(h, e, L(lv, 150, 40) + 0.5 * h.ad, 'phys', { skill: true });
+            if (!e.dead && !e.epic) { const dx = e.x - h.x, dy = e.y - h.y, d = hyp(dx, dy) || 1; pullTo(e, e.x + dx / d * NADE_PUSH, e.y + dy / d * NADE_PUSH, 0.24); skfx(h, 'sorrel1h', e.x, e.y, {}); }
+          }
+          if (h.rootT <= 0) { leapTo(h, h.x - c * NADE_HOP, h.y - s * NADE_HOP, 0.3, () => {}); h.leap.h = 70; }       // (held fast, she throws it all the same and stays where she is)
+        } },
+      { name: 'Four Rounds', ic: 'rounds', c: '#7fd8ff', max: 3, cd: [44, 36], cost: [40, 40], range: SNIPE_R, cast: 'point', ult: true, heroTarget: true,
+        ind: { t: 'circle', r: 150 }, ai: { t: 'snipe', ult: true },
+        desc: lv => `Take aim at one enemy hero, who is shown to your side for as long as you do, and count out ${SNIPE_N} rounds at them, one every ${SNIPE_GAP}s. You stand still for it. Each round follows its mark and deals ${L(lv, 150, 60)} (+45% Attack) damage plus 5% of the health its mark has lost, and gives you back ${SNIPE_FOCUS} Focus. A round stops in the first enemy hero it meets, so another hero can stand in its way. If the count is cut short, each round not fired takes ${Math.round(SNIPE_REFUND * 100)}% off the cooldown. Learned, it also makes every basic attack of yours ${Math.round(SNIPE_CRIT * 100 * lv)}% likelier to strike critically.`,
+        fn(h, lv, tx, ty) {
+          const t = nearestEnemyHero(h, tx, ty, 330, SNIPE_R + 80); if (!t) return false;
+          camoOff(h);
+          h.snipe = { tgt: t, n: SNIPE_N, acc: SNIPE_AIM, lv }; h.castLock = SNIPE_AIM + 0.1; h.atkTarget = null;
+          for (const e of G.heroes) if (e.team !== h.team && !e.dead && hyp(e.x - h.x, e.y - h.y) <= SNIPE_R) e.revealT = Math.max(e.revealT, G.t + 2);       // through the glass she sees whoever is out there
+          skfx(h, 'sorrel2', h.x, h.y, { tid: t.id }); skfx(h, 'sorrel2t', t.x, t.y, { tid: t.id });       // (one where she stands, one where her mark does: each is drawn only for whoever is looking there)
         } },
     ],
   },
@@ -1706,6 +1766,10 @@ const PASSIVES = {
     desc: `Blows ring in her gong. Each time an enemy hero damages her, and each enemy hero she taunts, adds a Ring, up to ${RING_MAX}. At ${RING_MAX} her next basic attack strikes the gong and spends them: enemies within reach of her take 40 (+5% of her max HP) magic damage and are slowed 30% for 1s, and she is shielded for the same amount for 3s.`,
     hurt(h, src, a, f) { if ((f && f.dot) || G.t - (h.pv.t || -9) < 0.5) return; h.pv.t = G.t; ringAdd(h); },
     basic(h, t, ctx) { if ((h.pv.n || 0) < RING_MAX) return; h.pv.n = 0; ctx.big = true; peal(h); } },
+  sorrel: { name: 'Still Hand', ic: 'scope', c: '#7fd8ff', stacks: 1, quiet: true,       // (quiet: full, it shows on her gun and her attack button, not as a ring on the ground under her)
+    desc: `She has Focus where others have mana: ${ENERGY_MAX} at most, quick to come back, and a basic attack that hits returns ${ENERGY_HIT}. When she has gone ${LETHAL_T}s without being hurt, her next basic attack is a Long Shot: it reaches ${LETHAL_RANGE} further, is ${Math.round(LETHAL_CRIT * 100)}% likelier to strike critically, deals ${Math.round(LETHAL_K * 100)}% of an attack's damage as true damage (${Math.round((LETHAL_PVE - 1) * 100)}% more again to minions and creeps) and returns twice the Focus. Casting any skill readies a Long Shot at once.`,
+    cast(h) { h.pv.arm = true; },
+    basic(h, t, ctx) { if (h.camo) camoOff(h); if (ctx.ls) { h.pv.arm = false; h.pv.shot = G.t; ctx.type = 'true'; ctx.amt *= LETHAL_K; if (t.kind !== 'hero') ctx.amt *= LETHAL_PVE; ctx.big = true; ctx.focus = ENERGY_HIT * 2; } else ctx.focus = ENERGY_HIT; } },
 };
 /* a sprung ward (or an arrow that carried one): it clings to its catch for a second, then bursts around them */
 function wardBurst(h, lv, e) {
@@ -1848,13 +1912,20 @@ const SKINS = {
     { name: 'Lantern Festival', look: { body: '#a3241f', trim: '#ffd76a', hair: '#1a1210', cape: '#f2a23a', metal: '#f2c14e', glow: '#ffe08a', plume: '#ffd76a', pants: '#5a1814', boot: '#3a1210', wglow: '#ffb347' },
       sk: ['#ffb347', '#ffe08a', '#ff7a4a'], parts: ['banner', 'scarf'], aura: '#ffd76a' },
   ],
+  sorrel: [
+    { name: 'Shardlock Sniper' },
+    { name: 'Snowline Scout', look: { body: '#e4ecf2', trim: '#7fb0d8', hair: '#f1f4f7', cape: '#3d6f9c', glow: '#bfeaff', metal: '#c9d6e2', wood: '#8a97a6', pants: '#8ea2b4', boot: '#566a7c', wglow: '#bfeaff' },
+      sk: ['#bfeaff', '#8fc8ff', '#e8f8ff'], parts: ['gem'], aura: '#bfeaff' },
+    { name: 'Ember Poacher', look: { body: '#2b2424', trim: '#ff8a3c', hair: '#161212', cape: '#7a1f14', glow: '#ffb35c', metal: '#4a4040', wood: '#2a1c18', pants: '#1c1717', boot: '#141010', wglow: '#ff7a2e' },
+      sk: ['#ff9a4a', '#ffc46a', '#ff5a2e'], parts: ['visor'], aura: '#ff7a2e' },
+  ],
 };
 const _looks = {};
 function heroLook(key, skin) { const k = key + (skin | 0); return _looks[k] || (_looks[k] = Object.assign({}, HEROES[key].look, (SKINS[key][skin | 0] || {}).look)); }
 function skinColor(key, skin, i) { const s = SKINS[key][skin | 0]; return (s && s.sk && s.sk[i]) || HEROES[key].skills[i].c; }
 /* distinct cast sounds per skill (0 = default) */
 const SKILL_SND = { bram: ['whoosh', 'guard', 0, 'slam'], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
-  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'] };
+  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'], sorrel: ['wind', 'boom', 'cock'] };
 for (const k of HERO_KEYS) HEROES[k].passive = PASSIVES[k];
 for (const k of HERO_KEYS) {
   const d = HEROES[k]; d.key = k; d.base = d.base || CLASS_BASE[d.cls]; d.build = BUILDS[d.cls]; d.pos = POS_OF[d.cls];
@@ -2368,7 +2439,7 @@ function recalc(h) {
   }
   const oldMax = h.maxHp;
   h.maxHp = b.hp + b.hpG * l + (it.hp || 0);
-  h.maxMp = b.mp + b.mpG * l + (it.mp || 0);
+  h.maxMp = h.def.energy ? ENERGY_MAX : b.mp + b.mpG * l + (it.mp || 0);       // (energy: Focus, a bar of one size whatever she carries)
   h.ad = b.ad + b.adG * l + (it.ad || 0) + ad;
   h.ap = ((it.ap || 0) + ap) * (h.has.zenith ? 1.2 : 1);
   const fm0 = h.form && h.def.forms ? h.def.forms : null;
@@ -2376,12 +2447,12 @@ function recalc(h) {
   h.mr = b.mr + b.mrG * l + (it.mr || 0) + mr + (fm0 ? fm0.tough : 0);
   const fm = h.form && h.def.forms ? h.def.forms : null;       // the second form fights hand to hand
   h.asp = Math.min(asCap, b.as * (1 + (b.asG * l + (it.as || 0) + as + (fm ? fm.as : 0)) / 100) * asK);
-  h.range = (fm ? fm.range : b.range) + range; h.melee = fm ? true : !!h.def.melee;
-  h.crit = (it.crit || 0) / 100; h.critDmg = h.has.reaver ? 2.2 : 1.85; h.ls = ((it.ls || 0) + ls) / 100; h.sv = (it.sv || 0) / 100;
+  h.range = (fm ? fm.range : b.range) + range + (h.def.lethal && lethalReady(h) ? LETHAL_RANGE : 0); h.melee = fm ? true : !!h.def.melee;
+  h.crit = (it.crit || 0) / 100 + (h.def.lethal && h.sk ? SNIPE_CRIT * h.sk[2] : 0); h.critDmg = h.has.reaver ? 2.2 : 1.85; h.ls = ((it.ls || 0) + ls) / 100; h.sv = (it.sv || 0) / 100;
   h.cdr = Math.min(0.4, ((it.cdr || 0) + cdr) / 100);
   h.ppen = it.ppen || 0; h.ppenP = (it.ppenP || 0) / 100; h.mpen = it.mpen || 0; h.mpenP = (it.mpenP || 0) / 100;
   h.hpRegen = b.hpRegen + l * 0.7 + (it.hpRegen || 0);
-  h.mpRegen = b.mpRegen + l * 0.28 + h.maxMp * (mpR + (h.has.scepter ? 0.01 : 0));
+  h.mpRegen = h.def.energy ? ENERGY_REGEN * (h.camo ? 2 : 1) : b.mpRegen + l * 0.28 + h.maxMp * (mpR + (h.has.scepter ? 0.01 : 0));
   h.msBase = b.ms + (it.ms || 0);
   h.ms = Math.max(110, h.msBase * (1 + haste) * (noSlow ? 1 : slowMul));
   if (oldMax > 1 && h.maxHp > oldMax) h.hp += h.maxHp - oldMax;
@@ -2484,6 +2555,9 @@ function canTarget(src, t) {
   if (t.team !== NEUTRAL && src.team !== NEUTRAL && !t.vis[src.team]) return false;
   return true;
 }
+/* how far a hero's basic attack reaches at this target. A Long Shot's extra reach (Sorrel) is in h.range while one is ready, and is
+   not for turrets and crystals: it is never fired at them, and nothing is to out-reach a turret. */
+function reachTo(h, t) { return h.def.lethal && (t.kind === 'turret' || t.kind === 'crystal') && lethalReady(h) ? h.range - LETHAL_RANGE : h.range; }
 function minionsNear(team, x, y, r) { let n = 0; for (const u of G.units) if (u.kind === 'minion' && u.team === team && !u.dead && hyp(u.x - x, u.y - y) < r) n++; return n; }
 
 /* ---------------- status ---------------- */
@@ -2541,10 +2615,13 @@ function hasBuff(u, k) { for (const b of u.buffs) if (b.k === k) return b; retur
 /* Two kinds of protection a hero can stand under. steady: nothing can stun, root or move him (a shield that steadies its bearer).
    immune: that, and no slow or mark sticks either (the totem). What is turned away is shown, a couple of times a second at most. */
 function steadyOf(u) { if (u.kind !== 'hero') return null; for (const b of u.buffs) if (b.steady || b.immune) return b; return null; }
+/* KIT_V 23: two holds go through the totem (pierce): the stun of Tempest Beam and the taunt of Brazen Call. A shield that steadies its
+   bearer still turns them away; Unshaken does not, and it is shown giving way. */
+function steadyFor(u, pierce) { if (!pierce) return steadyOf(u); if (u.kind !== 'hero') return null; let sb = null, im = null; for (const b of u.buffs) { if (b.immune) im = b; else if (b.steady) sb = b; } if (!sb && im) fx('pierce', u.x, u.y, { id: u.id, c: im.shell || '#ffffff' }); return sb; }
 function immuneOf(u) { if (u.kind !== 'hero') return null; for (const b of u.buffs) if (b.immune) return b; return null; }
 function blocked(u, b) { if (G.t - (u.blockT || -9) > 0.45) { u.blockT = G.t; fx('block', u.x, u.y, { id: u.id, c: b.shell || b.aura || '#ffffff', ci: b.ci, all: !!b.immune }); } }
 function slow(u, pct, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const im = immuneOf(u); if (im) { blocked(u, im); return; } if (!(u.kind === 'hero' && hasBuff(u, 'sprint') && hasBuff(u, 'sprint').noSlow)) logHold(u, 'slow', dur, pct); addBuff(u, { k: 'slow' + Math.round(pct * 100), t: dur, msMul: 1 - (u.epic ? pct * 0.4 : pct) }); }
-function stun(u, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const sb = steadyOf(u); if (sb) { blocked(u, sb); return; } if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75; logHold(u, 'stun', dur); u.stunT = Math.max(u.stunT, dur); u.windT = 0; if (u.kind === 'hero') { u.recallT = 0; } }
+function stun(u, dur, pierce) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const sb = steadyFor(u, pierce); if (sb) { blocked(u, sb); return; } if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75; logHold(u, 'stun', dur); u.stunT = Math.max(u.stunT, dur); u.windT = 0; if (u.kind === 'hero') { u.recallT = 0; } }
 /* Thrown into the air: helpless until it comes down. It holds like a stun, and the same things shrug it off or shorten it; the height
    (u.z) is for the eye. A hero in the middle of a leap of his own is only stunned: he is in the air already. */
 function knockUp(u, dur, ht) {
@@ -2559,9 +2636,9 @@ function root(u, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dea
 /* Taunted: for a moment a unit can do nothing but come at whoever called it out and hit him with its basic attack. No skill, no
    spell, no item, no recall, no step of its own choosing. Whatever shrugs off a stun shrugs this off and whatever shortens one
    shortens this. It ends early if whoever called it out falls or cannot be touched. Returns whether it took hold. */
-function taunt(u, by, dur) {
+function taunt(u, by, dur, pierce) {
   if (u.kind === 'turret' || u.kind === 'crystal' || u.dead || u.locked || !by || by.dead || by === u) return false;
-  const sb = steadyOf(u); if (sb) { blocked(u, sb); return false; }
+  const sb = steadyFor(u, pierce); if (sb) { blocked(u, sb); return false; }
   if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75;
   logHold(u, 'taunt', dur); u.tauntT = Math.max(u.tauntT || 0, dur); u.tauntBy = by; if (u.windTgt !== by) u.windT = 0;
   if (u.kind === 'hero') { u.dash = null; u.recallT = 0; u.atkTarget = by; u.chase = true; }
@@ -2616,7 +2693,7 @@ function dmg(src, tgt, amt, type, f) {
   if (tgt.plate > 0 && left > 0) left -= plateHit(src, tgt, left);
   if (tgt.dummy) left = Math.min(left, tgt.hp - 1);       // a practice dummy cannot be killed
   if (G.practice && src && src.isPlayer && tgt.kind === 'hero') { const P = G.practice; if (G.t - P.last > 3) { P.sum = 0; P.n = 0; P.t0 = G.t; } P.sum += a; P.n++; P.last = G.t; }
-  tgt.hp -= left; if (!f.dot || tgt.dummy) tgt.lastDmgT = G.t; tgt.flash = 0.12;       // (f.dot: the hurt of something left in the target a while ago, a sting. It does not make a fight of it: it holds up no recall, shows nobody, draws no turret)
+  tgt.hp -= left; if (!f.dot || tgt.dummy) tgt.lastDmgT = G.t; tgt.flash = 0.12; if (tgt.camo && a > 0) camoOff(tgt);       // (f.dot: the hurt of something left in the target a while ago, a sting. It does not make a fight of it: it holds up no recall, shows nobody, draws no turret)
   if (tgt.kind === 'hero' && a > 0) logHit(src, tgt, a, a - left, type, f);
   if (src && src.kind === 'hero') {
     if (!f.dot) { src.lastCombatT = G.t; src.revealT = G.t + 1.2; tgt.lastHeroHit = src; tgt.lastHeroHitT = G.t; }       // (nor does it count as the last blow of a hero's for whoever finishes the target off: only its own kill is its own)
@@ -2695,6 +2772,7 @@ function heroDeath(u, kh, src) {
   const vs = u.streak; u.deaths++; u.streak = 0; u.multi = 0; u.locked = false; u.reviveT = 0;
   u.respawnT = G.practice ? 3 : 4 + u.level * 1.6 + Math.min(G.t / 60, 20) * 0.7;
   const hadBuffs = ['azure', 'crimson'].filter(k => hasBuff(u, k));
+  if (u.snipe) snipeEnd(u, true); if (u.camo) u.camo = false;
   u.buffs = []; u.shields = []; u.stunT = u.rootT = 0; u.tauntT = 0; u.tauntBy = null; u.dash = u.leap = u.disp = u.air = null; u.recallT = 0; u.windT = 0; u.atkTarget = null; u.mvx = u.mvy = 0; u.z = 0;
   for (const r of u.re) if (r && r.pts) for (const q of r.pts) if (q.prop) q.prop.t = 0;
   u.re = [null, null, null]; u.mend = null; u.om = null; endFlurry(u); if (u.form) { u.form = 0; u.cds[0] = u.cds[1] = 0; recalc(u); }
@@ -2882,11 +2960,11 @@ function useMark(h, e) {
   skfx(h, 'markx', e.x, e.y, { tid: e.id, n: e.km.n }); dmg(h, e, 100 + 14 * h.level + 0.4 * h.ap, 'magic', { skill: true, n: 'Spirit mark', ic: 'mask' }); return true;
 }
 function setForm(h, f) { h.form = f; h.cds[0] = h.cds[1] = 0; h.re[0] = h.re[1] = null; h.atkTarget = null; h.windT = 0; recalc(h); }
-function zone(h, x, y, o) { const a = { type: 'zone', x, y, r: o.r, t: o.dur, dur: o.dur, tick: o.tick, acc: o.tick, team: h.team, src: h, hit: o.hit, each: o.each || null, follow: o.follow || null, hold: o.hold ? { stay: o.hold.stay, root: o.hold.root, k: 0, by: {} } : null, c: o.c, look: o.look || 'zone', ci: o.ci, cx: G.cx }; G.areas.push(a); return a; }       // hit: every enemy in it, each tick; each: once a tick, whoever is in it (what it does for its own side); hold: { stay, root }: an enemy that has been in it for `stay` seconds running is rooted for `root`, once
+function zone(h, x, y, o) { const a = { type: 'zone', x, y, r: o.r, t: o.dur, dur: o.dur, tick: o.tick, acc: o.tick, team: h.team, src: h, hit: o.hit, each: o.each || null, follow: o.follow || null, hold: o.hold ? { stay: o.hold.stay, root: o.hold.root, fx: o.hold.fx || null, k: 0, by: {} } : null, c: o.c, look: o.look || 'zone', ci: o.ci, cx: G.cx }; G.areas.push(a); return a; }       // hit: every enemy in it, each tick; each: once a tick, whoever is in it (what it does for its own side); hold: { stay, root }: an enemy that has been in it for `stay` seconds running is rooted for `root`, once
 /* a zone that holds: by[id] is how many ticks running (n) that unit has been in it, as of which tick (k), and whether it has been held by it already */
 function zoneHold(a, e) {
   const H = a.hold, s = H.by[e.id] || (H.by[e.id] = { n: 0, k: -9, held: false }); s.n = s.k === H.k - 1 ? s.n + 1 : 1; s.k = H.k;
-  if (!s.held && !e.dead && (s.n - 1) * a.tick >= H.stay - 1e-6) { s.held = true; root(e, H.root); }
+  if (!s.held && !e.dead && (s.n - 1) * a.tick >= H.stay - 1e-6) { s.held = true; const sb = steadyOf(e); root(e, H.root); if (H.fx && !sb && e.rootT > 0) skfx(a.src, H.fx, e.x, e.y, { tid: e.id, dur: e.rootT }); }       // (fx: what it looks like on whoever it holds)
 }
 function beam(h, ang, o) { G.areas.push({ type: 'beam', x: h.x, y: h.y, ang, len: o.len, w: o.w, t: o.delay, dur: o.delay, team: h.team, src: h, hit: o.hit, c: o.c, look: 'beam', ci: o.ci, cx: G.cx }); }
 function tickProjs(dt) {
@@ -2971,9 +3049,10 @@ function fireBasic(u, t) {
   u.revealT = G.t + 1.2;
   const structure = t.kind === 'turret' || t.kind === 'crystal';
   let amt = u.ad, crit = false, type = 'phys';
+  const ls = u.kind === 'hero' && !!u.def.lethal && !structure && lethalReady(u);       // a Long Shot (Sorrel)
   if (u.kind === 'hero') {
     if (structure) amt = Math.max(u.ad, u.def.base.ad + u.def.base.adG * (u.level - 1) + u.ap * 0.6);
-    else if (u.crit > 0 && rnd() < u.crit) { crit = true; amt *= u.critDmg; }
+    else if (ls ? rnd() < u.crit + LETHAL_CRIT : u.crit > 0 && rnd() < u.crit) { crit = true; amt *= u.critDmg; }
   } else if (u.kind === 'minion') { if (structure) amt *= (u.mtype === 'siege' ? 2.4 : u.mtype === 'lord' ? 2.0 : 1.0); }
   else if (u.kind === 'turret' || u.kind === 'crystal') {
     amt = (u.ad + Math.min(G.t / 60, 20) * 12);
@@ -2981,7 +3060,7 @@ function fireBasic(u, t) {
   }
   let ctx = null;
   if (u.kind === 'hero' && !structure) {
-    ctx = { amt, magic: 0, heal: 0, slow: null, big: false }; const pv = u.def.passive; if (pv && pv.basic) pv.basic(u, t, ctx);
+    ctx = { amt, magic: 0, heal: 0, slow: null, big: false, ls }; const pv = u.def.passive; if (pv && pv.basic) pv.basic(u, t, ctx); if (ctx.type) type = ctx.type;
     if (u.has.galebow) ctx.magic += 30 + 4 * u.level;
     if (u.has.quickblade) { u.pv.qb = (u.pv.qb || 0) + 1; if (u.pv.qb % 4 === 0) { ctx.amt *= 1.8; ctx.big = true; } }
     amt = ctx.amt; if (ctx.big) crit = crit || 'big';
@@ -2990,7 +3069,7 @@ function fireBasic(u, t) {
   if (insp && insp.n > 0) { fl.pen = inspirePen(u); inspH = inspireHeal(u); if (--insp.n <= 0) insp.t = 0; }
   const apply = tgt => {
     if (tgt.dead) return;
-    dmg(u, tgt, amt, type, fl); if (inspH > 0 && !u.dead) heal(u, u, inspH);
+    dmg(u, tgt, amt, type, fl); if (inspH > 0 && !u.dead) heal(u, u, inspH); if (ctx && ctx.focus && !u.dead) u.mp = Math.min(u.maxMp, u.mp + ctx.focus);
     if (ctx && ctx.after) ctx.after(tgt, amt);
     if (ctx) { if (ctx.magic > 0 && !tgt.dead) dmg(u, tgt, ctx.magic, 'magic', { noVamp: true }); if (ctx.heal > 0 && !u.dead) heal(u, u, ctx.heal); if (ctx.slow && !tgt.dead) slow(tgt, ctx.slow[0], ctx.slow[1]); if (ctx.mark && !tgt.dead) useMark(u, tgt); }
     if (u.kind === 'hero' && !tgt.dead && hasBuff(u, 'crimson') && !structure) { dmg(u, tgt, 18 + 5 * u.level, 'true', { noVamp: true, n: 'Crimson buff', ic: 'rage' }); slow(tgt, u.melee ? 0.2 : 0.1, 1); }
@@ -2999,11 +3078,11 @@ function fireBasic(u, t) {
   if (u.range <= 260) {
     if (hyp(t.x - u.x, t.y - u.y) <= u.range + t.r + 110) { apply(t); fx('hit', t.x, t.y, { c: u.kind === 'hero' ? (u.look.glow || u.look.trim) : '#ffffff', big: !!crit, ax: u.x, ay: u.y, hero: u.kind === 'hero' || u.epic, id: u.kind === 'hero' ? u.id : 0 }); sfx(u.kind === 'hero' ? 'hit' : 'tick', t.x, t.y); }
   } else {
-    const sp = u.kind === 'hero' ? 1500 : u.kind === 'minion' ? 1000 : 1500;
-    const look = u.kind === 'turret' || u.kind === 'crystal' ? 'bolt' : u.kind === 'hero' ? (u.look.weapon === 'bow' ? 'arrow' : u.look.weapon === 'leaf' ? 'leaf' : 'shot') : 'pellet';
+    const sp = u.kind === 'hero' ? (ls ? 2300 : u.look.weapon === 'rifle' ? 1900 : 1500) : u.kind === 'minion' ? 1000 : 1500;
+    const look = u.kind === 'turret' || u.kind === 'crystal' ? 'bolt' : u.kind === 'hero' ? (u.look.weapon === 'bow' ? 'arrow' : u.look.weapon === 'leaf' ? 'leaf' : u.look.weapon === 'rifle' ? (ls ? 'longshot' : 'slug') : 'shot') : 'pellet';
     const c = u.kind === 'hero' ? (u.look.glow || u.look.trim) : u.team === BLUE ? '#7ac8ff' : '#ff8a7a';
     homingProj(u, t, sp, apply, look, c);
-    sfx(u.kind === 'hero' ? 'shoot' : u.kind === 'minion' ? 'tick' : 'zap', u.x, u.y);
+    sfx(u.kind === 'hero' ? (u.look.weapon === 'rifle' ? (ls ? 'shot' : 'rifle') : 'shoot') : u.kind === 'minion' ? 'tick' : 'zap', u.x, u.y);
   }
   G.cx = pc;
 }
@@ -3028,7 +3107,7 @@ function tickCommon(u, dt) {
   }
   if (u.windT > 0) {
     const t = u.windTgt;
-    if (!t || t.dead || t.locked || u.stunT > 0 || u.disp) u.windT = 0;
+    if (!t || t.dead || t.locked || u.stunT > 0 || u.disp || (t.camo && u.kind !== 'turret' && u.kind !== 'crystal' && !t.vis[u.team])) u.windT = 0;
     else { u.windT -= dt; if (u.windT <= 0) {
       const fl = u.flurry ? flurryOf(u, t) : null;
       fireBasic(u, t);
@@ -3134,10 +3213,10 @@ function itemReady(h) { return !!activeItem(h) && !h.dead && !(h.reviveT > 0) &&
 function useItem(h) {
   if (!itemReady(h)) return false;
   const A = ITEMS[activeItem(h)].act, dur = A.dur[Math.min(h.actN, A.dur.length - 1)];
-  A.fn(h, A, dur); h.actCd = A.cd; h.actN++; h.revealT = G.t + 1.2; return true;
+  A.fn(h, A, dur); h.actCd = A.cd; h.actN++; h.revealT = G.t + 1.2; if (h.camo) camoOff(h); return true;
 }
 function castSkill(h, i, tx, ty) {
-  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || h.castLock > 0 || G.over) return false;
+  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || (h.castLock > 0 && !(h.snipe && i !== 2)) || G.over) return false;       // (in the middle of Four Rounds her other two skills are hers to break it off with, and her battle spell is hers to use)
   const f0 = h.form;
   if ((h.dash || h.leap) && !(h.def.fluid && i < 3)) return false;       // a fluid hero throws and flashes in the middle of his own dash
   const sp = i === 3, s0 = sp ? SPELLS[h.spell] : skDef(h, i);
@@ -3152,11 +3231,11 @@ function castSkill(h, i, tx, ty) {
   const ang = fatan2(dy, dx);
   if (s.cast === 'point' && s.range && d > s.range) { tx = h.x + dx / d * s.range; ty = h.y + dy / d * s.range; }
   { const pc = G.cx; G.cx = { h, n: s.name, ic: s.ic, c: s.c }; const went = s.fn(h, lv, tx, ty, ang, re); G.cx = pc; if (went === false) return false; }
-  h.mp -= cost;
+  h.mp -= cost; if (h.camo && !s.hush) camoOff(h);       // (whatever she casts from under her cape, but the cape itself, brings her out from under it)
   if (re) { if (h.re[i] === re) h.re[i] = null; } else if (sp) h.spellCd = s.cd; else h.cds[i] = skillCd(s0, lv) * (1 - h.cdr);
   if (s.cast !== 'self') h.face = ang;
   if (!re && !sp) h.castT[i] = G.t;
-  h.recallT = 0; h.windT = 0; h.castAnim = 0.3; h.castN++; h.castI = re ? i + (s.stage === 3 ? 10 : 4) : f0 && !sp && h.def.skills[i].alt ? i + 7 : i; h.revealT = G.t + 1.2; h.lastCombatT = G.t;       // castI 4..6: the second cast of skill 0..2; 10..12: the third
+  h.recallT = 0; h.windT = 0; h.castAnim = 0.3; h.castN++; h.castI = re ? i + (s.stage === 3 ? 10 : 4) : f0 && !sp && h.def.skills[i].alt ? i + 7 : i; if (!s.hush) h.revealT = G.t + 1.2; h.lastCombatT = G.t;       // castI 4..6: the second cast of skill 0..2; 10..12: the third
   if (!sp) { const pv = h.def.passive; if (pv && pv.cast) pv.cast(h, i); }
   const big = !!s0.ult && !re && !s0.swap;
   fx('cast', h.x, h.y, { c: s.c, id: h.id, ult: big, i }); sfx(s.snd || (big ? 'ult' : 'skill'), h.x, h.y); if (s.snd && big) sfx('ult', h.x, h.y);
@@ -3166,7 +3245,7 @@ function acquire(h, mode, inRangeOnly) {
   let best = null, bs = 1e9; const reach = inRangeOnly ? h.range : h.range + 420;
   for (const u of G.units) {
     if (!canTarget(h, u)) continue;
-    const d = hyp(u.x - h.x, u.y - h.y) - u.r; if (d > reach) continue;
+    const d = hyp(u.x - h.x, u.y - h.y) - u.r; if (d > (inRangeOnly ? reachTo(h, u) : reach)) continue;
     if (inRangeOnly && u.kind === 'monster' && !u.aggro) continue;
     if (inRangeOnly && (u.kind === 'turret' || u.kind === 'crystal') && laneSd(h.x, h.y) <= 0) continue;       // standing idle in the woods never picks a fight with a turret
     let sc = d;
@@ -3182,12 +3261,41 @@ function playerControl(h) {
   const moving = I.mx || I.my;
   if (h.atkTarget && (!canTarget(h, h.atkTarget) || hyp(h.atkTarget.x - h.x, h.atkTarget.y - h.y) > h.range + 900)) h.atkTarget = null;
   if (moving) { h.atkTarget = null; h.chase = false; I.fresh = false; return; }
+  if (h.camo && h.atkTarget && !h.chase) h.atkTarget = null;       // (a target Sorrel fell to shooting at by herself is let go under her cape: see below)
   const fl = h.flurry ? flurryOf(h) : null, ft = fl && canTarget(h, fl.tgt) && hyp(fl.tgt.x - h.x, fl.tgt.y - h.y) < h.range + 340 ? fl.tgt : null;       // a marked hero close by: the flurry is for him
   if (I.atk || I.fresh) {
     if (!h.atkTarget || I.fresh) { const hint = I.tgtHint && canTarget(h, I.tgtHint) ? I.tgtHint : null; h.atkTarget = hint || (I.atkMode === 0 && ft) || acquire(h, I.atkMode, false); }
     I.fresh = false; I.tgtHint = null; h.chase = true;
   } else if (ft && h.recallT <= 0) { h.atkTarget = ft; h.chase = true; }
-  else if (!h.atkTarget && h.recallT <= 0) { h.atkTarget = acquire(h, 0, true); h.chase = false; }
+  else if (!h.atkTarget && h.recallT <= 0 && !h.camo) { h.atkTarget = acquire(h, 0, true); h.chase = false; }       // (under her cape Sorrel shoots when she is told to, not because somebody walked into reach: a shot gives her away)
+}
+/* Four Rounds (Sorrel's ultimate). h.snipe = { tgt, n: rounds left, acc: time to the next, lv }. She stands and counts them out at one
+   hero, who is kept in sight for it; whatever takes hold of her, or losing her mark, cuts it short (and so does she, with either of
+   her other skills: snipeBreak). A round flies at its mark and follows them (step), a little past SNIPE_R at most: it goes by minions
+   and creeps and stops in the first enemy hero it meets, so only somebody in the way, or a great deal of distance, saves the mark. */
+function snipeShot(h, S) {
+  const t = S.tgt, ang = fatan2(t.y - h.y, t.x - h.x), lv = S.lv, def = h.def.skills[2], pc = G.cx; let live = true;
+  S.n--; h.face = ang; h.castN++; h.castI = 6; h.revealT = Math.max(h.revealT, G.t + 1.2);
+  G.cx = { h, n: def.name, ic: def.ic, c: def.c };
+  lineProj(h, ang, { speed: SNIPE_SPEED, range: SNIPE_R + 200, w: SNIPE_W, pierce: true, quiet: true, look: 'round', c: def.c, ci: 2,
+    step(p) { if (live && !t.dead && !t.locked) p.ang = fatan2(t.y - p.y, t.x - p.x); }, hit(e, p) {
+    if (!live || e.kind !== 'hero') return; live = false; p.left = 0;
+    dmg(h, e, snipeDmg(h, lv, e), 'phys', { skill: true }); if (!h.dead) h.mp = Math.min(h.maxMp, h.mp + SNIPE_FOCUS);
+    skfx(h, 'sorrel2h', e.x, e.y, { ang: p.ang, tid: e.id });
+  } });
+  G.cx = pc; skfx(h, 'sorrel2s', h.x, h.y, { ang, left: S.n }); sfx('shot', h.x, h.y);
+}
+function snipeEnd(h, cut) {
+  const S = h.snipe; if (!S) return; h.snipe = null; h.castLock = cut ? 0 : 0.15;
+  if (S.n > 0) h.cds[2] *= 1 - SNIPE_REFUND * S.n;
+  fx('snipe', h.x, h.y, { id: h.id, left: S.n });
+}
+function snipeBreak(h) { const S = h.snipe; if (!S) return; if (S.n > 0 && !S.tgt.dead && !S.tgt.locked) snipeShot(h, S); snipeEnd(h, true); }
+function snipeTick(h, dt) {
+  const S = h.snipe, t = S.tgt;
+  if (h.stunT > 0 || h.tauntT > 0 || h.disp || h.leap || h.dash || h.air || h.reviveT > 0 || t.dead || t.locked) { snipeEnd(h, true); return; }
+  t.revealT = Math.max(t.revealT, G.t + 0.5); h.revealT = Math.max(h.revealT, G.t + 0.6); h.face = fatan2(t.y - h.y, t.x - h.x); if (h.castLock < 0.12) h.castLock = 0.12;
+  S.acc -= dt; if (S.acc <= 0) { S.acc += SNIPE_GAP; snipeShot(h, S); if (S.n <= 0) snipeEnd(h, false); }
 }
 /* ---------------- practice tools ---------------- */
 function autoSkills(h) { let g = 0; while (h.sp > 0 && g++ < 40) { if (canLevel(h, 2)) levelSkill(h, 2); else { const i = h.sk[0] <= h.sk[1] ? 0 : 1; if (!levelSkill(h, i) && !levelSkill(h, 1 - i)) break; } } }
@@ -3231,7 +3339,7 @@ function tickHero(h, dt) {
       h.hpWas = h.hp;
     } else if (h.dummy && G.t - h.lastDmgT > 3 && h.hp < h.maxHp) h.hp = Math.min(h.maxHp, h.hp + h.maxHp * dt * 1.5);
   }
-  for (let i = 0; i < 3; i++) if (h.cds[i] > 0 && !chainHold(h, i)) h.cds[i] -= dt;       // cooldowns never stop (a fallen hero comes back with its skills as rested as the wait allowed), except that a chain's only starts once the chain is over
+  for (let i = 0; i < 3; i++) if (h.cds[i] > 0 && !chainHold(h, i) && !(i === 0 && h.camo)) h.cds[i] -= dt;       // cooldowns never stop (a fallen hero comes back with its skills as rested as the wait allowed), except that a chain's only starts once the chain is over
   if (h.spellCd > 0) h.spellCd -= dt; if (h.healCd > 0) h.healCd -= dt; if (h.actCd > 0) h.actCd -= dt;
   if (h.dead) {
     h.respawnT -= dt;
@@ -3240,6 +3348,7 @@ function tickHero(h, dt) {
     return;
   }
   recalc(h);
+  if (h.def.lethal) { if (h.camo && !hasBuff(h, 'camo')) camoOff(h); h.pv.n = lethalReady(h) ? 1 : 0; if (h.snipe) snipeTick(h, dt); }       // Sorrel: the cloak's time is up; a Long Shot is ready (shown as a passive that is full); her four rounds
   if (h.reviveT > 0) {
     h.reviveT -= dt; h.mvx = h.mvy = 0; h.atkTarget = null;
     if (h.reviveT <= 0) { h.locked = false; h.hp = Math.max(h.hp, h.maxHp * 0.18); shield(h, h.maxHp * 0.1, 3); h.lastDmgT = G.t; fx('ring', h.x, h.y, { c: '#ffe08a', r: 200 }); if (h.ai) { h.ai.path = null; h.ai.mode = 'retreat'; } }
@@ -3282,9 +3391,9 @@ function tickHero(h, dt) {
       if (h.ai && (!ok || h.vx * h.mvx + h.vy * h.mvy < h.ms * 0.3) && h.ai.repT > 0.12) h.ai.repT = 0.12;       // a bot held up by a wall plans its way again at once
     }
   } else if (h.atkTarget && (canTarget(h, h.atkTarget) || (h.tauntT > 0 && h.atkTarget === h.tauntBy))) {
-    const t = h.atkTarget, d = hyp(t.x - h.x, t.y - h.y) - t.r;
-    if (d <= h.range) { h.face = fatan2(t.y - h.y, t.x - h.x); attackStep(h, t); }
-    else if (h.windT > 0 && d <= h.range + 90) { /* finishing the swing */ }
+    const t = h.atkTarget, d = hyp(t.x - h.x, t.y - h.y) - t.r, rg = reachTo(h, t);
+    if (d <= rg) { h.face = fatan2(t.y - h.y, t.x - h.x); attackStep(h, t); }
+    else if (h.windT > 0 && d <= rg + 90) { /* finishing the swing */ }
     else if (h.chase && h.rootT <= 0) { h.windT = 0; chaseMove(h, t, dt); }
   }
 }
@@ -3367,7 +3476,7 @@ function tickVision() {
         const sr = v.kind === 'hero' ? 980 : v.kind === 'minion' ? 720 : 900;
         const dx = v.x - e.x, dy = v.y - e.y, d2 = dx * dx + dy * dy;
         if (d2 > sr * sr) continue;
-        if (e.bush < 0 || v.bush === e.bush || d2 < 190 * 190 || e.revealT > G.t) { seen = true; break; }
+        if (e.camo ? d2 < CAMO_SEE * CAMO_SEE || e.revealT > G.t : e.bush < 0 || v.bush === e.bush || d2 < 190 * 190 || e.revealT > G.t) { seen = true; break; }
       }
       e.vis[T] = seen;
     }
@@ -3460,11 +3569,11 @@ function step(dt) {
    A finished recording: { v, sim, opts: { seed, diff, player }, steps, t, dt, ev, chk, marks, over, winner }.
    pb (while playing one): rec, i: the step to run next, e: read position in ev, next: the step the next event belongs to. */
 const DT_Q = 7200, DU_MAX = 240, MOVE_NONE = 65535, REC_V = 1, ROSTER_0 = 12;
-const KIT_V = 22, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer.
+const KIT_V = 23, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
 const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8, A_MOOD = 9;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }
@@ -3943,8 +4052,17 @@ function aiBuild(h) {
   return out;
 }
 
+/* Counting out her four rounds, a bot does nothing else; unless somebody is right on top of her, and then he gets the charge in his
+   face (which breaks the count off, and looses a round as it does) or, with no charge to throw, she goes under her cape and away. */
+function aiSnipe(h) {
+  let e = null, ed = 300; for (const q of G.heroes) if (q.team !== h.team && !q.dead && q.vis[h.team]) { const d = hyp(q.x - h.x, q.y - h.y); if (d < ed) { ed = d; e = q; } }
+  if (!e || rnd() >= h.ai.P.skill * 0.5) return;
+  const s1 = skDef(h, 1), l1 = h.sk[1]; if (l1 && h.cds[1] <= 0 && h.mp >= skillCost(s1, l1)) { castSkill(h, 1, e.x, e.y); return; }
+  const s0 = skDef(h, 0), l0 = h.sk[0]; if (l0 && h.cds[0] <= 0 && !h.camo && h.mp >= skillCost(s0, l0)) castSkill(h, 0, h.x, h.y);
+}
 function aiTick(h, dt) {
   const a = h.ai; h.mvx = h.mvy = 0; h.atkTarget = null; h.chase = false;
+  if (h.snipe) { aiSnipe(h); return; }
   a.think -= dt;
   if (a.think <= 0) { a.think = a.P.think * (0.75 + rnd() * 0.5); aiDecide(h); if (h.dead) return; }
   if (h.recallT > 0 || h.dash || h.leap) return;
@@ -3958,8 +4076,8 @@ function aiTick(h, dt) {
   const fl = h.flurry ? flurryOf(h) : null, ft = fl && canTarget(h, fl.tgt) && hyp(fl.tgt.x - h.x, fl.tgt.y - h.y) < h.range + 340 ? fl.tgt : null;       // a marked hero in reach gets the flurry before anything else
   const t = ft || (a.tgt && canTarget(h, a.tgt) ? a.tgt : null);
   if (t) {
-    const d = hyp(t.x - h.x, t.y - h.y) - t.r;
-    if (d <= h.range - 8 || (h.windT > 0 && d <= h.range + 70)) {
+    const d = hyp(t.x - h.x, t.y - h.y) - t.r, rg = reachTo(h, t);
+    if (d <= rg - 8 || (h.windT > 0 && d <= rg + 70)) {
       if (!ft && a.kite && h.windT <= 0 && h.atkCd > 0.2) { aiSteer(h, a.kite.x, a.kite.y); return; }
       h.atkTarget = t; return;
     }
@@ -4007,7 +4125,7 @@ function aiDecide(h) {
   const a = h.ai, P = a.P, T = h.team, tm = (G.team && G.team[T]) || {}, org = a.org;
   aiShop(h); aiLevel(h);
   a.tgt = null; a.kite = null; a.goal = null; a.plan = '';
-  const hpF = h.hp / h.maxHp, mpF = h.mp / h.maxMp, home = MAP.spawn[T], dHome = hyp(h.x - home.x, h.y - home.y);
+  const hpF = h.hp / h.maxHp, mpF = h.def.energy ? 1 : h.mp / h.maxMp, home = MAP.spawn[T], dHome = hyp(h.x - home.x, h.y - home.y);       // (Focus is never a reason to go home)
   const foes = aiFoes(h, 1100), nf = foes[0] || null;
   if (h.recallT > 0) { a.plan = 'Recalling'; if (nf && nf._d < 650) h.recallT = 0; else return; }
   if (h.healCd <= 0 && dHome > 500 && (hpF < 0.45 || (hpF < 0.62 && G.t - h.lastDmgT < 4))) castMend(h);       // the built-in heal, once it is worth most of its worth
@@ -4033,6 +4151,7 @@ function aiDecide(h) {
   if (a.mode === 'retreat') {
     a.plan = 'Falling back';
     if (nf && nf._d < 520) aiEscape(h, nf);
+    else if (nf && h.def.lethal) aiCloak(h);       // (Sorrel: nobody near enough to throw the charge at, but somebody near enough to shoot her: out of their sight)
     if (hpF < 0.4 && G.t - h.lastDmgT < 1.2) aiSpell(h, nf, 'hurt');
     if (dHome < 400) { a.goal = home; if (nf && nf._d < h.range + 200) a.tgt = nf; return; }
     if (!nf && G.t - h.lastDmgT > 2.2 && dHome > 1500) { startRecall(h); return; }
@@ -4104,6 +4223,7 @@ function aiDecide(h) {
         else aiPoke(h, tgt, foes);
         a.goal = home; return;
       }
+      if (h.def.lethal && aiLongShot(h, tgt, foes)) return;
       aiPoke(h, tgt, foes);
     }
   }
@@ -4240,7 +4360,7 @@ function aiCombat(h, t, foes) {
     switch (A.t) {
       case 'line': if (d <= (A.r || s.range) * (A.far ? 0.72 : 0.9)) { c = aiAim(h, t, A.speed, 0); if (A.far && (!shotClear(h, c) || (d > 640 && t.moving && !(t.stunT > 0 || t.rootT > 0 || t.ms < t.msBase * 0.7)))) c = null; } break;       // a very long shot is only worth it at something standing still or slowed
       case 'point': if (d <= s.range + A.r * 0.4) c = aiAim(h, t, 0, A.delay * 0.6); break;
-      case 'near': if (d <= A.r + t.r * 0.5 && !(A.step && h.rootT <= 0 && stepsIntoFire(h, t.x, t.y, A.step))) c = { x: t.x, y: t.y }; break;
+      case 'near': if (d <= A.r + t.r * 0.5 && !(A.step && h.rootT <= 0 && stepsIntoFire(h, t.x, t.y, A.step)) && !(A.peel && !((t.melee && d < 300) || d < 220 || hpF < 0.5 || t.hp < A.peel(h, lv) * 0.7))) c = { x: t.x, y: t.y }; break;       // (peel: a skill kept for whoever is on top of her, for when she is hurt, or for a kill)
       case 'self': if (d <= A.r * 0.85) c = { x: h.x, y: h.y }; break;
       case 'comb':       // ground that is good for friends and bad for foes: between the target and a friend who is at it, if there is one, so that it holds both; else under the target
         if (d <= s.range + A.r * 0.4) { let fr = null, fd = A.r * 1.5; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead) { const q = hyp(p.x - t.x, p.y - t.y); if (q < fd && hyp(p.x - h.x, p.y - h.y) < s.range + A.r) { fd = q; fr = p; } }
@@ -4250,6 +4370,9 @@ function aiCombat(h, t, foes) {
         if (d > h.range + 70 && d <= s.range + h.range + 60 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h)) c = { x: t.x, y: t.y }; break;
       case 'kite': if (d <= h.range + 120 && h.rootT <= 0) { const an = fatan2(h.y - t.y, h.x - t.x) + (rnd() < .5 ? 1 : -1) * (d < 300 ? 0.4 : 1.2); const x = h.x + fcos(an) * 280, y = h.y + fsin(an) * 280; if (walkable(x, y)) c = { x, y }; } break;
       case 'buff': if (d <= h.range + 260) c = { x: h.x, y: h.y }; break;
+      case 'camo': if (!h.camo && !lethalReady(h) && d <= h.range + 240) c = { x: h.x, y: h.y }; break;       // under the cloak for the next Long Shot, whenever one is not ready
+      case 'snipe': if (t.kind === 'hero' && d > (t.melee ? 450 : 330) && d <= s.range * 0.8 && (tF < 0.6 || t.stunT > 0.3 || t.rootT > 0.3) && !foes.some(e => e !== t && e._d < 420)
+        && (d - t.r > h.range + 40 || 4 * snipeDmg(h, lv, t) > 2.2 * h.ad * h.asp * (1 + h.crit * (h.critDmg - 1)))) c = { x: t.x, y: t.y }; break;       // four rounds for somebody hurt or held, from where nobody is on top of her; and only at somebody her gun cannot reach anyway, or while they come to more than the shots she would fire in their place
       case 'shield': if (d <= A.r || (hpF < 0.6 && d < 650)) c = { x: h.x, y: h.y }; break;
       case 'allyAoE':       // (rally: a shield for the whole side, raised as the fight is joined: a friend within its reach, two of theirs at hand, and somebody already hurt)
         if (A.rally && d <= 620 && foes.length >= 2) { let fr = 0, hurt = hpF < 0.8; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead && hyp(p.x - h.x, p.y - h.y) <= A.r) { fr++; if (p.hp / p.maxHp < 0.8) hurt = true; } if (fr >= 1 && hurt) c = { x: h.x, y: h.y }; }
@@ -4275,6 +4398,21 @@ function aiItem(h, foes) {
   if (hpF < 0.12) return;       // too late to matter
   if (held || (hot && (near >= 2 || hpF < 0.7)) || (h.ai.mode === 'fight' && near >= 2 && nf._d < 540)) useItem(h);
 }
+/* Sorrel when she is not in a fight but somebody of theirs is about: four rounds for one of them who is badly hurt, from far enough
+   off; a Long Shot for whoever is within its reach, which is further than most of them can answer from; and the cloak to ready the
+   next one. Never from inside the reach of a turret of theirs, which would answer for whoever she shot. */
+function aiLongShot(h, t, foes) {
+  const P = h.ai.P, u = skDef(h, 2), ul = h.sk[2];
+  if (ul && h.cds[2] <= 0 && h.mp >= skillCost(u, ul) && !foes.some(e => e._d < 450)) { const low = foes.find(e => e.hp / e.maxHp < 0.45 && e._d <= SNIPE_R * 0.7); if (low && rnd() < P.skill && castSkill(h, 2, low.x, low.y)) return true; }
+  for (const s of G.turrets) if (s.team !== h.team && !s.dead && hyp(s.x - h.x, s.y - h.y) <= s.range + h.r + 70) return false;
+  const c = G.crystals[1 - h.team]; if (c && !c.dead && hyp(c.x - h.x, c.y - h.y) <= (c.range || 0) + h.r + 70) return false;
+  const d = hyp(t.x - h.x, t.y - h.y) - t.r;
+  if (lethalReady(h)) { if (d <= h.range - 20) { h.ai.tgt = t; return true; } return false; }
+  const s = skDef(h, 0), lv = h.sk[0];
+  if (lv && h.cds[0] <= 0 && !h.camo && h.mp >= skillCost(s, lv) + 45 && d <= h.range + LETHAL_RANGE + 40 && rnd() < P.skill) castSkill(h, 0, h.x, h.y);
+  return false;
+}
+function aiCloak(h) { const s = skDef(h, 0), lv = h.sk[0]; if (lv && s.ai.t === 'camo' && h.cds[0] <= 0 && !h.camo && h.mp >= skillCost(s, lv)) castSkill(h, 0, h.x, h.y); }
 function aiPoke(h, t, foes) {
   const a = h.ai; if (rnd() > a.P.skill * 0.6 || h.mp / h.maxMp < 0.35) return;
   const d = hyp(t.x - h.x, t.y - h.y);
@@ -4305,9 +4443,10 @@ function aiWave(h, m, mpF) {
   if (h.form && h.def.forms && h.cds[2] <= 0 && h.cds[0] > 0.5 && h.cds[1] > 0.5 && castSkill(h, 2, h.x, h.y)) return;       // claws spent on the wave: back to range
   for (let i = 0; i < 2; i++) { const re = recastOf(h, i); if (re) { const A = stageDef(skDef(h, i), re).ai; if (A.t === 'chain' && aiChain(h, i, re, A, m)) return; } }       // a chain begun on the wave is finished on it
   const a = h.ai; if (mpF < 0.5 || rnd() > 0.45 * a.P.farm) return;
+  const d = hyp(m.x - h.x, m.y - h.y);
+  for (const i of [0, 1]) { const s = skDef(h, i), lv = h.sk[i]; if (lv && s.ai.t === 'camo' && h.cds[i] <= 0 && !h.camo && !lethalReady(h) && h.mp >= skillCost(s, lv) + 45 && d <= h.range + 120 && castSkill(h, i, h.x, h.y)) return; }       // (the cloak, for the next Long Shot at the wave; with the Focus for a fight kept back)
   let n = 0; for (const u of G.units) if (u.kind === 'minion' && u.team !== h.team && !u.dead && hyp(u.x - m.x, u.y - m.y) < 260) n++;
   if (n < 3) return;
-  const d = hyp(m.x - h.x, m.y - h.y);
   if (h.def.forms && !h.form && h.cds[2] <= 0 && d < 520 && !G.heroes.some(e => e.team !== h.team && !e.dead && hyp(e.x - h.x, e.y - h.y) < 760) && !turretThreat(h.team, m.x, m.y, 40, h)) { castSkill(h, 2, h.x, h.y); return; }       // nobody about: clear the wave with the claws
   for (const i of [0, 1]) {
     const s = skDef(h, i), lv = h.sk[i], A = s.ai; if (!lv || !A.wave || h.cds[i] > 0 || h.mp < skillCost(s, lv)) continue;
@@ -4324,6 +4463,7 @@ function aiPve(h, m) {
     let ok = false;
     if (A.t === 'line' || A.t === 'point') ok = d <= (s.range || 300) * 0.85;
     else if (A.t === 'near' || A.t === 'self') ok = d <= A.r * 0.8;
+    else if (A.t === 'camo') ok = !h.camo && !lethalReady(h) && d <= h.range + 120;
     else if (A.t === 'buff' && !A.ult) ok = d <= h.range + 60;
     else if (A.t === 'buff' && m.epic) ok = d <= h.range + 60;
     if (ok && castSkill(h, i, m.x, m.y)) return;
@@ -4335,9 +4475,10 @@ function aiEscape(h, foe) {
   if (h.ai.path && h.ai.path[h.ai.pi]) { const p = h.ai.path[h.ai.pi], pl = hyp(p.x - h.x, p.y - h.y); if (pl > 30) { ax = (p.x - h.x) / pl; ay = (p.y - h.y) / pl; } }
   const u = skDef(h, 2);       // an ultimate that is a leap gets a hero out as well as in
   if (u.ai.esc2 && h.rootT <= 0 && h.sk[2] > 0 && h.hp / h.maxHp < 0.4 && (recastOf(h, 2) || (h.cds[2] <= 0 && h.mp >= skillCost(u, h.sk[2]))) && castSkill(h, 2, h.x + ax * u.range, h.y + ay * u.range)) return;
-  if (h.rootT <= 0) for (let i = 0; i < 2; i++) {
+  if (h.rootT <= 0) for (const i of h.def.lethal ? [1, 0] : [0, 1]) {       // (Sorrel: the charge first, then the cape; the other way about the charge would only bring her out from under it)
     const s = skDef(h, i), lv = h.sk[i]; if (!lv || !s.ai.esc || h.cds[i] > 0 || h.mp < skillCost(s, lv)) continue;
     if (s.cast === 'self') { if (castSkill(h, i, h.x, h.y)) return; continue; }
+    if (s.ai.back) { const fd = foe ? hyp(foe.x - h.x, foe.y - h.y) : 1e9; if (fd < s.range && !(h.camo && fd > 220) && castSkill(h, i, h.x - ax * 200, h.y - ay * 200)) return; continue; }       // (back: thrown at whoever is after her, it carries her the other way; not from under her cape at somebody who cannot see her)
     const r = s.range || 350, p = clampWalk(h.x, h.y, h.x + ax * r, h.y + ay * r);
     if (hyp(p.x - h.x, p.y - h.y) > r * 0.5 && castSkill(h, i, h.x + ax * r, h.y + ay * r)) return;
   }
@@ -5715,7 +5856,45 @@ const HERO_BUILD = {
       .sph(0.11, shade(metal, 0.45), { y: gy - 0.03, z: gz, sy: 0.4 }, 12, 6);
     return { style: 'smash', wl: 0 };
   },
+  sorrel(R, L) {       // a gamekeeper of the high moor: a flat cap with her glass pushed up on it, a scarf wound to the chin, a waxed coat to the knee under a short cape, a bandolier of brass across it, and a shardlock long gun nearly as tall as she is (along the hand's own z, so that it points where her forearm does)
+    const b = R.b, zf = 0.158 * b, brass = L.trim, br2 = shade(brass, 0.4), coat = L.body, dark = shade(coat, -0.3), wood = L.wood || '#4a3222', metal = L.metal || '#8a8f98', glow = L.wglow || L.glow || '#7fd8ff', scarf = L.cape, leather = '#3a2a20', cap = shade(coat, -0.2);
+    baseBody(R, { body: coat, body2: shade(coat, 0.16), trim: leather, skin: L.skin, sleeve: coat, fore: shade(coat, -0.12), glove: leather, pants: L.pants, boot: L.boot });
+    const T = R.P('spine'), H = R.P('head'), Hp = R.P('hips');
+    // the coat's skirts, a belt with a brass buckle, a pouch at either hip
+    Hp.cyl(0.2 * b, 0.3 * b, 0.4, coat, { y: -0.17, sz: 0.84, c2: dark, sh: 0.7 }, 12).cyl(0.205 * b, 0.212 * b, 0.06, leather, { y: 0.03, sz: 0.84 }, 12).box(0.07, 0.06, 0.03, brass, { y: 0.03, z: 0.18 * b, c2: br2 });
+    for (const k of [-1, 1]) Hp.box(0.09, 0.1, 0.06, leather, { x: k * 0.18, y: -0.04, z: 0.08, c2: shade(leather, 0.3) }).box(0.095, 0.025, 0.065, brass, { x: k * 0.18, y: 0.0, z: 0.08 });
+    // the bandolier: a strap from one shoulder to the other hip, five brass rounds along the front of it
+    T.box(0.075, 0.6, 0.03, leather, { y: 0.26, z: zf + 0.012, rz: 0.72, c2: shade(leather, 0.25) }).box(0.075, 0.56, 0.03, leather, { y: 0.26, z: -zf - 0.028, rz: -0.72 });
+    for (let i = 0; i < 5; i++) { const q = (i - 2) * 0.1; T.cyl(0.018, 0.018, 0.075, brass, { x: -q * Math.sin(0.72), y: 0.26 + q * Math.cos(0.72), z: zf + 0.04, rz: 0.72 - HP2, c2: br2 }, 6); }
+    // the short cape over her shoulders (what she goes under), pinned at the collarbone with a chip of shard; the scarf: a thick roll to the chin, two ends down her back
+    for (const k of [-1, 1]) T.sph(0.155, scarf, { x: k * 0.29, y: 0.47, sy: 0.55, sz: 0.98, c2: shade(scarf, 0.25), sh: 0.8 }, 8, 6);
+    capeGeo(R, 0.5, 0.46, scarf); R.P('cape').box(0.52, 0.035, 0.045, shade(scarf, -0.25), { y: -0.015 });
+    glowPart(R, 'spine', new THREE.OctahedronGeometry(0.036, 0), glow, -0.14, 0.455, zf + 0.035, 0.3).scale.set(0.8, 1.3, 0.5);
+    T.tor(0.15, 0.072, shade(scarf, 0.12), { y: 0.545, rx: HP2, c2: shade(scarf, 0.4), sh: 0.78 }, 6, 12);
+    R.nb('scarf', 0.09, 0.52, -0.13 * b - 0.05, R.B.spine); strip(R, 'scarf', 0.1, 0.4, 0.028, shade(scarf, 0.12), { c2: shade(scarf, 0.4), sh: 0.7 }); strip(R, 'scarf', 0.085, 0.28, 0.028, shade(scarf, -0.05), { x: -0.1, c2: shade(scarf, 0.3), sh: 0.7 });
+    // cuffs and kneepads of leather
+    for (const s of ['L', 'R']) { R.P('fore' + s).cyl(0.076 * b, 0.07 * b, 0.07, leather, { y: -0.2 }, 8); R.P('shin' + s).sph(0.072, leather, { y: -0.02, z: 0.07, sy: 1.1, sz: 0.5, c2: shade(leather, 0.3) }, 7, 5).cyl(0.104 * b, 0.1 * b, 0.05, leather, { y: -0.09 }, 8); }
+    // hair cut short, a strand loose at either cheek
+    hairCap(H, L.hair, Math.PI * 0.58, -0.32); H.sph(0.21, L.hair, { y: 0.2, z: -0.12, sx: 1.14, sz: 0.8 });
+    for (const k of [-1, 1]) H.sph(0.058, L.hair, { x: k * 0.225, y: 0.19, z: 0.09, sy: 1.9, sz: 0.7 });
+    // the flat cap: a low crown pulled well forward, a short peak, a button on top; her glass pushed up on it: two brass rings on a strap, a lens of shard-light in each
+    H.sph(0.305, cap, { y: 0.47, z: 0.03, sy: 0.4, sz: 1.1, c2: shade(cap, 0.35), sh: 0.8 }, 12, 7).cyl(0.288, 0.292, 0.05, shade(cap, -0.2), { y: 0.42 }, 14).box(0.32, 0.026, 0.19, shade(cap, -0.28), { y: 0.405, z: 0.33, rx: 0.2 }).sph(0.03, brass, { y: 0.595, z: 0.03 }, 6, 5)
+      .tor(0.29, 0.016, leather, { y: 0.455, rx: HP2 - 0.14 }, 4, 16).box(0.05, 0.022, 0.022, brass, { y: 0.505, z: 0.3, rx: -0.45 });
+    for (const k of [-1, 1]) { H.tor(0.062, 0.018, brass, { x: k * 0.088, y: 0.505, z: 0.283, rx: -0.45, c2: br2 }, 5, 12); glowPart(R, 'head', new THREE.CylinderGeometry(0.05, 0.05, 0.014, 10), glow, k * 0.088, 0.505, 0.286, 0).rotation.x = HP2 - 0.45; }
+    // the long gun: stock and fore-end of walnut, a steel lock with the shard alight in it, a long barrel banded and capped in brass, a brass glass along the top
+    R.P('wpnR').box(0.065, 0.11, 0.34, wood, { y: -0.035, z: -0.25, rx: -0.1, c2: shade(wood, 0.25), sh: 0.8 }).box(0.072, 0.13, 0.03, brass, { y: -0.052, z: -0.43, c2: br2 }).box(0.055, 0.12, 0.05, wood, { y: -0.075, z: -0.02, rx: 0.3 })
+      .box(0.07, 0.085, 0.3, metal, { y: 0.02, z: 0.1, c2: shade(metal, 0.3), sh: 0.85 }).box(0.02, 0.05, 0.1, brass, { y: -0.045, z: 0.07 }).box(0.058, 0.06, 0.36, wood, { y: 0.0, z: 0.42, c2: shade(wood, 0.2), sh: 0.85 })
+      .cyl(0.021, 0.024, 0.9, metal, { y: 0.04, z: 0.68, rx: HP2, c2: shade(metal, 0.35) }, 8).cyl(0.034, 0.034, 0.07, brass, { y: 0.04, z: 1.12, rx: HP2, c2: br2 }, 8).cyl(0.03, 0.03, 0.03, brass, { y: 0.04, z: 0.6, rx: HP2 }, 8)
+      .cyl(0.034, 0.034, 0.32, brass, { y: 0.125, z: 0.13, rx: HP2, c2: br2 }, 10).cyl(0.044, 0.034, 0.06, brass, { y: 0.125, z: 0.31, rx: HP2 }, 10).cyl(0.034, 0.042, 0.05, brass, { y: 0.125, z: -0.04, rx: HP2 }, 10)
+      .box(0.02, 0.05, 0.03, metal, { y: 0.085, z: 0.06 }).box(0.02, 0.05, 0.03, metal, { y: 0.085, z: 0.22 });
+    glowPart(R, 'wpnR', new THREE.OctahedronGeometry(0.042, 0), glow, 0, 0.035, 0.27, 0.36).scale.set(0.75, 1.1, 1.5);
+    glowPart(R, 'wpnR', new THREE.CylinderGeometry(0.031, 0.031, 0.012, 10), glow, 0, 0.125, 0.345, 0).rotation.x = HP2;
+    return { style: 'rifle' };
+  },
 };
+/* where the long gun's muzzle is in the world right now (a hero whose weapon lies along its hand's z) */
+const _mz = new THREE.Vector3();
+function muzzleOf(v) { return v.b.wpnR.localToWorld(_mz.set(0, 0.04, 1.16)); }
 /* ---------- skins: extra pieces bolted onto the rig ---------- */
 const SKIN_PARTS = {
   pauldrons(R, L) { const T = R.P('spine'), sx = 0.235 * R.b + 0.1, c = L.trim, c2 = shade(c, 0.4);
@@ -5791,10 +5970,11 @@ function wglow(R, key, c) {      // a glowing edge on the hero's weapon
   else if (key === 'thorn') glowPart(R, 'wpnR', new THREE.TorusGeometry(0.16, 0.047, 5, 12, 4.3), c, 0, 0.74, 0, 0.9).rotation.z = -0.6;
   else if (key === 'hesta') { glowPart(R, 'wpnL', new THREE.TorusGeometry(0.445, 0.018, 5, 28), c, 0, -0.11, 0.05, 0).rotation.x = HP2; aura('wpnL', -0.16, 0.9, 0.05); }       // the rim of the gong alight
   else if (key === 'orin') { aura('wpnR', 0.46, 1.0); aura('wpnR', 0.86, 0.5); }       // his leaf already carries a vein of light: a skin makes the whole blade glow
+  else if (key === 'sorrel') { glowPart(R, 'wpnR', new THREE.BoxGeometry(0.012, 0.012, 0.86), c, 0, 0.072, 0.68, 0); const h = halo(c, 0.7, 0.7); h.position.set(0, 0.04, 1.14); R.B.wpnR.add(h); }       // a line of light along the barrel, a glow at its mouth
   else if (key === 'mira') { const hf = 0.6; glowPart(R, 'wpnL', new THREE.BoxGeometry(0.016, hf * 2.04, 0.016), c, 0, 0, -0.21, 0); for (const k of [-1, 1]) aura('wpnL', k * hf * 1.02, 0.45, -0.21); }
 }
 function buildHeroTemplate(key, skin) {
-  const L = heroLook(key, skin), sk = SKINS[key][skin | 0] || {}, bulk = { bram: 1.28, thorn: 1.26, kaela: 0.95, rook: 1.34, vex: 0.9, kiri: 0.86, tavi: 1.02, lyra: 0.9, zephyr: 0.92, orin: 1.0, mira: 0.92, sera: 0.9, miel: 0.92, hesta: 1.2 }[key] || 1;
+  const L = heroLook(key, skin), sk = SKINS[key][skin | 0] || {}, bulk = { bram: 1.28, thorn: 1.26, kaela: 0.95, rook: 1.34, vex: 0.9, kiri: 0.86, tavi: 1.02, lyra: 0.9, zephyr: 0.92, orin: 1.0, mira: 0.92, sera: 0.9, miel: 0.92, hesta: 1.2, sorrel: 0.93 }[key] || 1;
   const R = mkRig(bulk); R.look = L; const info = HERO_BUILD[key](R, L);
   for (const n of sk.parts || []) SKIN_PARTS[n](R, L);
   if (L.wglow) wglow(R, key, L.wglow);
@@ -5981,6 +6161,7 @@ const STANCE = {   // idle arm pose: [armL.x, foreL.x, armL.z, armR.x, foreR.x, 
   orb: [0.05, -0.4, 0.2, -0.55, -0.7, -0.2],
   bow: [-0.4, -0.55, 0.12, 0.06, -0.35, -0.12],
   hurl: [0.1, -0.5, 0.18, -0.3, -0.85, -0.16],
+  rifle: [-1.02, -0.36, -0.6, -0.5, -0.83, -0.05],       // the long gun at the low ready: in the right hand, the left under its fore-end
 };
 function tri(u, a, b, c) {       // stance -> wind-up -> strike (lands at 0.6) -> recover
   if (u < 0.42) return lerp(a, b, smooth(u / 0.42));
@@ -6016,6 +6197,9 @@ const CLIPS = {
   hive:    { d: 1.0, hop: 0.14, aRx: [0, -1.5, 0.25, -1.78, 1, -1.72], fRx: [0, -0.1, 0.25, -0.02], aRz: [0, -0.1], aLx: [0, -0.7, 0.25, -0.3], aLz: [0, 0.9, 0.25, 1.25], fLx: [0, -0.5, 0.25, -0.25], headRx: [0, -0.2, 0.25, -0.45], hipRx: [0, -0.05, 0.25, -0.14] },       // the crook held up at arm's length, the skep high over her, the other arm flung wide
   heave:   { d: 0.5, hop: 0.12, aLx: [0, 0.35, 0.2, 0.55, 0.44, -2.75, 1, -2.2], fLx: [0, -0.9, 0.2, -1.05, 0.44, -0.15, 1, -0.5], aLz: [0, -0.2, 0.44, 0.12], aRx: [0, 0.3, 0.44, 0.7, 1, 0.2], fRx: [0, -0.6], hipRx: [0, 0.42, 0.2, 0.5, 0.44, -0.26, 1, 0], hipY: [0, -0.15, 0.2, -0.2, 0.44, 0.05, 1, 0], spRy: [0, 0.35, 0.44, -0.2, 1, 0], headRx: [0, 0.2, 0.44, -0.4, 1, 0] },       // down behind the shield, then up with it from the knees
   queen:   { d: 1.1, hop: 0.2, spin: 1, aRx: [0, -0.6, 0.18, -0.4, 0.42, -1.9, 1, -1.75], fRx: [0, -1.0, 0.18, -1.1, 0.42, -0.05], aRz: [0, 0.3, 0.42, -0.12], aLx: [0, -0.4, 0.42, -0.9, 1, -0.5], aLz: [0, 0.4, 0.42, 1.35, 1, 1.2], fLx: [0, -0.9, 0.42, -0.2], headRx: [0, 0.15, 0.42, -0.5, 1, -0.4], hipRx: [0, 0.2, 0.18, 0.25, 0.42, -0.16, 1, -0.1], hipY: [0, -0.12, 0.18, -0.16, 0.42, 0.04, 1, 0] },       // gathered low over the skep, then a full turn with the crook swept up overhead and the free arm flung wide
+  fade:    { d: 0.45, aLx: [0, -1.7, 0.3, -2.05, 1, -1.2], fLx: [0, -1.4, 0.3, -1.75, 1, -0.8], aLz: [0, -0.5], hipY: [0, -0.1, 0.4, -0.2, 1, -0.05], hipRx: [0, 0.2, 0.4, 0.34, 1, 0.1], headRx: [0, 0.22], lLx: [0, -0.5], sLx: [0, 0.8], lRx: [0, -0.3], sRx: [0, 0.6] },       // down under the cape, an arm drawing it across her face
+  aim:     { d: 0.64, aRx: [0, -0.9, 0.3, -1.44], fRx: [0, -0.5, 0.3, -0.1], aRz: [0, 0.1], aLx: [0, -1.1, 0.3, -1.32], fLx: [0, -0.4, 0.3, -0.28], aLz: [0, -0.55], lLx: [0, -0.4, 0.35, -1.4], sLx: [0, 0.5, 0.35, 1.4], lRx: [0, 0, 0.35, 0.15], sRx: [0, 0.4, 0.35, 1.5], hipY: [0, -0.08, 0.35, -0.34], hipRx: [0, 0.1], headRy: [0, 0.25], headRx: [0, 0.08] },       // down on one knee, the long gun brought up to the shoulder
+  recoil:  { d: 0.64, snap: 1, aRx: [0, -1.68, 0.16, -1.44], fRx: [0, -0.24, 0.16, -0.1], aRz: [0, 0.1], aLx: [0, -1.46, 0.16, -1.32], fLx: [0, -0.28], aLz: [0, -0.55], lLx: [0, -1.4], sLx: [0, 1.4], lRx: [0, 0.15], sRx: [0, 1.5], hipY: [0, -0.34], hipRx: [0, 0.0, 0.18, 0.1], headRy: [0, 0.25], headRx: [0, -0.08, 0.18, 0.08] },       // still on her knee: the kick of a round, and the gun settling back onto its mark (snap: it is held from the first instant, with no way in from standing)
   gong:    { d: 0.55, aLx: [0, -1.2], fLx: [0, -0.75], aLz: [0, -0.3], aRx: [0, -1.5, 0.22, -1.6, 0.4, -0.95, 1, -0.6], aRz: [0, -1.25, 0.22, -1.35, 0.4, 0.55, 1, 0.1], fRx: [0, -0.7, 0.22, -0.8, 0.4, -0.35, 1, -0.8], spRy: [0, -0.5, 0.22, -0.55, 0.4, 0.3, 1, 0], hipRx: [0, -0.08, 0.4, 0.14, 1, 0], headRx: [0, -0.25, 0.4, -0.3, 1, 0], hipY: [0, 0, 0.4, -0.06, 1, 0] },       // the beater swung out wide and brought across onto the gong held before her
   raise:   { d: 1.0, hop: 0.1, aLx: [0, -2.3, 0.22, -2.95], fLx: [0, -0.35, 0.22, -0.12], aLz: [0, 0.12], aRx: [0, -0.5, 0.22, -0.25], aRz: [0, -0.8, 0.22, -1.2], fRx: [0, -0.7, 0.22, -0.45], headRx: [0, -0.3, 0.22, -0.45], hipRx: [0, -0.06, 0.22, -0.14] },       // the gong lifted high over her head, the beater held wide
   toss:    { d: 0.45, aRx: [0, 0.5, 0.18, 0.5, 0.36, -1.5, 1, -1.2], fRx: [0, -0.3, 0.36, -0.1], hipRx: [0, 0.3, 0.36, 0.1], hipY: [0, -0.1, 0.36, 0] },
@@ -6037,7 +6221,7 @@ const CLIP_CH = ['aLx', 'fLx', 'aLz', 'aRx', 'fRx', 'aRz', 'lLx', 'lRx', 'sLx', 
 const HERO_CLIPS = { bram: ['rush', 'guard', 'leap', null, 'heave'], thorn: ['throw', 'slam', 'pull'], kaela: ['cadA', 'lunge', 'roar', 'cadB', null, null, null, null, null, 'cadC'], rook: [['slam', 0.78], 'roar', null], vex: ['throw', 'sweep', 'stab'],
   tavi: ['throw', 'fanout', 'vault', 'lunge', 'pull', 'vault'],
   kiri: ['toss', 'bolt', 'roar', null, null, null, 'vault', 'lunge', 'roar'],       // 6..8: the Tiger's leap, rush and the turn back
-  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'queen'], hesta: ['rush', 'gong', 'raise'] };
+  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'queen'], hesta: ['rush', 'gong', 'raise'], sorrel: ['fade', 'lobL', 'aim', null, null, 'recoil'] };       // (sorrel 5: each round of the four)
 function KF(u, a) { if (u <= a[0]) return a[1]; for (let i = 2; i < a.length; i += 2) if (u <= a[i]) return lerp(a[i - 1], a[i + 1], smooth((u - a[i - 2]) / (a[i] - a[i - 2]))); return a[a.length - 1]; }
 /* which mask is over the face: the worn one sits on the face, the other is slung behind the head */
 function kiriMasks(B, f) {
@@ -6140,6 +6324,10 @@ const RECALL = {
     const u = smooth(seg01(k, 0.8, 0.92)), d = 1 - u; kneel(p, d);
     p.aRx = lerp(-2.7, -0.95, d); p.fRx = lerp(-0.15, -0.75, d); p.aRz = lerp(-0.2, -0.3, d); p.aLx = lerp(-0.4, -1.05, d); p.fLx = lerp(-0.3, -0.75 + Math.sin(T * 2.2) * 0.07, d); p.aLz = lerp(0.3, 0.42, d);
     p.headRy = Math.sin(T * 1.5) * 0.55 * d; p.headRx = lerp(-0.42, -0.12 + Math.sin(T * 3) * 0.1, d); p.hipRx = lerp(-0.06, 0.1, d); },
+  sorrel(p, R, T, k) {     // the long watch: on one knee with the gun across it, her head turning along the skyline; then up, and the gun raised to the sky
+    const u = smooth(seg01(k, 0.8, 0.92)), d = 1 - u; kneel(p, d);
+    p.aRx = lerp(-2.75, -0.75, d); p.fRx = lerp(-0.1, -0.7, d); p.aRz = lerp(-0.1, 0.25, d); p.aLx = lerp(-0.3, -1.05, d); p.fLx = lerp(-0.3, -0.85, d); p.aLz = lerp(0.25, -0.5, d);
+    p.headRy = Math.sin(T * 1.1) * 0.65 * d; p.headRx = lerp(-0.45, 0.04, d); p.hipRx = lerp(-0.04, 0.14, d); },
   hesta(p, R, T, k) {      // a slow measure beaten on the gong held out before her, her head bowed over it; at the last the gong goes up over her head
     const u = smooth(seg01(k, 0.8, 0.92)), beat = Math.pow(Math.max(0, Math.sin(T * 3.2)), 5) * (1 - u);
     p.aLx = lerp(-1.25, -2.9, u); p.fLx = lerp(-0.7, -0.15, u); p.aLz = lerp(-0.25, 0.1, u);
@@ -6156,7 +6344,7 @@ function animHero(v, s, t, dt) {
   p.hipY = v.hipY + Math.abs(cw) * 0.045 * rk + Math.sin(t * 2.2 + v.seed) * 0.012; p.hipRx = 0.13 * rk; p.spRy = sw * 0.12 * rk; p.headRx = 0; p.headRy = 0;
   if (v.style === 'claw') { p.hipRx += 0.2; p.headRx = -0.16; }       // the Tiger stalks: leaning in, chin up
   let headRz = 0, bodyRx = 0, bodyY = 0, spin = 0, orb = 0, atkSpin = -1, flare = 0;       // flare: a gust in the clothes from what the body is doing, on top of the wind of moving
-  const light = v.style === 'bow' || v.style === 'smash' || v.style === 'hurl' ? 0.35 : 1;
+  const light = v.style === 'bow' || v.style === 'smash' || v.style === 'hurl' ? 0.35 : v.style === 'rifle' ? 0.12 : 1;
   p.aLx += sw * 0.55 * rk * light; p.aRx += -sw * 0.45 * rk * (v.style === 'bow' ? 1 : 0.4);
   if (v.hover) { p.hipY += v.hover + Math.sin(t * 2.4 + v.seed) * 0.05; p.lLx = 0.12 + rk * 0.25; p.lRx = -0.1 + rk * 0.3; p.sLx = 0.4; p.sRx = 0.55; }
   const A = s.atk;
@@ -6182,6 +6370,10 @@ function animHero(v, s, t, dt) {
         const e = smooth(seg01(A, 0, 0.22)) * (1 - smooth(seg01(A, 0.8, 1))), q = A < 0.6 ? smooth(seg01(A, 0.12, 0.55)) : 1 - smooth(seg01(A, 0.6, 0.66));
         p.aLx = lerp(p.aLx, -1.52, e); p.fLx = lerp(p.fLx, -0.06, e); p.aLz = lerp(p.aLz, -0.1, e); p.aRx = lerp(p.aRx, -1.25, e); p.fRx = lerp(p.fRx, lerp(-0.7, -2.2, q), e); p.aRz = lerp(p.aRz, -0.25, e); p.spRy = lerp(p.spRy, -0.3, e); p.headRy = 0.25 * e; break;
       }
+      case 'rifle': {       // the long gun brought up to the shoulder; it kicks as the shot leaves (at 0.6) and settles
+        const e = smooth(seg01(A, 0, 0.3)) * (1 - smooth(seg01(A, 0.84, 1))), kick = A >= 0.6 ? 1 - smooth(seg01(A, 0.6, 0.8)) : 0;
+        p.aRx = lerp(p.aRx, -1.44 - 0.2 * kick, e); p.fRx = lerp(p.fRx, -0.1, e); p.aRz = lerp(p.aRz, 0.1, e); p.aLx = lerp(p.aLx, -1.32 - 0.12 * kick, e); p.fLx = lerp(p.fLx, -0.28, e); p.aLz = lerp(p.aLz, -0.55, e); p.headRy = 0.25 * e; p.headRx = 0.06 * e - 0.1 * kick * e; p.hipRx -= 0.07 * kick * e; break;
+      }
       case 'hurl':       // an overarm throw: the leaf leaves his hand as the arm comes through (see below: it is gone from the hand until he has a fresh one)
         p.aRx = tri(A, p.aRx, -2.6, -1.25); p.fRx = tri(A, p.fRx, -1.9, -0.05); p.aRz = tri(A, p.aRz, -0.4, 0.3); p.spRy = tri(A, p.spRy, -0.7, 0.55); p.aLx = tri(A, p.aLx, -1.0, 0.5); p.fLx = tri(A, p.fLx, -0.3, -0.5); p.hipRx += tri(A, 0, -0.1, 0.28); break;
       case 'cast': p.aRx = tri(A, p.aRx, -0.9, -1.3); p.fRx = tri(A, p.fRx, -1.7, -0.45); p.aLx = tri(A, p.aLx, -0.6, -1.25); p.fLx = tri(A, p.fLx, -0.8, -0.15); p.hipRx += tri(A, 0, -0.06, 0.14); break;
@@ -6201,7 +6393,7 @@ function animHero(v, s, t, dt) {
   if (s.leap) { p.lLx = p.lRx = -0.9; p.sLx = p.sRx = 1.4; p.aRx = -2.7; p.aLx = v.style === 'smash2' ? -2.7 : -2.0; p.hipRx = 0.2; flare = 0.3; }
   if (s.spin) { spin = 1; p.aRz = -1.45; p.aLz = 1.45; p.aRx = p.aLx = 0; p.fRx = p.fLx = -0.1; flare = 0.2; }
   if (C) {
-    const w = Math.min(1, cu / 0.1) * (1 - smooth(seg01(cu, 0.78, 1)));
+    const w = (C.snap ? 1 : Math.min(1, cu / 0.1)) * (1 - smooth(seg01(cu, 0.78, 1)));
     for (const ch of CLIP_CH) { const a = C[ch]; if (a) p[ch] = lerp(p[ch], KF(cu, a), w); }
     if (C.hipY) p.hipY += KF(cu, C.hipY) * w;
     if (C.orb) orb = lerp(orb, KF(cu, C.orb), w);
@@ -7076,6 +7268,27 @@ const SKFX = {
     for (let i = 0; i < 40; i++) { const q = Math.random() * TAU, sp = 3 + Math.random() * 5; FX.add.emit(x, 0.8 + Math.random() * 1.2, z, Math.cos(q) * sp - Math.sin(q) * 2.5, 0.5 + Math.random() * 1.5, Math.sin(q) * sp + Math.cos(q) * 2.5, 0.5 + Math.random() * 0.3, 0.13, 0.02, Math.random() < 0.3 ? '#ffffff' : c, 1, 0, 1.2); }
     FX.shake = Math.max(FX.shake, 0.1); },
   /* Hesta */
+  lyra2r(e, x, z, c) {       // a Starfall has taken hold of somebody
+    starBind(e.tid, c, e.dur || 2); flash3(x, 1.0, z, 2.6, 0.25, c); pillar3(x, z, 0.5, 3.4, 0.45, c, 0.45); ring3(x, z, 1.9, 0.5, 0.3, c, 0.9, true, 0.1); glint3(x, 2.4, z, 1.5, 0.4, '#ffffff'); sparks(x, 0.3, z, 10, c, 2.2, 0.13, 0.5, 2.2, -1);
+    if (UI.state === 'play') snd('ice', 0.5); if (V.me && e.tid === V.me.id) text3(x, 3.0, z, 'STARBOUND', c, true, 1.1); },
+  sorrel0(e, x, z, c) {       // Fade Out: the cape drawn over, and the air closes where she stood
+    ring3(x, z, 1.5, 0.3, 0.32, c, 0.7, true, 0.1); ring3(x, z, 1.1, 0.2, 0.42, '#ffffff', 0.4, true, 0.6); smoke(x, 0.2, z, 6, '#cfd8cc', 0.7, 0.6, 0.5);
+    for (let i = 0; i < 12; i++) { const a = Math.random() * TAU, r = 0.9 + Math.random() * 0.6; FX.alpha.emit(x + Math.cos(a) * r, 0.2 + Math.random() * 1.4, z + Math.sin(a) * r, -Math.cos(a) * 1.9, 0.3, -Math.sin(a) * 1.9, 0.45, 0.1, 0.04, i % 3 ? '#b9a8c8' : '#dfe6c8', 0.85, 0.3, 1); } },
+  sorrel1(e, x, z, c) {       // Blast Charge: thrown low, it bursts in a fan before her
+    const a = e.ang, r = e.r * S3, ca = Math.cos(a), sa = Math.sin(a), mx = x + ca * r * 0.5, mz = z + sa * r * 0.5;
+    slash3(x, z, a, NADE_A, r, 0.34, c, 0.08, { op: 0.34, flat: 1 }); later(0.03, () => slash3(x, z, a, NADE_A, r * 1.04, 0.26, '#ffffff', 0.1, { thin: 1, op: 0.3, edge: 0.75 }));
+    flash3(mx, 0.8, mz, 4.2, 0.26, '#ffe2b0'); flash3(mx, 0.8, mz, 2.4, 0.18, '#ffffff'); ring3(mx, mz, 0.3, r * 0.55, 0.35, c, 0.9); scorch3(mx, mz, r * 0.42, 2.4);
+    smoke(mx, 0.3, mz, 10, '#8a8f96', 0.9, 0.9, 0.9); sparks(mx, 0.6, mz, 18, c, 5, 0.18, 0.5, 1.2, 5); debris(mx, 0.3, mz, 10, '#7a5c3a', 3.2, 0.2, 0.7); streak3(x, z, mx, mz, 0.12, 0.14, '#ffe9b0', 0.9, 0.9); FX.shake = Math.max(FX.shake, 0.16); },
+  sorrel1h(e, x, z, c) { flash3(x, 1.0, z, 1.6, 0.18, c); sparks(x, 1.0, z, 7, '#ffe2b0', 3.4, 0.13, 0.35, 1); smoke(x, 0.2, z, 3, '#d8cfb4', 0.4, 0.4, 0.3); },
+  sorrel2(e, x, z, c) { ring3(x, z, 1.6, 0.35, 0.4, c, 0.8, true, 0.1); glint3(x, 1.6, z, 1.6, 0.45, '#ffffff'); if (UI.state === 'play') snd('cock', 0.9); snipeSight(e.id, e.tid, c); },       // Four Rounds: she settles to it (the line to her mark is drawn by snipeSight, from whichever end is in view)
+  sorrel2t(e, x, z, c) { const tv = V.views.get(e.tid), top = (tv && tv.top) || 1.7; ring3(x, z, 2.4, 0.7, 0.4, c, 0.9, true, 0.1); glint3(x, top + 0.5, z, 1.4, 0.4, c); snipeSight(e.id, e.tid, c);
+    if (V.me && e.tid === V.me.id) { text3(x, top + 0.9, z, 'IN HER SIGHTS', '#ff8a6a', true, 1.2); if (UI.state === 'play') snd('deny', 0.9); } },
+  sorrel2s(e, x, z, c) {       // a round leaves the long gun
+    const v = V.views.get(e.id), a = e.ang; let mx = x + Math.cos(a) * 1.3, my = 1.1, mz = z + Math.sin(a) * 1.3; if (v && v.root.visible) { const m = muzzleOf(v); mx = m.x; my = m.y; mz = m.z; }
+    flash3(mx, my, mz, 2.6, 0.14, '#ffffff'); flash3(mx, my, mz, 3.6, 0.2, c); vring3(mx, my, mz, a, 0.12, 0.7, 0.22, c, 0.9); sparks(mx, my, mz, 6, '#ffe9b0', 4, 0.12, 0.25, 0.6); smoke(mx, my, mz, 3, '#dfe6ea', 0.35, 0.5, 0.2);
+    streak3(mx, mz, mx + Math.cos(a) * 9, mz + Math.sin(a) * 9, 0.16, 0.16, c, my, 0.8); if (V.me && e.id === V.me.id) FX.shake = Math.max(FX.shake, 0.1); },
+  sorrel2h(e, x, z, c) { const a = e.ang || 0; flash3(x, 1.0, z, 2.4, 0.2, c); flash3(x, 1.0, z, 1.3, 0.12, '#ffffff'); cut3(x, 1.0, z, 2.2, -a + HP2, c, 0.2); ring3(x, z, 0.2, 1.2, 0.28, c, 0.85, true, 0.9);
+    for (let i = 0; i < 9; i++) { const q = a + (Math.random() - .5) * 0.9, s = 3 + Math.random() * 4; FX.add.emit(x, 1.0, z, Math.cos(q) * s, 0.5 + Math.random() * 1.5, Math.sin(q) * s, 0.35, 0.13, 0.02, i % 3 ? c : '#ffffff', 0.95, 4, 1); } },
   hesta0(e, x, z, c) { const a = e.ang, mx = x + Math.cos(a) * 0.6, mz = z + Math.sin(a) * 0.6; ring3(x, z, 0.3, 1.3, 0.35, c, 0.8, true); smoke(x, 0.1, z, 6, '#d8cfb4', 0.6, 0.5, 0.35); vring3(mx, 1.1, mz, a, 0.3, 1.0, 0.3, c, 0.85); glint3(mx, 1.2, mz, 1.4, 0.3, '#ffffff'); },       // off she goes, the gong before her
   hesta0h(e, x, z, c) { flash3(x, 1, z, 2.0, 0.2, c); ring3(x, z, 0.2, 1.0, 0.28, '#ffffff', 0.7, true); sparks(x, 0.9, z, 9, c, 4, 0.14, 0.35, 1); vring3(x, 1.0, z, e.ang, 0.2, 0.8, 0.25, c, 0.8); },       // someone she ran through
   hesta1(e, x, z, c) {       // the gong struck: the sound goes out in rings, and a line of it runs to everyone it has called out
@@ -7119,6 +7332,49 @@ function hiveSync(v, a, t, dt, x, z, fade, c) {
   while (v.acc > 0.07) { v.acc -= 0.07; const b = v.bees[(Math.random() * v.bees.length) | 0], bp = b.m.position; FX.add.emit(x + bp.x, bp.y, z + bp.z, 0, -0.15, 0, 0.3, 0.07, 0.02, Math.random() < 0.3 ? '#ffffff' : c, 0.55, 0, 0); }
   if (Math.random() < dt * 6) for (const h of G.heroes) { if (h.team !== a.team || h.dead || Math.hypot(h.x - a.x, h.y - a.y) > a.r) continue; FX.add.emit(h.x * S3 + (Math.random() - .5) * 0.5, 0.4, h.y * S3 + (Math.random() - .5) * 0.5, 0, 1.5, 0, 0.7, 0.12, 0.03, '#ffe9a8', 0.9, 0, 0); }       // honey for friends
 }
+/* Held by a Starfall: a cage of starlight. Five bars of light stand round whoever it holds, a small star at the head of each, a ring
+   joining their heads and another their feet, and a five-pointed star drawn on the ground between them; the whole of it turns slowly.
+   It closes in as it takes hold, lasts while the root does and breaks into sparks when the root ends (sooner, if something frees
+   them). It stands up out of the ground so that it shows over the Starfall's own light. */
+function starBind(tid, c, dur) {
+  const g = new THREE.Group(), star = new THREE.Group(), line = fxMat(c, 0.9), bar = fxMat(c, 0.7), N = 5, P = [], top = new THREE.Mesh(FG.ringThin, fxMat('#ffffff', 0.8)); g.add(star); g.add(top); star.position.y = 0.08;
+  for (let i = 0; i < N; i++) { const a0 = i / N * TAU, a1 = (i + 2) / N * TAU, x0 = Math.cos(a0), z0 = Math.sin(a0), x1 = Math.cos(a1), z1 = Math.sin(a1), m = shared(new THREE.Mesh(FG.plane, line));
+    m.position.set((x0 + x1) / 2, 0, (z0 + z1) / 2); m.rotation.y = -Math.atan2(z1 - z0, x1 - x0); m.scale.set(Math.hypot(x1 - x0, z1 - z0), 1, 0.07); star.add(m); }
+  star.add(shared(new THREE.Mesh(FG.ring, line)));
+  for (let i = 0; i < N; i++) { const s = shared(new THREE.Mesh(FG.oct, glowMat('#ffffff'))), h = shared(halo(c, 0.8, 0.9)), b = shared(new THREE.Mesh(FG.beam, bar)), w = shared(new THREE.Mesh(FG.beam, glowMat('#ffffff'))); b.rotation.x = HP2; w.rotation.x = HP2; g.add(s); g.add(h); g.add(b); g.add(w); P.push({ a: i / N * TAU, s, h, b, w }); }
+  g.renderOrder = 4; let done = false; const life = dur + 0.3;
+  const e = fxAdd(g, life, k => {
+    const v = V.views.get(tid), u = v && v.u, T = k * life, on = !!(u && !u.dead && v.root.visible) && (u.rootT > 0 || T < 0.2);
+    g.visible = on;
+    if (!on) { if (!done && u && T > 0.2) { done = true; if (v.root.visible && !u.dead) { const x = u.x * S3, z = u.y * S3; sparks(x, 1.0, z, 14, c, 3.6, 0.14, 0.45, 1.2); shards3(x, 1.2, z, 6, c, 3.2, 0.5); ring3(x, z, 0.4, 1.5, 0.3, c, 0.7, true, 0.1); } } return; }
+    const t = V.t, grip = easeOut(Math.min(1, T / 0.25)), R = (u.r * S3 + 0.42) * (1.7 - 0.7 * grip), ht = ((v.top || 1.7) * 0.72 + 0.2) * (0.3 + 0.7 * grip), ux = u.x * S3, uz = u.y * S3, pulse = 0.78 + 0.22 * Math.sin(t * 9);
+    g.position.set(ux, 0, uz); g.rotation.y = t * 1.1; star.scale.set(R, 1, R); line.opacity = 0.9 * Math.min(1, T / 0.15) * pulse; bar.opacity = 0.85 * grip * pulse; top.position.y = ht; top.scale.set(R, 1, R); top.material.opacity = 0.8 * grip;
+    for (const p of P) { const px = Math.cos(p.a) * R, pz = Math.sin(p.a) * R;
+      p.b.position.set(px, ht / 2, pz); p.b.scale.set(0.06, 0.06, ht); p.w.position.set(px, ht / 2, pz); p.w.scale.set(0.017, 0.017, ht);
+      p.s.position.set(px, ht + 0.08, pz); p.s.scale.set(0.1, 0.22, 0.1); p.s.rotation.y = t * 4 + p.a; p.h.position.set(px, ht + 0.08, pz); }
+    if (Math.random() < FX.dt * 18) { const q = Math.random() * TAU; FX.add.emit(ux + Math.cos(q) * R, 0.1 + Math.random() * ht, uz + Math.sin(q) * R, 0, 0.9 + Math.random(), 0, 0.5, 0.12, 0.02, Math.random() < 0.4 ? '#ffffff' : c, 0.9, 0, 0); }
+  });
+  e.mat = line; e.mat2 = bar;
+}
+/* Four Rounds, for the eye: a thread of light from the muzzle of her gun to her mark, and on the mark a ring that closes as each round
+   comes due, with four ticks turning about it. It lasts as long as she is counting at that mark and is drawn from whichever end is in
+   view (S._fx: once for a count, though both ends ask for it). */
+function snipeSight(hid, tid, c) {
+  const hv0 = V.views.get(hid), h = hv0 && hv0.u, S = h && h.snipe; if (!S || S._fx) return; S._fx = 1;
+  const g = new THREE.Group(), beam = new THREE.Group(), rm = fxMat(c, 0.95), a = new THREE.Mesh(FG.beam, fxMat(c, 0.5)), b = new THREE.Mesh(FG.beam, fxMat('#ffffff', 0.8)), r = new THREE.Mesh(FG.ringThin, rm), r2 = new THREE.Mesh(FG.ring, fxMat(c, 0.4)), dot = shared(halo(c, 0.8, 0.9)), tick = [];
+  beam.add(a); beam.add(b); g.add(beam); g.add(r); g.add(r2); g.add(dot); for (let i = 0; i < 4; i++) { const m = shared(new THREE.Mesh(FG.plane, rm)); g.add(m); tick.push(m); }
+  g.renderOrder = 4;
+  fxAdd(g, SNIPE_AIM + SNIPE_GAP * SNIPE_N + 0.6, () => {
+    const hv = V.views.get(hid), u = hv && hv.u, tv = V.views.get(tid), tg = tv && tv.u, on = !!(u && tg && u.snipe === S && !tg.dead);
+    g.visible = on; if (!on) return;
+    const t = V.t, sh = hv.root.visible, st = seen(tg), tx = tg.x * S3, tz = tg.y * S3, ty = 1.0 + (tg.z || 0) * S3; let mx = u.x * S3, my = 1.15, mz = u.y * S3; if (sh) { const m = muzzleOf(hv); mx = m.x; my = m.y; mz = m.z; }
+    const len = Math.hypot(tx - mx, ty - my, tz - mz), q = 1 - clamp(S.acc / SNIPE_GAP, 0, 1), fl = 0.7 + 0.3 * Math.sin(t * 34);
+    beam.visible = seen(u) && len > 0.3; beam.position.set((mx + tx) / 2, (my + ty) / 2, (mz + tz) / 2); beam.lookAt(tx, ty, tz); a.scale.set(0.035, 0.035, len); b.scale.set(0.011, 0.011, len); a.material.opacity = 0.42 * fl; b.material.opacity = 0.7 * fl;
+    const r0 = tg.r * S3 + 0.42, rr = r0 * (1.9 - 0.95 * q); r.visible = r2.visible = dot.visible = st; for (const m of tick) m.visible = st;
+    r.position.set(tx, 0.075, tz); r.scale.set(rr, 1, rr); r2.position.set(tx, 0.07, tz); r2.scale.set(r0, 1, r0); r2.rotation.y = t * 1.6; rm.opacity = 0.55 + 0.4 * q; dot.position.set(tx, ty, tz); dot.scale.setScalar(0.45 + 0.5 * q);
+    tick.forEach((m, i) => { const an = i * HP2 + t * 1.6; m.position.set(tx + Math.cos(an) * (r0 + 0.24), 0.075, tz + Math.sin(an) * (r0 + 0.24)); m.rotation.y = -an; m.scale.set(0.36, 1, 0.06); });
+  });
+}
 function heroById(id) { for (const h of G.heroes) if (h.id === id) return h; return null; }
 
 /* sim effect events -> visuals */
@@ -7159,6 +7415,9 @@ function ingestFx() {
         if (e.ult) { pillar3(x, z, 0.75, 3.4, 0.6, c, 0.5); flash3(x, 1.0, z, 3.0, 0.35, c); decal3(GX.tex.rune, x, z, 1.7, 0.8, c, 0.8, { spin: 3, r0: 0.5 }); } break;
       case 'block': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; flash3(x, 1.0, z, 1.5, 0.16, c); ring3(x, z, 0.72, 0.98, 0.22, c, 0.95, true, 1.0); sparks(x, 1.1, z, 6, '#ffffff', 2.6, 0.12, 0.3, 1); text3(x, top + 0.8, z, e.all ? 'IMMUNE' : 'STEADY', c, false, 0.7); break; }
       case 'totem': totemFx(e, x, z, c); break;
+      case 'pierce': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; shards3(x, 1.2, z, 9, c, 4.4, 0.6); ring3(x, z, 1.1, 0.4, 0.24, '#ffffff', 0.9, true, 0.9); flash3(x, 1.1, z, 2.0, 0.18, '#ffffff'); text3(x, top + 0.8, z, 'PIERCED', '#ff8a6a', false, 0.9); break; }       // a hold has gone through the totem
+      case 'camo': { const h = heroById(e.id); if (!e.on && h && (V.team < 0 || h.team === V.team)) ring3(x, z, 0.3, 1.2, 0.3, '#ffffff', 0.45, true, 0.1); break; }       // out from under the cape (the going under is the skill's own effect)
+      case 'snipe': break;
       case 'mood': if (e.id === mid) snd('ui'); break;       // a temper changed (what it looks like is the view's business: see moodExtras)
       case 'taunt': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; ring3(x, z, 1.0, 0.4, 0.3, TAUNT_C, 0.9, true, 0.1); flash3(x, top * 0.7, z, 1.6, 0.25, TAUNT_C); if (e.id === mid) { text3(x, top + 0.9, z, 'TAUNTED', '#ff8a6a', true, 1.0); if (!UI.hints.taunt && UI.state === 'play') { UI.hints.taunt = 1; hint('Taunted: until it ends, your hero can only go for whoever called it out.', 6); } } break; }       // called out: for the one it happens to, the word for it
       case 'flurry': deathMark(e.tgt, e.id, c, FLURRY_T); ring3(x, z, 1.5, 0.5, 0.3, c, 0.9, true, 0.1); glint3(x, 2.4, z, 1.3, 0.35, c); break;       // Death Mark has landed: the mark is on
@@ -7194,7 +7453,7 @@ function projColor(p) { const s = p.src; return p.ci != null && s && s.kind === 
 function projDrop(v) { v.dead = true; FX.group.remove(v.m); v.m.traverse(x => { if (x.material && (x.userData.own === 1 || (x.material.blending === THREE.AdditiveBlending && x.isMesh))) x.material.dispose(); }); if (v.chain) { FX.group.remove(v.chain); v.chain.geometry.dispose(); v.chain.material.dispose(); } }
 function projView(p) {
   const g = new THREE.Group(), c = projColor(p), add = (geo, hex, sx, sy, sz) => { const m = new THREE.Mesh(geo, glowMat(hex)); m.scale.set(sx, sy, sz); g.add(m); return m; };
-  const tail = (len, w, hex, op) => { const m = new THREE.Mesh(FG.plane, fxMat(hex || c, op || 0.7, { map: GX.tex.streak })); m.scale.set(len, 1, w); m.position.x = -len / 2; g.add(m); const u = m.clone(); u.material = m.material; u.rotation.x = HP2; g.add(u); return m; };
+  const tail = (len, w, hex, op) => { const m = new THREE.Mesh(FG.plane, fxMat(hex || c, op || 0.7, { map: GX.tex.streak })); m.scale.set(len, 1, w); m.position.x = -len / 2; g.add(m); const u = m.clone(); u.material = m.material; u.rotation.x = HP2; g.add(u); m._tw = u; return m; };       // (_tw: its twin, set on edge)
   const sk = p.src && p.src.kind === 'hero' ? SKINS[p.src.key][p.src.skin] : null, look = (sk && sk.proj && sk.proj[p.look]) || p.look;       // a skin may throw something of its own
   const v = { m: g, p, look, spin: null, chain: null, c, ts: 0.14, y0: 0, rings: 0, acc: 0, cor: null };
   switch (look) {
@@ -7214,6 +7473,9 @@ function projView(p) {
       g.add(v.spin); add(FG.shaft, '#e9dcc0', 0.9, 1.2, 1.2).position.x = -0.42; g.add(halo(c, 1.3, 0.8)); tail(2.0, 0.3, '#8fd04a', 0.7); tail(1.1, 0.12, c, 0.9); v.rings = 0.08; v.ts = 0.15; v.leaf = 1; break; }
     case 'seed': add(FG.oct, '#ffffff', 0.15, 0.06, 0.06); add(FG.oct, c, 0.24, 0.1, 0.1).material = fxMat(c, 0.7); g.add(halo(c, 0.9, 0.8)); tail(1.2, 0.16, '#8fd04a', 0.8); tail(0.7, 0.07, '#ffffff', 0.9); v.ts = 0.1; v.arc = 1.0; v.leaf = 1; break;
     case 'pellet': add(FG.sphere, shade(c, 0.3), 0.07, 0.07, 0.07); g.add(halo(c, 0.45, 0.7)); v.ts = 0; break;
+    case 'slug': add(FG.oct, '#fff4d0', 0.26, 0.045, 0.045); g.add(halo('#ffe2b0', 0.45, 0.6)); tail(1.5, 0.09, '#ffe9b0', 0.6); v.ts = 0.05; break;       // a plain round from the long gun: small, quick, a pale line behind it
+    case 'longshot': add(FG.oct, '#ffffff', 0.6, 0.07, 0.07); add(FG.oct, c, 0.9, 0.045, 0.2).material = fxMat(c, 0.7); g.add(halo(c, 1.2, 0.85)); v.tails = [[tail(3.4, 0.24, c, 0.85), 3.4], [tail(1.9, 0.09, '#ffffff', 0.95), 1.9]]; v.rings = 0.05; v.ts = 0.14; break;       // a Long Shot: the shard's own light in it
+    case 'round': add(FG.oct, '#ffffff', 0.8, 0.09, 0.09); add(FG.oct, c, 1.1, 0.05, 0.26).material = fxMat(c, 0.75); g.add(halo(c, 1.7, 0.9)); v.tails = [[tail(5.0, 0.3, c, 0.9), 5.0], [tail(2.8, 0.12, '#ffffff', 0.95), 2.8]]; v.rings = 0.035; v.ts = 0.2; break;       // one of the four: a long bright line
     case 'bolt': add(FG.sphere, '#ffffff', 0.26, 0.13, 0.13); g.add(halo(c, 1.5, 0.9)); tail(1.3, 0.26, c, 0.8); v.ts = 0.24; break;
     case 'dart': v.spin = add(FG.oct, '#e8e2f5', 0.5, 0.05, 0.18); g.add(halo(c, 0.9, 0.7)); tail(1.5, 0.22, c, 0.8); v.ts = 0.12; break;
     case 'lance': add(FG.oct, '#ffffff', 0.95, 0.09, 0.09); add(FG.oct, c, 1.3, 0.05, 0.24); g.add(halo(c, 1.3, 0.6)); tail(2.4, 0.3, c, 0.7); v.rings = 0.06; v.ts = 0.2; break;
@@ -7243,6 +7505,7 @@ function syncProjs(dt) {
     const vis = V.team < 0 || p.team === V.team || nearCam(p.x, p.y, 0), px = p.x * S3, pz = p.y * S3;
     v.m.visible = vis; v.m.position.set(px, y, pz); v.m.rotation.y = -p.ang;
     if (v.grow) v.m.scale.setScalar(1 + (p.k || 0) * 1.1);
+    if (v.tails) { v.trav = (v.trav || 0) + p.speed * dt * S3; for (const [m, len] of v.tails) { const l = Math.max(0.05, Math.min(len, v.trav)); m.scale.x = l; m.position.x = -l / 2; m._tw.scale.x = l; m._tw.position.x = -l / 2; } }       // a long line of light is paid out from the muzzle: it never reaches back behind whoever fired it
     if (v.sw) { v.age = (v.age || 0) + dt; for (const b of v.sw) { const q = b.a + v.age * 7; b.m.position.set(b.ox + Math.sin(v.age * 9 + b.ph) * 0.05, Math.cos(q) * b.r, Math.sin(q) * b.r); b.m.rotation.set(Math.sin(v.age * 6 + b.ph) * 0.25, 0, 0); b.wing.scale.y = Math.cos(v.age * 55 + b.ph); } }
     if (v.spin) v.spin.rotation.x += dt * 26; if (v.spinY) v.spinY.rotation.y += dt * 34; if (v.cor) v.cor.material.rotation -= dt * 7;
     if (v.chain) { const s = p.src; v.chain.visible = vis; chainSet(v.chain, s.x * S3 + Math.cos(p.ang) * 0.4, s.y * S3 + Math.sin(p.ang) * 0.4, px, pz, 0.95, v.look === 'hook' ? 0.15 : 0.19); }
@@ -7410,7 +7673,24 @@ function seen(u) { return V.team < 0 || u.team === V.team || u.team === NEUTRAL 
 /* A hero in tall grass is drawn see-through and the grass is left as it is. A body made of many parts, simply blended, shows its parts
    through one another; so while he is in the grass his shape is first laid down in the depth buffer alone (one colourless twin per part,
    a hair behind it), and the parts are then blended over that: each pixel of him is blended once. What glows on him is dimmed to match. */
-const BUSH_OP = 0.58;
+const BUSH_OP = 0.58, CAMO_OP = 0.36;       // (CAMO_OP: a hero under her own cape, as her own side sees her)
+/* Under her cape she is not shown to the other side. But the air where she stands is not quite still, and whoever is watching for it can
+   tell: a faint ring opening on the ground now and then, a wisp or two above it. */
+function camoNear(u, T) {       // but for the cape she would be in plain sight of that side: one of theirs is near enough, and no grass hides her from him
+  for (const w of G.units) { if (w.team !== T || w.dead || w.kind === 'monster') continue; const sr = w.kind === 'hero' ? 980 : w.kind === 'minion' ? 720 : 900, dx = w.x - u.x, dy = w.y - u.y; if (dx * dx + dy * dy <= sr * sr && (u.bush < 0 || w.bush === u.bush)) return true; }
+  return false;
+}
+function camoHint(v, u, dt) {
+  v.chT = (v.chT || 0) - dt; if (v.chT > 0) return; v.chT = 0.34 + Math.random() * 0.12; if (!camoNear(u, V.team)) return;       // (out of everybody's sight anyway, she gives nothing away)
+  const x = u.x * S3, z = u.y * S3; ring3(x, z, 0.25, 0.85, 0.5, '#dfeee8', 0.22, true, 0.06);
+  for (let i = 0; i < 2; i++) FX.add.emit(x + (Math.random() - .5) * 0.5, 0.3 + Math.random() * 1.1, z + (Math.random() - .5) * 0.5, 0, 0.5, 0, 0.5, 0.2, 0.05, '#cfe6e0', 0.16, 0, 0);
+}
+/* The long gun fires: a flash at its mouth, a wisp of smoke; a Long Shot flashes in the shard's own colour, with a ring thrown forward. */
+function rifleFlash(v, u) {
+  const m = muzzleOf(v), ls = G.t - (u.pv.shot == null ? -9 : u.pv.shot) < 0.3, c = ls ? skinColor(u.key, u.skin, 2) : '#ffe2b0';
+  flash3(m.x, m.y, m.z, ls ? 2.4 : 1.3, 0.12, '#ffffff'); flash3(m.x, m.y, m.z, ls ? 3.2 : 1.8, 0.16, c); if (ls) vring3(m.x, m.y, m.z, u.face, 0.1, 0.6, 0.2, c, 0.85);
+  sparks(m.x, m.y, m.z, ls ? 6 : 3, '#ffe9b0', 3.5, 0.11, 0.22, 0.5); smoke(m.x, m.y, m.z, 2, '#dfe6ea', 0.3, 0.45, 0.15);
+}
 function dimOf(m) { if (!m._dim) { const c = m._dim = m.clone(); c.transparent = true; c.opacity = (m.opacity == null ? 1 : m.opacity) * BUSH_OP * 0.9; c.depthWrite = false; } return m._dim; }
 function heroBush(v, on) {
   v.gh = on;
@@ -7451,7 +7731,7 @@ function eclipseExtras(v, u, t, dt, ux, uz, c) {
   }
 }
 /* Each hero's recall has its own colour and its own small weather, to go with the way they wait. */
-const RECALL_C = { bram: '#ffd27a', thorn: '#8fe07a', kaela: '#ff7a8a', rook: '#e0b890', vex: '#b48cff', tavi: '#ffd76a', kiri: '#8fe6ff', lyra: '#9fb8ff', zephyr: '#9ff0e0', orin: '#ffb35c', mira: '#c8f08a', sera: '#fff0b0', miel: '#ffc94a', hesta: '#ffcf7a' };
+const RECALL_C = { bram: '#ffd27a', thorn: '#8fe07a', kaela: '#ff7a8a', rook: '#e0b890', vex: '#b48cff', tavi: '#ffd76a', kiri: '#8fe6ff', lyra: '#9fb8ff', zephyr: '#9ff0e0', orin: '#ffb35c', mira: '#c8f08a', sera: '#fff0b0', miel: '#ffc94a', hesta: '#ffcf7a', sorrel: '#9fe0c8' };
 function recallAccent(u, k, t, dt, c) {
   const x = u.x * S3, z = u.y * S3, E = FX.add, rnd = Math.random, a = rnd() * TAU, T = k * 6;
   switch (u.key) {
@@ -7468,6 +7748,7 @@ function recallAccent(u, k, t, dt, c) {
     case 'mira': if (rnd() < dt * 12) { const r = rnd() * 1.2; E.emit(x + Math.cos(a) * r, 2.4 + rnd() * 0.8, z + Math.sin(a) * r, Math.cos(t * 2) * 0.6, -0.7, Math.sin(t * 2) * 0.6, 2.2, 0.15, 0.09, rnd() < 0.4 ? '#ffffff' : c, 0.95, 0.1, 1); } break;       // feathers coming down
     case 'miel': if (rnd() < dt * (10 + k * 26)) { const r = 1.7 - k * 1.1 + rnd() * 0.3, w = 1.8 + k * 2.4; E.emit(x + Math.cos(a) * r, 0.5 + rnd() * 1.5, z + Math.sin(a) * r, -Math.sin(a) * w - Math.cos(a) * 0.9, (rnd() - .5) * 0.8, Math.cos(a) * w - Math.sin(a) * 0.9, 0.7, 0.1, 0.02, rnd() < 0.3 ? '#ffffff' : c, 0.95, 0, 0.2); } break;       // the hive coming home: bees circling in, closer and faster
     case 'hesta': if (Math.pow(Math.max(0, Math.sin(T * 3.2)), 5) > 0.9 && k < 0.8 && rnd() < dt * 26) ring3(x, z, 0.35, 1.5 + k, 0.7, c, 0.45, true, 0.5); if (rnd() < dt * 8) E.emit(x + Math.cos(a) * 0.9, 0.3 + rnd() * 1.4, z + Math.sin(a) * 0.9, Math.cos(a) * 0.6, 0.3, Math.sin(a) * 0.6, 0.7, 0.1, 0.02, rnd() < 0.4 ? '#ffffff' : c, 0.9, 0, 0.2); break;       // each stroke of the beater sends a ring out
+    case 'sorrel': if (rnd() < dt * 9) { const r = 0.6 + rnd() * 1.3; FX.alpha.emit(x + Math.cos(a) * r, 0.05 + rnd() * 0.5, z + Math.sin(a) * r, 0.5, 0.25 + rnd() * 0.4, 0.2, 2.0, 0.1, 0.05, rnd() < 0.5 ? '#c9b8d8' : '#e8e2c8', 0.85, 0.05, 0.6); } if (rnd() < dt * (1 + k * 5)) glint3(x + Math.cos(a) * 1.2, 0.4 + rnd() * 1.4, z + Math.sin(a) * 1.2, 0.5, 0.35, c); break;       // heather and grass seed on the wind off the moor
     case 'sera': if (rnd() < dt * 20) { const r = rnd() * 0.9; E.emit(x + Math.cos(a) * r, 0.1 + rnd() * 0.6, z + Math.sin(a) * r, 0, 1.1 + rnd() * 1.4 + k * 2, 0, 1.2, 0.12, 0.02, rnd() < 0.4 ? '#ffffff' : c, 0.95, 0, 0); } if (rnd() < dt * (1 + k * 6)) glint3(x + (rnd() - .5) * 1.2, 1.6 + rnd() * 1.6, z + (rnd() - .5) * 1.2, 0.6 + rnd() * 0.8, 0.4, '#ffffff'); break;       // light rising round her
   }
 }
@@ -7566,7 +7847,8 @@ function moodExtras(v, u, ps, t, dt, ux, uz) {
 function heroExtras(v, u, t, dt) {
   let aura = null; const ux = u.x * S3, uz = u.y * S3, skn = SKINS[u.key][u.skin], ps = u.def.passive;
   if (ps && ps.moods) moodExtras(v, u, ps, t, dt, ux, uz);
-  if (ps && ps.stacks && (u.pv.n || 0) >= ps.stacks) { aura = ps.c; if (Math.random() < dt * 18) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.35, 0.9 + Math.random() * 0.5, uz + Math.sin(a) * 0.35, Math.cos(a) * 0.5, 0.9, Math.sin(a) * 0.5, 0.5, 0.14, 0.03, Math.random() < 0.4 ? '#ffffff' : ps.c, 0.95, 0, 1); } }       // a passive that is charged shows
+  if (ps && ps.quiet) { const rdy = (u.pv.n || 0) >= ps.stacks && !u.snipe && !u.camo; if (rdy || v.lsG) { let h = v.lsG; if (!h) { h = v.lsG = halo(skinColor(u.key, u.skin, 2), 0.6, 0.9); h.position.set(0, 0.125, 0.37); v.b.wpnR.add(h); } h.visible = rdy; if (rdy) h.scale.setScalar(0.5 + 0.14 * Math.sin(t * 7)); } }       // a Long Shot ready: a light in the glass of her gun
+  else if (ps && ps.stacks && (u.pv.n || 0) >= ps.stacks) { aura = ps.c; if (Math.random() < dt * 18) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.35, 0.9 + Math.random() * 0.5, uz + Math.sin(a) * 0.35, Math.cos(a) * 0.5, 0.9, Math.sin(a) * 0.5, 0.5, 0.14, 0.03, Math.random() < 0.4 ? '#ffffff' : ps.c, 0.95, 0, 1); } }       // a passive that is charged shows
   if (skn.fx === 'E') eclipseExtras(v, u, t, dt, ux, uz, skn.sk[0]); else if (skn.fx === 'C') cometExtras(v, u, t, dt, ux, uz, skn.sk[0]);
   { const rg = hasBuff(u, 'rage'); if (rg || v.wg) rageWings(v, u, rg, t, dt, ux, uz); }
   for (const b of u.buffs) if (b.aura) { aura = b.ci != null ? skinColor(u.key, u.skin, b.ci) : b.aura; if (Math.random() < dt * 14) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.5, 0.1, uz + Math.sin(a) * 0.5, 0, 1.7, 0, 0.7, 0.15, 0.03, aura, 0.9, 0, 0); } }
@@ -7611,7 +7893,7 @@ function syncViews(t, dt) {
     const hero = u.kind === 'hero';
     if (hero) { if (u.dead) v.deadT += dt; else if (v.deadT > 0) { v.deadT = 0; v.mat.opacity = 1; v.mat.transparent = false; v.b.body.rotation.x = 0; v.b.body.position.y = 0; v.face = null; } }
     const show = seen(u) && nearCam(u.x, u.y, 500) && !(hero && u.dead && v.deadT > 2.3);
-    v.root.visible = show; if (!show) { v.lastAtk = u.atkAnim; continue; }
+    v.root.visible = show; if (!show) { v.lastAtk = u.atkAnim; if (hero && u.camo && !u.dead && !seen(u) && nearCam(u.x, u.y, 200)) camoHint(v, u, dt); continue; }
     let px = u.x, py = u.y; const mine = AH.on && u === V.me && !V.replay;       // this player's own hero in a networked match: drawn where it is about to be (see netAhead)
     if (mine) { px = AH.x; py = AH.y; }
     if (G.net) { if (v.sx == null || cut || Math.abs(px - v.sx) + Math.abs(py - v.sy) > 260) { v.sx = px; v.sy = py; } else { const k = Math.min(1, dt * 28); v.sx += (px - v.sx) * k; v.sy += (py - v.sy) * k; } px = v.sx; py = v.sy; }       // a networked match is stepped thirty times a second whatever the screen does: the figures glide between the steps
@@ -7633,10 +7915,11 @@ function syncViews(t, dt) {
       if (v.rcK > 0.9 && !st.recall && !u.dead && hyp(u.x - v.rcX, u.y - v.rcY) > 400) v.arrT = 0.001;       // the recall went through: play the setting-down at the fountain
       v.rcK = st.recall; if (st.recall) { v.rcX = u.x; v.rcY = u.y; } if (v.arrT > 0) { v.arrT += dt / 0.6; if (v.arrT >= 1) v.arrT = 0; } st.arrive = v.arrT || 0;
       animHero(v, st, t, dt);
+      if (v.style === 'rifle') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) rifleFlash(v, u); v.a0 = st.atk; }
       if (v.style === 'hurl') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) slash3(u.x * S3 + Math.cos(u.face) * 0.25, u.y * S3 + Math.sin(u.face) * 0.25, u.face, 0.62, 1.05, 0.15, u.look.glow || u.look.trim, 1.25, { thin: 1, op: 0.5, edge: 0.7 }); v.a0 = st.atk; }       // the sweep of the throwing arm as the leaf leaves it
       { const im = !u.dead && immuneOf(u); if (im && im.shell && !(u.flash > 0)) { v.mat.emissive.copy(lin(im.shell)).multiplyScalar(0.16 + 0.05 * Math.sin(t * 6)); v.glow = 1; } else if (u.flash > 0 && !u.dead) { v.mat.emissive.setScalar(0.13); v.glow = 1; } else if (v.glow !== 0) { v.mat.emissive.setScalar(0); v.glow = 0; } }
       { const quick = v.style === 'reap' || SKINS[u.key][u.skin].fx === 'C', f0 = quick ? 0.55 : 1.7, fd = quick ? 0.25 : 0.6, fading = u.dead && v.deadT > f0;
-        const want = !u.dead && u.bush >= 0 ? BUSH_OP : 1; let bk = v.bk == null || cut ? want : v.bk; if (bk !== want) { bk += (want - bk) * Math.min(1, dt * 10); if (Math.abs(bk - want) < 0.012) bk = want; } v.bk = bk;       // in tall grass he goes see-through; the grass is left alone
+        const want = !u.dead && u.camo ? CAMO_OP : !u.dead && u.bush >= 0 ? BUSH_OP : 1; let bk = v.bk == null || cut ? want : v.bk; if (bk !== want) { bk += (want - bk) * Math.min(1, dt * 10); if (Math.abs(bk - want) < 0.012) bk = want; } v.bk = bk;       // in tall grass he goes see-through; the grass is left alone
         const gh = bk < 0.995; if (!!v.gh !== gh) heroBush(v, gh);
         const op = (fading ? clamp(1 - (v.deadT - f0) / fd, 0, 1) : 1) * bk, tr = op < 0.999; if (v.mat.transparent !== tr) v.mat.transparent = tr; v.mat.opacity = op;
         if (fading && quick && v.deadT > f0 + fd) v.o.visible = false; else if (!v.o.visible) v.o.visible = true; }       // the Eclipse skin is gone by the time its eclipse bursts
@@ -8091,6 +8374,10 @@ const ICONS = {
   cut3: `<path ${F} d="M11.5 19.2l-5.600-7.400h3.500c.4-4.600 3-8 8.600-10.100-3.200 3.100-4.400 6.200-4.300 10.100h3.400z"/><path d="M2.500 21.500h19M4.500 17.500l-2-2M19.500 17.500l2-2"/>`,
   heave: `<path ${F} d="M12 2.4l7 7.2h-4.4V15H9.4V9.6H5z"/><path d="M4.2 17.4c2.6 2.4 5.2 3.4 7.8 3.4s5.200-1 7.8-3.4"/>`,
   inspire: `<path ${F} d="M12 2.2c1 3.600 4.400 5.400 4.400 10.200a4.400 4.400 0 0 1-8.800 0c0-1.600.6-2.800 1.500-3.800.3 1.500 1 2.300 1.900 2.600C10.400 8.200 10.800 5 12 2.200z"/><path d="M5.4 17.800l2.200-1.300M18.600 17.800l-2.200-1.300M12 19.400v2.600"/>`,
+  fade: `<path stroke-dasharray="2.6 2.4" d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle ${F} cx="12" cy="12" r="2.600"/><path d="M4.500 19.500l15-15"/>`,
+  charge: `<circle ${F} cx="10" cy="14.500" r="6"/><path d="M14.200 10.300l2.600-2.600M18.500 2.500v3M21.500 5.500h-3M20.800 3.200l-1.800 1.800"/>`,
+  rounds: `<path ${F} d="M2.500 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM7.830 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM13.170 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM18.500 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21z"/>`,
+  scope: `<circle cx="12" cy="12" r="7.500"/><path d="M12 2v5.500M12 16.500V22M2 12h5.500M16.500 12H22"/><circle ${F} cx="12" cy="12" r="1.700"/>`,
   gong: `<path d="M3 3h18M7.5 3l1.6 3.4M16.5 3l-1.6 3.4"/><circle ${F} cx="12" cy="13.6" r="7.9"/><circle cx="12" cy="13.6" r="3.5" stroke="#0d1b21" stroke-width="1.7"/>`,
   linked: `<path d="M2.6 16.5a9.4 9.4 0 0 1 18.8 0"/><circle ${F} cx="12" cy="13.6" r="2.7"/><circle ${F} cx="6.3" cy="17.3" r="2.1"/><circle ${F} cx="17.7" cy="17.3" r="2.1"/><path d="M2.6 21.4h18.8"/>`,
   lnExp: `<path ${F} d="M12 2.6l7.4 7.6h-4.6v4.6H9.2v-4.6H4.6z"/><path d="M7 18.2h10M9.2 21.6h5.6"/>`,
@@ -8165,12 +8452,15 @@ const SND = {
   holy: v => { [784, 1175, 1568].forEach((f, i) => tone(f, f, 0.3, 'sine', 0.15 * v, i * 0.06)); },
   buzz: v => { tone(196, 262, 0.3, 'sawtooth', 0.075 * v); tone(211, 281, 0.3, 'sawtooth', 0.065 * v); tone(392, 524, 0.22, 'square', 0.02 * v, 0.02); noise(0.22, 0.1 * v, 2600, 2.5); },       // two notes a little apart: the beat between them is the buzz
   arrow: v => { tone(920, 300, 0.13, 'triangle', 0.2 * v); noise(0.09, 0.26 * v, 2800, 2); },
+  rifle: v => { noise(0.07, 0.42 * v, 1500, 0.9); tone(240, 70, 0.09, 'triangle', 0.3 * v); },       // the long gun: a flat crack
+  shot: v => { noise(0.05, 0.6 * v, 2600, 1.2); noise(0.28, 0.3 * v, 500, 0.6, 0.02); tone(170, 46, 0.16, 'sine', 0.5 * v); tone(1500, 420, 0.06, 'triangle', 0.1 * v); },       // a Long Shot, or one of the four rounds: the crack, and the roll of it after
+  cock: v => { noise(0.03, 0.3 * v, 3400, 3); noise(0.035, 0.34 * v, 2200, 3, 0.09); tone(620, 480, 0.03, 'square', 0.05 * v, 0.09); },       // a round put up: two clicks
   eclipse: v => { tone(74, 44, 0.6, 'sine', 0.4 * v); tone(880, 1480, 0.32, 'triangle', 0.07 * v, 0.04); tone(1320, 660, 0.4, 'sine', 0.05 * v, 0.1); noise(0.45, 0.16 * v, 5200, 4, 0.02); },
   gong: v => { tone(98, 92, 1.1, 'sine', 0.5 * v); tone(147, 141, 0.9, 'sine', 0.22 * v); tone(261, 247, 0.7, 'triangle', 0.12 * v); tone(392, 370, 0.5, 'sine', 0.06 * v, 0.01); noise(0.09, 0.3 * v, 900, 0.8); noise(0.5, 0.08 * v, 3200, 3); },       // a low note that hangs, its overtones a little flat, and the knock of the beater
   win: v => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, f, 0.4, 'triangle', 0.25 * v, i * 0.13)); },
   lose: v => { [392, 349, 311, 262].forEach((f, i) => tone(f, f, 0.5, 'triangle', 0.25 * v, i * 0.2)); },
 };
-const SND_GAP = { coin: 0.07, plate: 0.1, eclipse: 0.08, hit: 0.05, tick: 0.09, shoot: 0.06, zap: 0.1, skill: 0.05, boom: 0.08, thud: 0.08, whoosh: 0.05, slash: 0.05, slam: 0.06, arrow: 0.05, wind: 0.08, chain: 0.06, dark: 0.05, bolt: 0.05, ice: 0.06, holy: 0.06, buzz: 0.08, gong: 0.12 };
+const SND_GAP = { coin: 0.07, plate: 0.1, eclipse: 0.08, hit: 0.05, tick: 0.09, shoot: 0.06, zap: 0.1, skill: 0.05, boom: 0.08, thud: 0.08, whoosh: 0.05, slash: 0.05, slam: 0.06, arrow: 0.05, wind: 0.08, chain: 0.06, dark: 0.05, bolt: 0.05, ice: 0.06, holy: 0.06, buzz: 0.08, gong: 0.12, rifle: 0.05, shot: 0.07 };
 function snd(n, v) {
   if (UI.mute || !AU.ctx || AU.ctx.state !== 'running' || !SND[n]) return;
   const now = AU.ctx.currentTime; if (now - (AU.last[n] || -9) < (SND_GAP[n] || 0.02)) return; AU.last[n] = now;
@@ -8413,7 +8703,7 @@ function buildHud() {
   const me = G.player, d = me.def;
   $('stImg').src = portrait(me.key, me.skin);
   const btn = (id, ic, c, key, extra) => { $(id).innerHTML = icon(ic) + (extra || '') + (key ? `<span class="key">${key}</span>` : ''); $(id).style.setProperty('--c', c); };
-  skillButtons(); UI.last.form = me.form;
+  skillButtons(); UI.last.form = me.form; $('stMp').classList.toggle('focus', !!d.energy); $('stMp').title = d.energy ? 'Focus' : 'Mana';       // (a hero with Focus for mana: the bar is amber)
   const sp = SPELLS[me.spell]; btn('bSp', sp.ic, sp.c, 'F', '<span class="cd"></span><span class="cdn"></span>'); $('bSp').setAttribute('aria-label', sp.name);
   btn('bHl', MEND.ic, MEND.c, 'G', '<span class="cd"></span><span class="cdn"></span>'); $('bHl').setAttribute('aria-label', MEND.name + ': ' + MEND.desc);
   $('bIt').hidden = true; $('bIt').classList.remove('live', 'idle'); UI.last.itk = null;
@@ -8461,7 +8751,9 @@ function updateHud(dt) {
   for (let i = 0; i < 4; i++) {
     const b = $(i < 3 ? 'bS' + i : 'bSp'), sp = i === 3, s = sp ? SPELLS[me.spell] : skDef(me, i), lv = sp ? 1 : me.sk[i];
     const re = sp || me.dead ? null : recastOf(me, i) || (chainHold(me, i) ? me.re[i] : null);       // its next cast is waiting (or, in a chain, about to be): the button is lit, shows what it will do and how long is left
-    const cd = re ? 0 : sp ? me.spellCd : me.cds[i], full = sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
+    const hold = !sp && i === 0 && me.camo ? hasBuff(me, 'camo') : null;       // under her cape: the button shows how long of that is left, and only then its cooldown
+    const cd = hold ? hold.t : re ? 0 : sp ? me.spellCd : me.cds[i], full = hold ? CAMO_T : sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
+    if (!sp && me.def.lethal) setCls(b, 'on', i === 0 ? !!hold : i === 2 && !!me.snipe, 'on' + i);
     const p = cd > 0 ? clamp(cd / full, 0, 1) : 0, pk = Math.round(p * 100);
     if (!sp && s.chain) { const st = re ? re.n - 1 : 0, key = st * 2 + (re ? 1 : 0); if (UI.last['ch' + i] !== key) { UI.last['ch' + i] = key; b.classList.toggle('st3', !!re && re.n === 3); const pp = b.lastElementChild.children; for (let j = 0; j < pp.length; j++) pp[j].className = j < st ? 'f' : j === st && re ? 'n' : ''; } }       // how many cuts are made, and which is next
     if (!sp) { setCls(b, 'armed', !!re, 'ar' + i); if (re) { const w = Math.round(clamp((re.until - G.t) / (re.span || (re.span = re.until - G.t)), 0, 1) * 50) / 50; if (UI.last['w' + i] !== w) { UI.last['w' + i] = w; b.style.setProperty('--w', w); } } }
@@ -8853,7 +9145,7 @@ function aimFromDrag(p) {
 }
 function showTip(i) {
   const me = G.player, s = skillOf(i), sp = i === 3, lv = sp ? 1 : Math.max(1, me.sk[i]);
-  $('tip').innerHTML = `<b>${esc(s.name)}</b>${esc(sp ? s.desc : s.desc(lv))}<small>${sp ? s.cd + 's cooldown' : s.stage ? (s.tag || (s.stage === 3 ? 'Third cast' : 'Second cast')) + ' · free' : `Level ${me.sk[i]} / ${s.max} · ${skillCost(s, lv)} mana · ${(skillCd(s, lv) * (1 - me.cdr)).toFixed(1)}s cooldown`}</small>`;
+  $('tip').innerHTML = `<b>${esc(s.name)}</b>${esc(sp ? s.desc : s.desc(lv))}<small>${sp ? s.cd + 's cooldown' : s.stage ? (s.tag || (s.stage === 3 ? 'Third cast' : 'Second cast')) + ' · free' : `Level ${me.sk[i]} / ${s.max} · ${skillCost(s, lv)} ${me.def.energy ? 'Focus' : 'mana'} · ${(skillCd(s, lv) * (1 - me.cdr)).toFixed(1)}s cooldown`}</small>`;
   $('tip').hidden = false;
 }
 function showItemTip() { const k = activeItem(G.player); if (!k) return; const it = ITEMS[k], A = it.act, d = A.dur[Math.min(G.player.actN, A.dur.length - 1)]; $('tip').innerHTML = `<b>${esc(A.name)}</b>${esc(A.desc)}<small>${esc(it.name)} · ${A.cd}s cooldown · no mana · next use lasts ${d}s</small>`; $('tip').hidden = false; }
@@ -9885,7 +10177,7 @@ function linkAsk(name) { const R = LK.rooms.get(name); if (R && !R.left) lkAsk(R
    NET.ok: 0 not asked yet, 1 connected, -1 this view cannot connect. chan: the table (null: not at one). P: the pages at the table,
    as read. hs: this page hosts. go: what the host started. M: the match in progress, as the turn exchange holds it (ncNew).
    ============================================================ */
-const NETV = 6;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
+const NETV = 7;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
 const NET_AWAY = 6000;        // ms the page of a seat may be missing from the table during a match before the seat counts as gone (connections are refreshed now and then, and that is no leaving)
 const NET_GO_MS = 15000;      // ms the host keeps saying how a match started
 const NET_BYTES = 3900;       // the most a page may keep in a room is 4 KiB

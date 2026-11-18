@@ -340,8 +340,17 @@ function aiBuild(h) {
   return out;
 }
 
+/* Counting out her four rounds, a bot does nothing else; unless somebody is right on top of her, and then he gets the charge in his
+   face (which breaks the count off, and looses a round as it does) or, with no charge to throw, she goes under her cape and away. */
+function aiSnipe(h) {
+  let e = null, ed = 300; for (const q of G.heroes) if (q.team !== h.team && !q.dead && q.vis[h.team]) { const d = hyp(q.x - h.x, q.y - h.y); if (d < ed) { ed = d; e = q; } }
+  if (!e || rnd() >= h.ai.P.skill * 0.5) return;
+  const s1 = skDef(h, 1), l1 = h.sk[1]; if (l1 && h.cds[1] <= 0 && h.mp >= skillCost(s1, l1)) { castSkill(h, 1, e.x, e.y); return; }
+  const s0 = skDef(h, 0), l0 = h.sk[0]; if (l0 && h.cds[0] <= 0 && !h.camo && h.mp >= skillCost(s0, l0)) castSkill(h, 0, h.x, h.y);
+}
 function aiTick(h, dt) {
   const a = h.ai; h.mvx = h.mvy = 0; h.atkTarget = null; h.chase = false;
+  if (h.snipe) { aiSnipe(h); return; }
   a.think -= dt;
   if (a.think <= 0) { a.think = a.P.think * (0.75 + rnd() * 0.5); aiDecide(h); if (h.dead) return; }
   if (h.recallT > 0 || h.dash || h.leap) return;
@@ -355,8 +364,8 @@ function aiTick(h, dt) {
   const fl = h.flurry ? flurryOf(h) : null, ft = fl && canTarget(h, fl.tgt) && hyp(fl.tgt.x - h.x, fl.tgt.y - h.y) < h.range + 340 ? fl.tgt : null;       // a marked hero in reach gets the flurry before anything else
   const t = ft || (a.tgt && canTarget(h, a.tgt) ? a.tgt : null);
   if (t) {
-    const d = hyp(t.x - h.x, t.y - h.y) - t.r;
-    if (d <= h.range - 8 || (h.windT > 0 && d <= h.range + 70)) {
+    const d = hyp(t.x - h.x, t.y - h.y) - t.r, rg = reachTo(h, t);
+    if (d <= rg - 8 || (h.windT > 0 && d <= rg + 70)) {
       if (!ft && a.kite && h.windT <= 0 && h.atkCd > 0.2) { aiSteer(h, a.kite.x, a.kite.y); return; }
       h.atkTarget = t; return;
     }
@@ -404,7 +413,7 @@ function aiDecide(h) {
   const a = h.ai, P = a.P, T = h.team, tm = (G.team && G.team[T]) || {}, org = a.org;
   aiShop(h); aiLevel(h);
   a.tgt = null; a.kite = null; a.goal = null; a.plan = '';
-  const hpF = h.hp / h.maxHp, mpF = h.mp / h.maxMp, home = MAP.spawn[T], dHome = hyp(h.x - home.x, h.y - home.y);
+  const hpF = h.hp / h.maxHp, mpF = h.def.energy ? 1 : h.mp / h.maxMp, home = MAP.spawn[T], dHome = hyp(h.x - home.x, h.y - home.y);       // (Focus is never a reason to go home)
   const foes = aiFoes(h, 1100), nf = foes[0] || null;
   if (h.recallT > 0) { a.plan = 'Recalling'; if (nf && nf._d < 650) h.recallT = 0; else return; }
   if (h.healCd <= 0 && dHome > 500 && (hpF < 0.45 || (hpF < 0.62 && G.t - h.lastDmgT < 4))) castMend(h);       // the built-in heal, once it is worth most of its worth
@@ -430,6 +439,7 @@ function aiDecide(h) {
   if (a.mode === 'retreat') {
     a.plan = 'Falling back';
     if (nf && nf._d < 520) aiEscape(h, nf);
+    else if (nf && h.def.lethal) aiCloak(h);       // (Sorrel: nobody near enough to throw the charge at, but somebody near enough to shoot her: out of their sight)
     if (hpF < 0.4 && G.t - h.lastDmgT < 1.2) aiSpell(h, nf, 'hurt');
     if (dHome < 400) { a.goal = home; if (nf && nf._d < h.range + 200) a.tgt = nf; return; }
     if (!nf && G.t - h.lastDmgT > 2.2 && dHome > 1500) { startRecall(h); return; }
@@ -501,6 +511,7 @@ function aiDecide(h) {
         else aiPoke(h, tgt, foes);
         a.goal = home; return;
       }
+      if (h.def.lethal && aiLongShot(h, tgt, foes)) return;
       aiPoke(h, tgt, foes);
     }
   }
@@ -637,7 +648,7 @@ function aiCombat(h, t, foes) {
     switch (A.t) {
       case 'line': if (d <= (A.r || s.range) * (A.far ? 0.72 : 0.9)) { c = aiAim(h, t, A.speed, 0); if (A.far && (!shotClear(h, c) || (d > 640 && t.moving && !(t.stunT > 0 || t.rootT > 0 || t.ms < t.msBase * 0.7)))) c = null; } break;       // a very long shot is only worth it at something standing still or slowed
       case 'point': if (d <= s.range + A.r * 0.4) c = aiAim(h, t, 0, A.delay * 0.6); break;
-      case 'near': if (d <= A.r + t.r * 0.5 && !(A.step && h.rootT <= 0 && stepsIntoFire(h, t.x, t.y, A.step))) c = { x: t.x, y: t.y }; break;
+      case 'near': if (d <= A.r + t.r * 0.5 && !(A.step && h.rootT <= 0 && stepsIntoFire(h, t.x, t.y, A.step)) && !(A.peel && !((t.melee && d < 300) || d < 220 || hpF < 0.5 || t.hp < A.peel(h, lv) * 0.7))) c = { x: t.x, y: t.y }; break;       // (peel: a skill kept for whoever is on top of her, for when she is hurt, or for a kill)
       case 'self': if (d <= A.r * 0.85) c = { x: h.x, y: h.y }; break;
       case 'comb':       // ground that is good for friends and bad for foes: between the target and a friend who is at it, if there is one, so that it holds both; else under the target
         if (d <= s.range + A.r * 0.4) { let fr = null, fd = A.r * 1.5; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead) { const q = hyp(p.x - t.x, p.y - t.y); if (q < fd && hyp(p.x - h.x, p.y - h.y) < s.range + A.r) { fd = q; fr = p; } }
@@ -647,6 +658,9 @@ function aiCombat(h, t, foes) {
         if (d > h.range + 70 && d <= s.range + h.range + 60 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h)) c = { x: t.x, y: t.y }; break;
       case 'kite': if (d <= h.range + 120 && h.rootT <= 0) { const an = fatan2(h.y - t.y, h.x - t.x) + (rnd() < .5 ? 1 : -1) * (d < 300 ? 0.4 : 1.2); const x = h.x + fcos(an) * 280, y = h.y + fsin(an) * 280; if (walkable(x, y)) c = { x, y }; } break;
       case 'buff': if (d <= h.range + 260) c = { x: h.x, y: h.y }; break;
+      case 'camo': if (!h.camo && !lethalReady(h) && d <= h.range + 240) c = { x: h.x, y: h.y }; break;       // under the cloak for the next Long Shot, whenever one is not ready
+      case 'snipe': if (t.kind === 'hero' && d > (t.melee ? 450 : 330) && d <= s.range * 0.8 && (tF < 0.6 || t.stunT > 0.3 || t.rootT > 0.3) && !foes.some(e => e !== t && e._d < 420)
+        && (d - t.r > h.range + 40 || 4 * snipeDmg(h, lv, t) > 2.2 * h.ad * h.asp * (1 + h.crit * (h.critDmg - 1)))) c = { x: t.x, y: t.y }; break;       // four rounds for somebody hurt or held, from where nobody is on top of her; and only at somebody her gun cannot reach anyway, or while they come to more than the shots she would fire in their place
       case 'shield': if (d <= A.r || (hpF < 0.6 && d < 650)) c = { x: h.x, y: h.y }; break;
       case 'allyAoE':       // (rally: a shield for the whole side, raised as the fight is joined: a friend within its reach, two of theirs at hand, and somebody already hurt)
         if (A.rally && d <= 620 && foes.length >= 2) { let fr = 0, hurt = hpF < 0.8; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead && hyp(p.x - h.x, p.y - h.y) <= A.r) { fr++; if (p.hp / p.maxHp < 0.8) hurt = true; } if (fr >= 1 && hurt) c = { x: h.x, y: h.y }; }
@@ -672,6 +686,21 @@ function aiItem(h, foes) {
   if (hpF < 0.12) return;       // too late to matter
   if (held || (hot && (near >= 2 || hpF < 0.7)) || (h.ai.mode === 'fight' && near >= 2 && nf._d < 540)) useItem(h);
 }
+/* Sorrel when she is not in a fight but somebody of theirs is about: four rounds for one of them who is badly hurt, from far enough
+   off; a Long Shot for whoever is within its reach, which is further than most of them can answer from; and the cloak to ready the
+   next one. Never from inside the reach of a turret of theirs, which would answer for whoever she shot. */
+function aiLongShot(h, t, foes) {
+  const P = h.ai.P, u = skDef(h, 2), ul = h.sk[2];
+  if (ul && h.cds[2] <= 0 && h.mp >= skillCost(u, ul) && !foes.some(e => e._d < 450)) { const low = foes.find(e => e.hp / e.maxHp < 0.45 && e._d <= SNIPE_R * 0.7); if (low && rnd() < P.skill && castSkill(h, 2, low.x, low.y)) return true; }
+  for (const s of G.turrets) if (s.team !== h.team && !s.dead && hyp(s.x - h.x, s.y - h.y) <= s.range + h.r + 70) return false;
+  const c = G.crystals[1 - h.team]; if (c && !c.dead && hyp(c.x - h.x, c.y - h.y) <= (c.range || 0) + h.r + 70) return false;
+  const d = hyp(t.x - h.x, t.y - h.y) - t.r;
+  if (lethalReady(h)) { if (d <= h.range - 20) { h.ai.tgt = t; return true; } return false; }
+  const s = skDef(h, 0), lv = h.sk[0];
+  if (lv && h.cds[0] <= 0 && !h.camo && h.mp >= skillCost(s, lv) + 45 && d <= h.range + LETHAL_RANGE + 40 && rnd() < P.skill) castSkill(h, 0, h.x, h.y);
+  return false;
+}
+function aiCloak(h) { const s = skDef(h, 0), lv = h.sk[0]; if (lv && s.ai.t === 'camo' && h.cds[0] <= 0 && !h.camo && h.mp >= skillCost(s, lv)) castSkill(h, 0, h.x, h.y); }
 function aiPoke(h, t, foes) {
   const a = h.ai; if (rnd() > a.P.skill * 0.6 || h.mp / h.maxMp < 0.35) return;
   const d = hyp(t.x - h.x, t.y - h.y);
@@ -702,9 +731,10 @@ function aiWave(h, m, mpF) {
   if (h.form && h.def.forms && h.cds[2] <= 0 && h.cds[0] > 0.5 && h.cds[1] > 0.5 && castSkill(h, 2, h.x, h.y)) return;       // claws spent on the wave: back to range
   for (let i = 0; i < 2; i++) { const re = recastOf(h, i); if (re) { const A = stageDef(skDef(h, i), re).ai; if (A.t === 'chain' && aiChain(h, i, re, A, m)) return; } }       // a chain begun on the wave is finished on it
   const a = h.ai; if (mpF < 0.5 || rnd() > 0.45 * a.P.farm) return;
+  const d = hyp(m.x - h.x, m.y - h.y);
+  for (const i of [0, 1]) { const s = skDef(h, i), lv = h.sk[i]; if (lv && s.ai.t === 'camo' && h.cds[i] <= 0 && !h.camo && !lethalReady(h) && h.mp >= skillCost(s, lv) + 45 && d <= h.range + 120 && castSkill(h, i, h.x, h.y)) return; }       // (the cloak, for the next Long Shot at the wave; with the Focus for a fight kept back)
   let n = 0; for (const u of G.units) if (u.kind === 'minion' && u.team !== h.team && !u.dead && hyp(u.x - m.x, u.y - m.y) < 260) n++;
   if (n < 3) return;
-  const d = hyp(m.x - h.x, m.y - h.y);
   if (h.def.forms && !h.form && h.cds[2] <= 0 && d < 520 && !G.heroes.some(e => e.team !== h.team && !e.dead && hyp(e.x - h.x, e.y - h.y) < 760) && !turretThreat(h.team, m.x, m.y, 40, h)) { castSkill(h, 2, h.x, h.y); return; }       // nobody about: clear the wave with the claws
   for (const i of [0, 1]) {
     const s = skDef(h, i), lv = h.sk[i], A = s.ai; if (!lv || !A.wave || h.cds[i] > 0 || h.mp < skillCost(s, lv)) continue;
@@ -721,6 +751,7 @@ function aiPve(h, m) {
     let ok = false;
     if (A.t === 'line' || A.t === 'point') ok = d <= (s.range || 300) * 0.85;
     else if (A.t === 'near' || A.t === 'self') ok = d <= A.r * 0.8;
+    else if (A.t === 'camo') ok = !h.camo && !lethalReady(h) && d <= h.range + 120;
     else if (A.t === 'buff' && !A.ult) ok = d <= h.range + 60;
     else if (A.t === 'buff' && m.epic) ok = d <= h.range + 60;
     if (ok && castSkill(h, i, m.x, m.y)) return;
@@ -732,9 +763,10 @@ function aiEscape(h, foe) {
   if (h.ai.path && h.ai.path[h.ai.pi]) { const p = h.ai.path[h.ai.pi], pl = hyp(p.x - h.x, p.y - h.y); if (pl > 30) { ax = (p.x - h.x) / pl; ay = (p.y - h.y) / pl; } }
   const u = skDef(h, 2);       // an ultimate that is a leap gets a hero out as well as in
   if (u.ai.esc2 && h.rootT <= 0 && h.sk[2] > 0 && h.hp / h.maxHp < 0.4 && (recastOf(h, 2) || (h.cds[2] <= 0 && h.mp >= skillCost(u, h.sk[2]))) && castSkill(h, 2, h.x + ax * u.range, h.y + ay * u.range)) return;
-  if (h.rootT <= 0) for (let i = 0; i < 2; i++) {
+  if (h.rootT <= 0) for (const i of h.def.lethal ? [1, 0] : [0, 1]) {       // (Sorrel: the charge first, then the cape; the other way about the charge would only bring her out from under it)
     const s = skDef(h, i), lv = h.sk[i]; if (!lv || !s.ai.esc || h.cds[i] > 0 || h.mp < skillCost(s, lv)) continue;
     if (s.cast === 'self') { if (castSkill(h, i, h.x, h.y)) return; continue; }
+    if (s.ai.back) { const fd = foe ? hyp(foe.x - h.x, foe.y - h.y) : 1e9; if (fd < s.range && !(h.camo && fd > 220) && castSkill(h, i, h.x - ax * 200, h.y - ay * 200)) return; continue; }       // (back: thrown at whoever is after her, it carries her the other way; not from under her cape at somebody who cannot see her)
     const r = s.range || 350, p = clampWalk(h.x, h.y, h.x + ax * r, h.y + ay * r);
     if (hyp(p.x - h.x, p.y - h.y) > r * 0.5 && castSkill(h, i, h.x + ax * r, h.y + ay * r)) return;
   }

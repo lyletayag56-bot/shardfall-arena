@@ -1,6 +1,6 @@
 # Shardfall Arena 3D
 
-A 5v5 arena battle that runs in the browser: fourteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit
+A 5v5 arena battle that runs in the browser: fifteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit
 down at a table with friends by sending them a link.
 
 **Play it: https://lyletayag56-bot.github.io/shardfall-arena/**

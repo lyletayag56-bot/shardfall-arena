@@ -164,7 +164,7 @@ function recalc(h) {
   }
   const oldMax = h.maxHp;
   h.maxHp = b.hp + b.hpG * l + (it.hp || 0);
-  h.maxMp = b.mp + b.mpG * l + (it.mp || 0);
+  h.maxMp = h.def.energy ? ENERGY_MAX : b.mp + b.mpG * l + (it.mp || 0);       // (energy: Focus, a bar of one size whatever she carries)
   h.ad = b.ad + b.adG * l + (it.ad || 0) + ad;
   h.ap = ((it.ap || 0) + ap) * (h.has.zenith ? 1.2 : 1);
   const fm0 = h.form && h.def.forms ? h.def.forms : null;
@@ -172,12 +172,12 @@ function recalc(h) {
   h.mr = b.mr + b.mrG * l + (it.mr || 0) + mr + (fm0 ? fm0.tough : 0);
   const fm = h.form && h.def.forms ? h.def.forms : null;       // the second form fights hand to hand
   h.asp = Math.min(asCap, b.as * (1 + (b.asG * l + (it.as || 0) + as + (fm ? fm.as : 0)) / 100) * asK);
-  h.range = (fm ? fm.range : b.range) + range; h.melee = fm ? true : !!h.def.melee;
-  h.crit = (it.crit || 0) / 100; h.critDmg = h.has.reaver ? 2.2 : 1.85; h.ls = ((it.ls || 0) + ls) / 100; h.sv = (it.sv || 0) / 100;
+  h.range = (fm ? fm.range : b.range) + range + (h.def.lethal && lethalReady(h) ? LETHAL_RANGE : 0); h.melee = fm ? true : !!h.def.melee;
+  h.crit = (it.crit || 0) / 100 + (h.def.lethal && h.sk ? SNIPE_CRIT * h.sk[2] : 0); h.critDmg = h.has.reaver ? 2.2 : 1.85; h.ls = ((it.ls || 0) + ls) / 100; h.sv = (it.sv || 0) / 100;
   h.cdr = Math.min(0.4, ((it.cdr || 0) + cdr) / 100);
   h.ppen = it.ppen || 0; h.ppenP = (it.ppenP || 0) / 100; h.mpen = it.mpen || 0; h.mpenP = (it.mpenP || 0) / 100;
   h.hpRegen = b.hpRegen + l * 0.7 + (it.hpRegen || 0);
-  h.mpRegen = b.mpRegen + l * 0.28 + h.maxMp * (mpR + (h.has.scepter ? 0.01 : 0));
+  h.mpRegen = h.def.energy ? ENERGY_REGEN * (h.camo ? 2 : 1) : b.mpRegen + l * 0.28 + h.maxMp * (mpR + (h.has.scepter ? 0.01 : 0));
   h.msBase = b.ms + (it.ms || 0);
   h.ms = Math.max(110, h.msBase * (1 + haste) * (noSlow ? 1 : slowMul));
   if (oldMax > 1 && h.maxHp > oldMax) h.hp += h.maxHp - oldMax;
@@ -280,6 +280,9 @@ function canTarget(src, t) {
   if (t.team !== NEUTRAL && src.team !== NEUTRAL && !t.vis[src.team]) return false;
   return true;
 }
+/* how far a hero's basic attack reaches at this target. A Long Shot's extra reach (Sorrel) is in h.range while one is ready, and is
+   not for turrets and crystals: it is never fired at them, and nothing is to out-reach a turret. */
+function reachTo(h, t) { return h.def.lethal && (t.kind === 'turret' || t.kind === 'crystal') && lethalReady(h) ? h.range - LETHAL_RANGE : h.range; }
 function minionsNear(team, x, y, r) { let n = 0; for (const u of G.units) if (u.kind === 'minion' && u.team === team && !u.dead && hyp(u.x - x, u.y - y) < r) n++; return n; }
 
 /* ---------------- status ---------------- */
@@ -337,10 +340,13 @@ function hasBuff(u, k) { for (const b of u.buffs) if (b.k === k) return b; retur
 /* Two kinds of protection a hero can stand under. steady: nothing can stun, root or move him (a shield that steadies its bearer).
    immune: that, and no slow or mark sticks either (the totem). What is turned away is shown, a couple of times a second at most. */
 function steadyOf(u) { if (u.kind !== 'hero') return null; for (const b of u.buffs) if (b.steady || b.immune) return b; return null; }
+/* KIT_V 23: two holds go through the totem (pierce): the stun of Tempest Beam and the taunt of Brazen Call. A shield that steadies its
+   bearer still turns them away; Unshaken does not, and it is shown giving way. */
+function steadyFor(u, pierce) { if (!pierce) return steadyOf(u); if (u.kind !== 'hero') return null; let sb = null, im = null; for (const b of u.buffs) { if (b.immune) im = b; else if (b.steady) sb = b; } if (!sb && im) fx('pierce', u.x, u.y, { id: u.id, c: im.shell || '#ffffff' }); return sb; }
 function immuneOf(u) { if (u.kind !== 'hero') return null; for (const b of u.buffs) if (b.immune) return b; return null; }
 function blocked(u, b) { if (G.t - (u.blockT || -9) > 0.45) { u.blockT = G.t; fx('block', u.x, u.y, { id: u.id, c: b.shell || b.aura || '#ffffff', ci: b.ci, all: !!b.immune }); } }
 function slow(u, pct, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const im = immuneOf(u); if (im) { blocked(u, im); return; } if (!(u.kind === 'hero' && hasBuff(u, 'sprint') && hasBuff(u, 'sprint').noSlow)) logHold(u, 'slow', dur, pct); addBuff(u, { k: 'slow' + Math.round(pct * 100), t: dur, msMul: 1 - (u.epic ? pct * 0.4 : pct) }); }
-function stun(u, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const sb = steadyOf(u); if (sb) { blocked(u, sb); return; } if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75; logHold(u, 'stun', dur); u.stunT = Math.max(u.stunT, dur); u.windT = 0; if (u.kind === 'hero') { u.recallT = 0; } }
+function stun(u, dur, pierce) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const sb = steadyFor(u, pierce); if (sb) { blocked(u, sb); return; } if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75; logHold(u, 'stun', dur); u.stunT = Math.max(u.stunT, dur); u.windT = 0; if (u.kind === 'hero') { u.recallT = 0; } }
 /* Thrown into the air: helpless until it comes down. It holds like a stun, and the same things shrug it off or shorten it; the height
    (u.z) is for the eye. A hero in the middle of a leap of his own is only stunned: he is in the air already. */
 function knockUp(u, dur, ht) {
@@ -355,9 +361,9 @@ function root(u, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dea
 /* Taunted: for a moment a unit can do nothing but come at whoever called it out and hit him with its basic attack. No skill, no
    spell, no item, no recall, no step of its own choosing. Whatever shrugs off a stun shrugs this off and whatever shortens one
    shortens this. It ends early if whoever called it out falls or cannot be touched. Returns whether it took hold. */
-function taunt(u, by, dur) {
+function taunt(u, by, dur, pierce) {
   if (u.kind === 'turret' || u.kind === 'crystal' || u.dead || u.locked || !by || by.dead || by === u) return false;
-  const sb = steadyOf(u); if (sb) { blocked(u, sb); return false; }
+  const sb = steadyFor(u, pierce); if (sb) { blocked(u, sb); return false; }
   if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75;
   logHold(u, 'taunt', dur); u.tauntT = Math.max(u.tauntT || 0, dur); u.tauntBy = by; if (u.windTgt !== by) u.windT = 0;
   if (u.kind === 'hero') { u.dash = null; u.recallT = 0; u.atkTarget = by; u.chase = true; }
@@ -412,7 +418,7 @@ function dmg(src, tgt, amt, type, f) {
   if (tgt.plate > 0 && left > 0) left -= plateHit(src, tgt, left);
   if (tgt.dummy) left = Math.min(left, tgt.hp - 1);       // a practice dummy cannot be killed
   if (G.practice && src && src.isPlayer && tgt.kind === 'hero') { const P = G.practice; if (G.t - P.last > 3) { P.sum = 0; P.n = 0; P.t0 = G.t; } P.sum += a; P.n++; P.last = G.t; }
-  tgt.hp -= left; if (!f.dot || tgt.dummy) tgt.lastDmgT = G.t; tgt.flash = 0.12;       // (f.dot: the hurt of something left in the target a while ago, a sting. It does not make a fight of it: it holds up no recall, shows nobody, draws no turret)
+  tgt.hp -= left; if (!f.dot || tgt.dummy) tgt.lastDmgT = G.t; tgt.flash = 0.12; if (tgt.camo && a > 0) camoOff(tgt);       // (f.dot: the hurt of something left in the target a while ago, a sting. It does not make a fight of it: it holds up no recall, shows nobody, draws no turret)
   if (tgt.kind === 'hero' && a > 0) logHit(src, tgt, a, a - left, type, f);
   if (src && src.kind === 'hero') {
     if (!f.dot) { src.lastCombatT = G.t; src.revealT = G.t + 1.2; tgt.lastHeroHit = src; tgt.lastHeroHitT = G.t; }       // (nor does it count as the last blow of a hero's for whoever finishes the target off: only its own kill is its own)
@@ -491,6 +497,7 @@ function heroDeath(u, kh, src) {
   const vs = u.streak; u.deaths++; u.streak = 0; u.multi = 0; u.locked = false; u.reviveT = 0;
   u.respawnT = G.practice ? 3 : 4 + u.level * 1.6 + Math.min(G.t / 60, 20) * 0.7;
   const hadBuffs = ['azure', 'crimson'].filter(k => hasBuff(u, k));
+  if (u.snipe) snipeEnd(u, true); if (u.camo) u.camo = false;
   u.buffs = []; u.shields = []; u.stunT = u.rootT = 0; u.tauntT = 0; u.tauntBy = null; u.dash = u.leap = u.disp = u.air = null; u.recallT = 0; u.windT = 0; u.atkTarget = null; u.mvx = u.mvy = 0; u.z = 0;
   for (const r of u.re) if (r && r.pts) for (const q of r.pts) if (q.prop) q.prop.t = 0;
   u.re = [null, null, null]; u.mend = null; u.om = null; endFlurry(u); if (u.form) { u.form = 0; u.cds[0] = u.cds[1] = 0; recalc(u); }
@@ -678,11 +685,11 @@ function useMark(h, e) {
   skfx(h, 'markx', e.x, e.y, { tid: e.id, n: e.km.n }); dmg(h, e, 100 + 14 * h.level + 0.4 * h.ap, 'magic', { skill: true, n: 'Spirit mark', ic: 'mask' }); return true;
 }
 function setForm(h, f) { h.form = f; h.cds[0] = h.cds[1] = 0; h.re[0] = h.re[1] = null; h.atkTarget = null; h.windT = 0; recalc(h); }
-function zone(h, x, y, o) { const a = { type: 'zone', x, y, r: o.r, t: o.dur, dur: o.dur, tick: o.tick, acc: o.tick, team: h.team, src: h, hit: o.hit, each: o.each || null, follow: o.follow || null, hold: o.hold ? { stay: o.hold.stay, root: o.hold.root, k: 0, by: {} } : null, c: o.c, look: o.look || 'zone', ci: o.ci, cx: G.cx }; G.areas.push(a); return a; }       // hit: every enemy in it, each tick; each: once a tick, whoever is in it (what it does for its own side); hold: { stay, root }: an enemy that has been in it for `stay` seconds running is rooted for `root`, once
+function zone(h, x, y, o) { const a = { type: 'zone', x, y, r: o.r, t: o.dur, dur: o.dur, tick: o.tick, acc: o.tick, team: h.team, src: h, hit: o.hit, each: o.each || null, follow: o.follow || null, hold: o.hold ? { stay: o.hold.stay, root: o.hold.root, fx: o.hold.fx || null, k: 0, by: {} } : null, c: o.c, look: o.look || 'zone', ci: o.ci, cx: G.cx }; G.areas.push(a); return a; }       // hit: every enemy in it, each tick; each: once a tick, whoever is in it (what it does for its own side); hold: { stay, root }: an enemy that has been in it for `stay` seconds running is rooted for `root`, once
 /* a zone that holds: by[id] is how many ticks running (n) that unit has been in it, as of which tick (k), and whether it has been held by it already */
 function zoneHold(a, e) {
   const H = a.hold, s = H.by[e.id] || (H.by[e.id] = { n: 0, k: -9, held: false }); s.n = s.k === H.k - 1 ? s.n + 1 : 1; s.k = H.k;
-  if (!s.held && !e.dead && (s.n - 1) * a.tick >= H.stay - 1e-6) { s.held = true; root(e, H.root); }
+  if (!s.held && !e.dead && (s.n - 1) * a.tick >= H.stay - 1e-6) { s.held = true; const sb = steadyOf(e); root(e, H.root); if (H.fx && !sb && e.rootT > 0) skfx(a.src, H.fx, e.x, e.y, { tid: e.id, dur: e.rootT }); }       // (fx: what it looks like on whoever it holds)
 }
 function beam(h, ang, o) { G.areas.push({ type: 'beam', x: h.x, y: h.y, ang, len: o.len, w: o.w, t: o.delay, dur: o.delay, team: h.team, src: h, hit: o.hit, c: o.c, look: 'beam', ci: o.ci, cx: G.cx }); }
 function tickProjs(dt) {
@@ -767,9 +774,10 @@ function fireBasic(u, t) {
   u.revealT = G.t + 1.2;
   const structure = t.kind === 'turret' || t.kind === 'crystal';
   let amt = u.ad, crit = false, type = 'phys';
+  const ls = u.kind === 'hero' && !!u.def.lethal && !structure && lethalReady(u);       // a Long Shot (Sorrel)
   if (u.kind === 'hero') {
     if (structure) amt = Math.max(u.ad, u.def.base.ad + u.def.base.adG * (u.level - 1) + u.ap * 0.6);
-    else if (u.crit > 0 && rnd() < u.crit) { crit = true; amt *= u.critDmg; }
+    else if (ls ? rnd() < u.crit + LETHAL_CRIT : u.crit > 0 && rnd() < u.crit) { crit = true; amt *= u.critDmg; }
   } else if (u.kind === 'minion') { if (structure) amt *= (u.mtype === 'siege' ? 2.4 : u.mtype === 'lord' ? 2.0 : 1.0); }
   else if (u.kind === 'turret' || u.kind === 'crystal') {
     amt = (u.ad + Math.min(G.t / 60, 20) * 12);
@@ -777,7 +785,7 @@ function fireBasic(u, t) {
   }
   let ctx = null;
   if (u.kind === 'hero' && !structure) {
-    ctx = { amt, magic: 0, heal: 0, slow: null, big: false }; const pv = u.def.passive; if (pv && pv.basic) pv.basic(u, t, ctx);
+    ctx = { amt, magic: 0, heal: 0, slow: null, big: false, ls }; const pv = u.def.passive; if (pv && pv.basic) pv.basic(u, t, ctx); if (ctx.type) type = ctx.type;
     if (u.has.galebow) ctx.magic += 30 + 4 * u.level;
     if (u.has.quickblade) { u.pv.qb = (u.pv.qb || 0) + 1; if (u.pv.qb % 4 === 0) { ctx.amt *= 1.8; ctx.big = true; } }
     amt = ctx.amt; if (ctx.big) crit = crit || 'big';
@@ -786,7 +794,7 @@ function fireBasic(u, t) {
   if (insp && insp.n > 0) { fl.pen = inspirePen(u); inspH = inspireHeal(u); if (--insp.n <= 0) insp.t = 0; }
   const apply = tgt => {
     if (tgt.dead) return;
-    dmg(u, tgt, amt, type, fl); if (inspH > 0 && !u.dead) heal(u, u, inspH);
+    dmg(u, tgt, amt, type, fl); if (inspH > 0 && !u.dead) heal(u, u, inspH); if (ctx && ctx.focus && !u.dead) u.mp = Math.min(u.maxMp, u.mp + ctx.focus);
     if (ctx && ctx.after) ctx.after(tgt, amt);
     if (ctx) { if (ctx.magic > 0 && !tgt.dead) dmg(u, tgt, ctx.magic, 'magic', { noVamp: true }); if (ctx.heal > 0 && !u.dead) heal(u, u, ctx.heal); if (ctx.slow && !tgt.dead) slow(tgt, ctx.slow[0], ctx.slow[1]); if (ctx.mark && !tgt.dead) useMark(u, tgt); }
     if (u.kind === 'hero' && !tgt.dead && hasBuff(u, 'crimson') && !structure) { dmg(u, tgt, 18 + 5 * u.level, 'true', { noVamp: true, n: 'Crimson buff', ic: 'rage' }); slow(tgt, u.melee ? 0.2 : 0.1, 1); }
@@ -795,11 +803,11 @@ function fireBasic(u, t) {
   if (u.range <= 260) {
     if (hyp(t.x - u.x, t.y - u.y) <= u.range + t.r + 110) { apply(t); fx('hit', t.x, t.y, { c: u.kind === 'hero' ? (u.look.glow || u.look.trim) : '#ffffff', big: !!crit, ax: u.x, ay: u.y, hero: u.kind === 'hero' || u.epic, id: u.kind === 'hero' ? u.id : 0 }); sfx(u.kind === 'hero' ? 'hit' : 'tick', t.x, t.y); }
   } else {
-    const sp = u.kind === 'hero' ? 1500 : u.kind === 'minion' ? 1000 : 1500;
-    const look = u.kind === 'turret' || u.kind === 'crystal' ? 'bolt' : u.kind === 'hero' ? (u.look.weapon === 'bow' ? 'arrow' : u.look.weapon === 'leaf' ? 'leaf' : 'shot') : 'pellet';
+    const sp = u.kind === 'hero' ? (ls ? 2300 : u.look.weapon === 'rifle' ? 1900 : 1500) : u.kind === 'minion' ? 1000 : 1500;
+    const look = u.kind === 'turret' || u.kind === 'crystal' ? 'bolt' : u.kind === 'hero' ? (u.look.weapon === 'bow' ? 'arrow' : u.look.weapon === 'leaf' ? 'leaf' : u.look.weapon === 'rifle' ? (ls ? 'longshot' : 'slug') : 'shot') : 'pellet';
     const c = u.kind === 'hero' ? (u.look.glow || u.look.trim) : u.team === BLUE ? '#7ac8ff' : '#ff8a7a';
     homingProj(u, t, sp, apply, look, c);
-    sfx(u.kind === 'hero' ? 'shoot' : u.kind === 'minion' ? 'tick' : 'zap', u.x, u.y);
+    sfx(u.kind === 'hero' ? (u.look.weapon === 'rifle' ? (ls ? 'shot' : 'rifle') : 'shoot') : u.kind === 'minion' ? 'tick' : 'zap', u.x, u.y);
   }
   G.cx = pc;
 }
@@ -824,7 +832,7 @@ function tickCommon(u, dt) {
   }
   if (u.windT > 0) {
     const t = u.windTgt;
-    if (!t || t.dead || t.locked || u.stunT > 0 || u.disp) u.windT = 0;
+    if (!t || t.dead || t.locked || u.stunT > 0 || u.disp || (t.camo && u.kind !== 'turret' && u.kind !== 'crystal' && !t.vis[u.team])) u.windT = 0;
     else { u.windT -= dt; if (u.windT <= 0) {
       const fl = u.flurry ? flurryOf(u, t) : null;
       fireBasic(u, t);
@@ -930,10 +938,10 @@ function itemReady(h) { return !!activeItem(h) && !h.dead && !(h.reviveT > 0) &&
 function useItem(h) {
   if (!itemReady(h)) return false;
   const A = ITEMS[activeItem(h)].act, dur = A.dur[Math.min(h.actN, A.dur.length - 1)];
-  A.fn(h, A, dur); h.actCd = A.cd; h.actN++; h.revealT = G.t + 1.2; return true;
+  A.fn(h, A, dur); h.actCd = A.cd; h.actN++; h.revealT = G.t + 1.2; if (h.camo) camoOff(h); return true;
 }
 function castSkill(h, i, tx, ty) {
-  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || h.castLock > 0 || G.over) return false;
+  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || (h.castLock > 0 && !(h.snipe && i !== 2)) || G.over) return false;       // (in the middle of Four Rounds her other two skills are hers to break it off with, and her battle spell is hers to use)
   const f0 = h.form;
   if ((h.dash || h.leap) && !(h.def.fluid && i < 3)) return false;       // a fluid hero throws and flashes in the middle of his own dash
   const sp = i === 3, s0 = sp ? SPELLS[h.spell] : skDef(h, i);
@@ -948,11 +956,11 @@ function castSkill(h, i, tx, ty) {
   const ang = fatan2(dy, dx);
   if (s.cast === 'point' && s.range && d > s.range) { tx = h.x + dx / d * s.range; ty = h.y + dy / d * s.range; }
   { const pc = G.cx; G.cx = { h, n: s.name, ic: s.ic, c: s.c }; const went = s.fn(h, lv, tx, ty, ang, re); G.cx = pc; if (went === false) return false; }
-  h.mp -= cost;
+  h.mp -= cost; if (h.camo && !s.hush) camoOff(h);       // (whatever she casts from under her cape, but the cape itself, brings her out from under it)
   if (re) { if (h.re[i] === re) h.re[i] = null; } else if (sp) h.spellCd = s.cd; else h.cds[i] = skillCd(s0, lv) * (1 - h.cdr);
   if (s.cast !== 'self') h.face = ang;
   if (!re && !sp) h.castT[i] = G.t;
-  h.recallT = 0; h.windT = 0; h.castAnim = 0.3; h.castN++; h.castI = re ? i + (s.stage === 3 ? 10 : 4) : f0 && !sp && h.def.skills[i].alt ? i + 7 : i; h.revealT = G.t + 1.2; h.lastCombatT = G.t;       // castI 4..6: the second cast of skill 0..2; 10..12: the third
+  h.recallT = 0; h.windT = 0; h.castAnim = 0.3; h.castN++; h.castI = re ? i + (s.stage === 3 ? 10 : 4) : f0 && !sp && h.def.skills[i].alt ? i + 7 : i; if (!s.hush) h.revealT = G.t + 1.2; h.lastCombatT = G.t;       // castI 4..6: the second cast of skill 0..2; 10..12: the third
   if (!sp) { const pv = h.def.passive; if (pv && pv.cast) pv.cast(h, i); }
   const big = !!s0.ult && !re && !s0.swap;
   fx('cast', h.x, h.y, { c: s.c, id: h.id, ult: big, i }); sfx(s.snd || (big ? 'ult' : 'skill'), h.x, h.y); if (s.snd && big) sfx('ult', h.x, h.y);
@@ -962,7 +970,7 @@ function acquire(h, mode, inRangeOnly) {
   let best = null, bs = 1e9; const reach = inRangeOnly ? h.range : h.range + 420;
   for (const u of G.units) {
     if (!canTarget(h, u)) continue;
-    const d = hyp(u.x - h.x, u.y - h.y) - u.r; if (d > reach) continue;
+    const d = hyp(u.x - h.x, u.y - h.y) - u.r; if (d > (inRangeOnly ? reachTo(h, u) : reach)) continue;
     if (inRangeOnly && u.kind === 'monster' && !u.aggro) continue;
     if (inRangeOnly && (u.kind === 'turret' || u.kind === 'crystal') && laneSd(h.x, h.y) <= 0) continue;       // standing idle in the woods never picks a fight with a turret
     let sc = d;
@@ -978,12 +986,41 @@ function playerControl(h) {
   const moving = I.mx || I.my;
   if (h.atkTarget && (!canTarget(h, h.atkTarget) || hyp(h.atkTarget.x - h.x, h.atkTarget.y - h.y) > h.range + 900)) h.atkTarget = null;
   if (moving) { h.atkTarget = null; h.chase = false; I.fresh = false; return; }
+  if (h.camo && h.atkTarget && !h.chase) h.atkTarget = null;       // (a target Sorrel fell to shooting at by herself is let go under her cape: see below)
   const fl = h.flurry ? flurryOf(h) : null, ft = fl && canTarget(h, fl.tgt) && hyp(fl.tgt.x - h.x, fl.tgt.y - h.y) < h.range + 340 ? fl.tgt : null;       // a marked hero close by: the flurry is for him
   if (I.atk || I.fresh) {
     if (!h.atkTarget || I.fresh) { const hint = I.tgtHint && canTarget(h, I.tgtHint) ? I.tgtHint : null; h.atkTarget = hint || (I.atkMode === 0 && ft) || acquire(h, I.atkMode, false); }
     I.fresh = false; I.tgtHint = null; h.chase = true;
   } else if (ft && h.recallT <= 0) { h.atkTarget = ft; h.chase = true; }
-  else if (!h.atkTarget && h.recallT <= 0) { h.atkTarget = acquire(h, 0, true); h.chase = false; }
+  else if (!h.atkTarget && h.recallT <= 0 && !h.camo) { h.atkTarget = acquire(h, 0, true); h.chase = false; }       // (under her cape Sorrel shoots when she is told to, not because somebody walked into reach: a shot gives her away)
+}
+/* Four Rounds (Sorrel's ultimate). h.snipe = { tgt, n: rounds left, acc: time to the next, lv }. She stands and counts them out at one
+   hero, who is kept in sight for it; whatever takes hold of her, or losing her mark, cuts it short (and so does she, with either of
+   her other skills: snipeBreak). A round flies at its mark and follows them (step), a little past SNIPE_R at most: it goes by minions
+   and creeps and stops in the first enemy hero it meets, so only somebody in the way, or a great deal of distance, saves the mark. */
+function snipeShot(h, S) {
+  const t = S.tgt, ang = fatan2(t.y - h.y, t.x - h.x), lv = S.lv, def = h.def.skills[2], pc = G.cx; let live = true;
+  S.n--; h.face = ang; h.castN++; h.castI = 6; h.revealT = Math.max(h.revealT, G.t + 1.2);
+  G.cx = { h, n: def.name, ic: def.ic, c: def.c };
+  lineProj(h, ang, { speed: SNIPE_SPEED, range: SNIPE_R + 200, w: SNIPE_W, pierce: true, quiet: true, look: 'round', c: def.c, ci: 2,
+    step(p) { if (live && !t.dead && !t.locked) p.ang = fatan2(t.y - p.y, t.x - p.x); }, hit(e, p) {
+    if (!live || e.kind !== 'hero') return; live = false; p.left = 0;
+    dmg(h, e, snipeDmg(h, lv, e), 'phys', { skill: true }); if (!h.dead) h.mp = Math.min(h.maxMp, h.mp + SNIPE_FOCUS);
+    skfx(h, 'sorrel2h', e.x, e.y, { ang: p.ang, tid: e.id });
+  } });
+  G.cx = pc; skfx(h, 'sorrel2s', h.x, h.y, { ang, left: S.n }); sfx('shot', h.x, h.y);
+}
+function snipeEnd(h, cut) {
+  const S = h.snipe; if (!S) return; h.snipe = null; h.castLock = cut ? 0 : 0.15;
+  if (S.n > 0) h.cds[2] *= 1 - SNIPE_REFUND * S.n;
+  fx('snipe', h.x, h.y, { id: h.id, left: S.n });
+}
+function snipeBreak(h) { const S = h.snipe; if (!S) return; if (S.n > 0 && !S.tgt.dead && !S.tgt.locked) snipeShot(h, S); snipeEnd(h, true); }
+function snipeTick(h, dt) {
+  const S = h.snipe, t = S.tgt;
+  if (h.stunT > 0 || h.tauntT > 0 || h.disp || h.leap || h.dash || h.air || h.reviveT > 0 || t.dead || t.locked) { snipeEnd(h, true); return; }
+  t.revealT = Math.max(t.revealT, G.t + 0.5); h.revealT = Math.max(h.revealT, G.t + 0.6); h.face = fatan2(t.y - h.y, t.x - h.x); if (h.castLock < 0.12) h.castLock = 0.12;
+  S.acc -= dt; if (S.acc <= 0) { S.acc += SNIPE_GAP; snipeShot(h, S); if (S.n <= 0) snipeEnd(h, false); }
 }
 /* ---------------- practice tools ---------------- */
 function autoSkills(h) { let g = 0; while (h.sp > 0 && g++ < 40) { if (canLevel(h, 2)) levelSkill(h, 2); else { const i = h.sk[0] <= h.sk[1] ? 0 : 1; if (!levelSkill(h, i) && !levelSkill(h, 1 - i)) break; } } }
@@ -1027,7 +1064,7 @@ function tickHero(h, dt) {
       h.hpWas = h.hp;
     } else if (h.dummy && G.t - h.lastDmgT > 3 && h.hp < h.maxHp) h.hp = Math.min(h.maxHp, h.hp + h.maxHp * dt * 1.5);
   }
-  for (let i = 0; i < 3; i++) if (h.cds[i] > 0 && !chainHold(h, i)) h.cds[i] -= dt;       // cooldowns never stop (a fallen hero comes back with its skills as rested as the wait allowed), except that a chain's only starts once the chain is over
+  for (let i = 0; i < 3; i++) if (h.cds[i] > 0 && !chainHold(h, i) && !(i === 0 && h.camo)) h.cds[i] -= dt;       // cooldowns never stop (a fallen hero comes back with its skills as rested as the wait allowed), except that a chain's only starts once the chain is over
   if (h.spellCd > 0) h.spellCd -= dt; if (h.healCd > 0) h.healCd -= dt; if (h.actCd > 0) h.actCd -= dt;
   if (h.dead) {
     h.respawnT -= dt;
@@ -1036,6 +1073,7 @@ function tickHero(h, dt) {
     return;
   }
   recalc(h);
+  if (h.def.lethal) { if (h.camo && !hasBuff(h, 'camo')) camoOff(h); h.pv.n = lethalReady(h) ? 1 : 0; if (h.snipe) snipeTick(h, dt); }       // Sorrel: the cloak's time is up; a Long Shot is ready (shown as a passive that is full); her four rounds
   if (h.reviveT > 0) {
     h.reviveT -= dt; h.mvx = h.mvy = 0; h.atkTarget = null;
     if (h.reviveT <= 0) { h.locked = false; h.hp = Math.max(h.hp, h.maxHp * 0.18); shield(h, h.maxHp * 0.1, 3); h.lastDmgT = G.t; fx('ring', h.x, h.y, { c: '#ffe08a', r: 200 }); if (h.ai) { h.ai.path = null; h.ai.mode = 'retreat'; } }
@@ -1078,9 +1116,9 @@ function tickHero(h, dt) {
       if (h.ai && (!ok || h.vx * h.mvx + h.vy * h.mvy < h.ms * 0.3) && h.ai.repT > 0.12) h.ai.repT = 0.12;       // a bot held up by a wall plans its way again at once
     }
   } else if (h.atkTarget && (canTarget(h, h.atkTarget) || (h.tauntT > 0 && h.atkTarget === h.tauntBy))) {
-    const t = h.atkTarget, d = hyp(t.x - h.x, t.y - h.y) - t.r;
-    if (d <= h.range) { h.face = fatan2(t.y - h.y, t.x - h.x); attackStep(h, t); }
-    else if (h.windT > 0 && d <= h.range + 90) { /* finishing the swing */ }
+    const t = h.atkTarget, d = hyp(t.x - h.x, t.y - h.y) - t.r, rg = reachTo(h, t);
+    if (d <= rg) { h.face = fatan2(t.y - h.y, t.x - h.x); attackStep(h, t); }
+    else if (h.windT > 0 && d <= rg + 90) { /* finishing the swing */ }
     else if (h.chase && h.rootT <= 0) { h.windT = 0; chaseMove(h, t, dt); }
   }
 }
@@ -1163,7 +1201,7 @@ function tickVision() {
         const sr = v.kind === 'hero' ? 980 : v.kind === 'minion' ? 720 : 900;
         const dx = v.x - e.x, dy = v.y - e.y, d2 = dx * dx + dy * dy;
         if (d2 > sr * sr) continue;
-        if (e.bush < 0 || v.bush === e.bush || d2 < 190 * 190 || e.revealT > G.t) { seen = true; break; }
+        if (e.camo ? d2 < CAMO_SEE * CAMO_SEE || e.revealT > G.t : e.bush < 0 || v.bush === e.bush || d2 < 190 * 190 || e.revealT > G.t) { seen = true; break; }
       }
       e.vis[T] = seen;
     }
@@ -1256,11 +1294,11 @@ function step(dt) {
    A finished recording: { v, sim, opts: { seed, diff, player }, steps, t, dt, ev, chk, marks, over, winner }.
    pb (while playing one): rec, i: the step to run next, e: read position in ev, next: the step the next event belongs to. */
 const DT_Q = 7200, DU_MAX = 240, MOVE_NONE = 65535, REC_V = 1, ROSTER_0 = 12;
-const KIT_V = 22, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer.
+const KIT_V = 23, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
 const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8, A_MOOD = 9;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }

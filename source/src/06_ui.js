@@ -79,6 +79,10 @@ const ICONS = {
   cut3: `<path ${F} d="M11.5 19.2l-5.600-7.400h3.500c.4-4.600 3-8 8.600-10.100-3.200 3.100-4.400 6.200-4.300 10.100h3.400z"/><path d="M2.500 21.500h19M4.500 17.500l-2-2M19.500 17.500l2-2"/>`,
   heave: `<path ${F} d="M12 2.4l7 7.2h-4.4V15H9.4V9.6H5z"/><path d="M4.2 17.4c2.6 2.4 5.2 3.4 7.8 3.4s5.200-1 7.8-3.4"/>`,
   inspire: `<path ${F} d="M12 2.2c1 3.600 4.400 5.400 4.400 10.200a4.400 4.400 0 0 1-8.800 0c0-1.600.6-2.800 1.500-3.800.3 1.500 1 2.300 1.900 2.600C10.400 8.200 10.800 5 12 2.200z"/><path d="M5.4 17.800l2.200-1.300M18.600 17.800l-2.200-1.300M12 19.400v2.600"/>`,
+  fade: `<path stroke-dasharray="2.6 2.4" d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle ${F} cx="12" cy="12" r="2.600"/><path d="M4.500 19.500l15-15"/>`,
+  charge: `<circle ${F} cx="10" cy="14.500" r="6"/><path d="M14.200 10.300l2.600-2.600M18.500 2.500v3M21.500 5.500h-3M20.800 3.200l-1.800 1.800"/>`,
+  rounds: `<path ${F} d="M2.500 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM7.830 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM13.170 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM18.500 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21z"/>`,
+  scope: `<circle cx="12" cy="12" r="7.500"/><path d="M12 2v5.500M12 16.500V22M2 12h5.500M16.500 12H22"/><circle ${F} cx="12" cy="12" r="1.700"/>`,
   gong: `<path d="M3 3h18M7.5 3l1.6 3.4M16.5 3l-1.6 3.4"/><circle ${F} cx="12" cy="13.6" r="7.9"/><circle cx="12" cy="13.6" r="3.5" stroke="#0d1b21" stroke-width="1.7"/>`,
   linked: `<path d="M2.6 16.5a9.4 9.4 0 0 1 18.8 0"/><circle ${F} cx="12" cy="13.6" r="2.7"/><circle ${F} cx="6.3" cy="17.3" r="2.1"/><circle ${F} cx="17.7" cy="17.3" r="2.1"/><path d="M2.6 21.4h18.8"/>`,
   lnExp: `<path ${F} d="M12 2.6l7.4 7.6h-4.6v4.6H9.2v-4.6H4.6z"/><path d="M7 18.2h10M9.2 21.6h5.6"/>`,
@@ -153,12 +157,15 @@ const SND = {
   holy: v => { [784, 1175, 1568].forEach((f, i) => tone(f, f, 0.3, 'sine', 0.15 * v, i * 0.06)); },
   buzz: v => { tone(196, 262, 0.3, 'sawtooth', 0.075 * v); tone(211, 281, 0.3, 'sawtooth', 0.065 * v); tone(392, 524, 0.22, 'square', 0.02 * v, 0.02); noise(0.22, 0.1 * v, 2600, 2.5); },       // two notes a little apart: the beat between them is the buzz
   arrow: v => { tone(920, 300, 0.13, 'triangle', 0.2 * v); noise(0.09, 0.26 * v, 2800, 2); },
+  rifle: v => { noise(0.07, 0.42 * v, 1500, 0.9); tone(240, 70, 0.09, 'triangle', 0.3 * v); },       // the long gun: a flat crack
+  shot: v => { noise(0.05, 0.6 * v, 2600, 1.2); noise(0.28, 0.3 * v, 500, 0.6, 0.02); tone(170, 46, 0.16, 'sine', 0.5 * v); tone(1500, 420, 0.06, 'triangle', 0.1 * v); },       // a Long Shot, or one of the four rounds: the crack, and the roll of it after
+  cock: v => { noise(0.03, 0.3 * v, 3400, 3); noise(0.035, 0.34 * v, 2200, 3, 0.09); tone(620, 480, 0.03, 'square', 0.05 * v, 0.09); },       // a round put up: two clicks
   eclipse: v => { tone(74, 44, 0.6, 'sine', 0.4 * v); tone(880, 1480, 0.32, 'triangle', 0.07 * v, 0.04); tone(1320, 660, 0.4, 'sine', 0.05 * v, 0.1); noise(0.45, 0.16 * v, 5200, 4, 0.02); },
   gong: v => { tone(98, 92, 1.1, 'sine', 0.5 * v); tone(147, 141, 0.9, 'sine', 0.22 * v); tone(261, 247, 0.7, 'triangle', 0.12 * v); tone(392, 370, 0.5, 'sine', 0.06 * v, 0.01); noise(0.09, 0.3 * v, 900, 0.8); noise(0.5, 0.08 * v, 3200, 3); },       // a low note that hangs, its overtones a little flat, and the knock of the beater
   win: v => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, f, 0.4, 'triangle', 0.25 * v, i * 0.13)); },
   lose: v => { [392, 349, 311, 262].forEach((f, i) => tone(f, f, 0.5, 'triangle', 0.25 * v, i * 0.2)); },
 };
-const SND_GAP = { coin: 0.07, plate: 0.1, eclipse: 0.08, hit: 0.05, tick: 0.09, shoot: 0.06, zap: 0.1, skill: 0.05, boom: 0.08, thud: 0.08, whoosh: 0.05, slash: 0.05, slam: 0.06, arrow: 0.05, wind: 0.08, chain: 0.06, dark: 0.05, bolt: 0.05, ice: 0.06, holy: 0.06, buzz: 0.08, gong: 0.12 };
+const SND_GAP = { coin: 0.07, plate: 0.1, eclipse: 0.08, hit: 0.05, tick: 0.09, shoot: 0.06, zap: 0.1, skill: 0.05, boom: 0.08, thud: 0.08, whoosh: 0.05, slash: 0.05, slam: 0.06, arrow: 0.05, wind: 0.08, chain: 0.06, dark: 0.05, bolt: 0.05, ice: 0.06, holy: 0.06, buzz: 0.08, gong: 0.12, rifle: 0.05, shot: 0.07 };
 function snd(n, v) {
   if (UI.mute || !AU.ctx || AU.ctx.state !== 'running' || !SND[n]) return;
   const now = AU.ctx.currentTime; if (now - (AU.last[n] || -9) < (SND_GAP[n] || 0.02)) return; AU.last[n] = now;
@@ -401,7 +408,7 @@ function buildHud() {
   const me = G.player, d = me.def;
   $('stImg').src = portrait(me.key, me.skin);
   const btn = (id, ic, c, key, extra) => { $(id).innerHTML = icon(ic) + (extra || '') + (key ? `<span class="key">${key}</span>` : ''); $(id).style.setProperty('--c', c); };
-  skillButtons(); UI.last.form = me.form;
+  skillButtons(); UI.last.form = me.form; $('stMp').classList.toggle('focus', !!d.energy); $('stMp').title = d.energy ? 'Focus' : 'Mana';       // (a hero with Focus for mana: the bar is amber)
   const sp = SPELLS[me.spell]; btn('bSp', sp.ic, sp.c, 'F', '<span class="cd"></span><span class="cdn"></span>'); $('bSp').setAttribute('aria-label', sp.name);
   btn('bHl', MEND.ic, MEND.c, 'G', '<span class="cd"></span><span class="cdn"></span>'); $('bHl').setAttribute('aria-label', MEND.name + ': ' + MEND.desc);
   $('bIt').hidden = true; $('bIt').classList.remove('live', 'idle'); UI.last.itk = null;
@@ -449,7 +456,9 @@ function updateHud(dt) {
   for (let i = 0; i < 4; i++) {
     const b = $(i < 3 ? 'bS' + i : 'bSp'), sp = i === 3, s = sp ? SPELLS[me.spell] : skDef(me, i), lv = sp ? 1 : me.sk[i];
     const re = sp || me.dead ? null : recastOf(me, i) || (chainHold(me, i) ? me.re[i] : null);       // its next cast is waiting (or, in a chain, about to be): the button is lit, shows what it will do and how long is left
-    const cd = re ? 0 : sp ? me.spellCd : me.cds[i], full = sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
+    const hold = !sp && i === 0 && me.camo ? hasBuff(me, 'camo') : null;       // under her cape: the button shows how long of that is left, and only then its cooldown
+    const cd = hold ? hold.t : re ? 0 : sp ? me.spellCd : me.cds[i], full = hold ? CAMO_T : sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
+    if (!sp && me.def.lethal) setCls(b, 'on', i === 0 ? !!hold : i === 2 && !!me.snipe, 'on' + i);
     const p = cd > 0 ? clamp(cd / full, 0, 1) : 0, pk = Math.round(p * 100);
     if (!sp && s.chain) { const st = re ? re.n - 1 : 0, key = st * 2 + (re ? 1 : 0); if (UI.last['ch' + i] !== key) { UI.last['ch' + i] = key; b.classList.toggle('st3', !!re && re.n === 3); const pp = b.lastElementChild.children; for (let j = 0; j < pp.length; j++) pp[j].className = j < st ? 'f' : j === st && re ? 'n' : ''; } }       // how many cuts are made, and which is next
     if (!sp) { setCls(b, 'armed', !!re, 'ar' + i); if (re) { const w = Math.round(clamp((re.until - G.t) / (re.span || (re.span = re.until - G.t)), 0, 1) * 50) / 50; if (UI.last['w' + i] !== w) { UI.last['w' + i] = w; b.style.setProperty('--w', w); } } }
@@ -841,7 +850,7 @@ function aimFromDrag(p) {
 }
 function showTip(i) {
   const me = G.player, s = skillOf(i), sp = i === 3, lv = sp ? 1 : Math.max(1, me.sk[i]);
-  $('tip').innerHTML = `<b>${esc(s.name)}</b>${esc(sp ? s.desc : s.desc(lv))}<small>${sp ? s.cd + 's cooldown' : s.stage ? (s.tag || (s.stage === 3 ? 'Third cast' : 'Second cast')) + ' · free' : `Level ${me.sk[i]} / ${s.max} · ${skillCost(s, lv)} mana · ${(skillCd(s, lv) * (1 - me.cdr)).toFixed(1)}s cooldown`}</small>`;
+  $('tip').innerHTML = `<b>${esc(s.name)}</b>${esc(sp ? s.desc : s.desc(lv))}<small>${sp ? s.cd + 's cooldown' : s.stage ? (s.tag || (s.stage === 3 ? 'Third cast' : 'Second cast')) + ' · free' : `Level ${me.sk[i]} / ${s.max} · ${skillCost(s, lv)} ${me.def.energy ? 'Focus' : 'mana'} · ${(skillCd(s, lv) * (1 - me.cdr)).toFixed(1)}s cooldown`}</small>`;
   $('tip').hidden = false;
 }
 function showItemTip() { const k = activeItem(G.player); if (!k) return; const it = ITEMS[k], A = it.act, d = A.dur[Math.min(G.player.actN, A.dur.length - 1)]; $('tip').innerHTML = `<b>${esc(A.name)}</b>${esc(A.desc)}<small>${esc(it.name)} · ${A.cd}s cooldown · no mana · next use lasts ${d}s</small>`; $('tip').hidden = false; }

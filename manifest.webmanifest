@@ -1,7 +1,7 @@
 {
  "name": "Shardfall Arena 3D",
  "short_name": "Shardfall",
- "description": "A 5v5 arena battle that runs in your browser: fourteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link.",
+ "description": "A 5v5 arena battle that runs in your browser: fifteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link.",
  "start_url": "./",
  "scope": "./",
  "display": "fullscreen",

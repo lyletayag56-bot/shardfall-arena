@@ -151,7 +151,7 @@ for (const k in ITEM_PASSIVE) ITEMS[k].p = ITEM_PASSIVE[k];
    shortens. dur: how long each use lasts, the first, the second, ... (the last entry from then on). */
 const ITEM_ACTIVE = {
   totem: { name: 'Unshaken', cd: 90, dur: [6, 5, 4], mres: 0.6, c: '#c4b5ff',
-    desc: 'Clears every slow, root and mark on you. For 6s nothing can stun, root, slow, pull, taunt or mark you, and magic damage you take is cut by 60%. Each use lasts 1s less than the one before, down to 4s. It cannot be pressed while you are stunned or taunted.',
+    desc: "Clears every slow, root and mark on you. For 6s nothing can stun, root, slow, pull, taunt or mark you, and magic damage you take is cut by 60%. Two things go through it all the same: the stun of Zephyr's Tempest Beam and the taunt of Hesta's Brazen Call. Each use lasts 1s less than the one before, down to 4s. It cannot be pressed while you are stunned or taunted.",
     fn(h, A, dur) {
       let n = 0; const keep = []; for (const b of h.buffs) { if (b.msMul && b.msMul < 1) n++; else keep.push(b); } h.buffs = keep;
       if (h.rootT > 0) { h.rootT = 0; n++; } if (h.km && h.km.until > G.t) { h.km.until = 0; n++; } if (h.om && h.om.until > G.t) { h.om.until = 0; n++; }
@@ -282,6 +282,27 @@ function peal(h) {       // the gong let out: a blow to everyone near her, and a
   for (const e of enemiesIn(h.team, h.x, h.y, PEAL_R)) { dmg(h, e, amt, 'magic', { n: 'Resound', ic: 'gong' }); slow(e, 0.3, 1); }
   shield(h, amt, 3);
 }
+/* KIT_V 23. Tempest Beam's stun, by the level of the skill: 1 to 1.4s (half a second before; a description gives no kit and says today's). */
+function beamStun(lv, kit) { return kit < 23 ? 0.5 : L(lv, 1.0, 0.2); }
+/* Sorrel. ENERGY_*: her Focus, the bar others fill with mana: its size, what comes back each second by itself and what a basic attack
+   that hits returns. LETHAL_*: the Long Shot: how long unhurt before one is ready, how much further it reaches, how much likelier it
+   is to strike critically, what it deals of an attack's damage and what more it does to minions and creeps. CAMO_*: Fade Out: how long, and from how near she is seen
+   all the same. NADE_*: Blast Charge: reach, half its angle, how far it throws and how far she springs back. SNIPE_*: Four Rounds:
+   how many, the wait before the first and between them, how far, what each unfired one takes off the cooldown, the Focus one gives
+   back, how wide a round is, how fast, and the crit chance each level of the skill gives all her attacks. */
+const ENERGY_MAX = 100, ENERGY_REGEN = 2, ENERGY_HIT = 5;
+const LETHAL_T = 5, LETHAL_RANGE = 150, LETHAL_CRIT = 0.3, LETHAL_K = 1.15, LETHAL_PVE = 1.4;
+const CAMO_T = 3, CAMO_SEE = 190;
+const NADE_R = 420, NADE_A = 0.6, NADE_PUSH = 230, NADE_HOP = 250;
+const SNIPE_N = 4, SNIPE_GAP = 0.5, SNIPE_AIM = 0.5, SNIPE_R = 1500, SNIPE_REFUND = 0.1, SNIPE_FOCUS = 10, SNIPE_W = 64, SNIPE_SPEED = 3200, SNIPE_CRIT = 0.05;
+function snipeDmg(h, lv, e) { return L(lv, 150, 60) + 0.45 * h.ad + 0.05 * (e.maxHp - e.hp); }
+/* a Long Shot is ready: a skill has just been cast, or she has gone LETHAL_T seconds without a blow landing on her or firing one */
+function lethalReady(h) { return !!h.pv.arm || G.t - Math.max(h.lastDmgT, h.pv.shot == null ? -99 : h.pv.shot) >= LETHAL_T; }
+/* Fade Out. h.camo: she is under the cloak. Their side sees her only from CAMO_SEE or while something shows her (tickVision), so
+   nothing can single her out; what covers ground still catches her. It ends with its time, with her own shot or cast, or with
+   any blow that lands on her; her skill's cooldown only runs once it has ended (tickHero). */
+function camoOn(h, lv) { addBuff(h, { k: 'camo', t: CAMO_T, msMul: 1.3, ad: L(lv, 30, 12) }); h.camo = true; h.revealT = 0; h.vis[1 - h.team] = false; fx('camo', h.x, h.y, { id: h.id, on: 1 }); }
+function camoOff(h) { if (!h.camo) return; h.camo = false; h.buffs = h.buffs.filter(b => b.k !== 'camo'); fx('camo', h.x, h.y, { id: h.id, on: 0 }); }
 const SPELLS = {
   flicker: {
     name: 'Flicker', ic: 'blink', c: '#ffd76a', cd: 90, range: 420, cast: 'point', ind: { t: 'circle', r: 60 }, noRoot: true,
@@ -671,7 +692,7 @@ const HEROES = {
         desc: lv => `Call down stars for ${STARFALL_T}s. Enemies inside take ${L(lv, 110, 50)} (+30% Magic) damage every 0.5s and are slowed 30%, and whoever stays under them for ${STARFALL_STAY}s is rooted for ${STARFALL_ROOT}s (once for each Starfall).`,
         fn(h, lv, tx, ty) {
           skfx(h, 'lyra2c', h.x, h.y, { tx, ty }); const late = G.kit >= 21;       // (before KIT_V 21 the stars fell for three seconds and held nobody)
-          zone(h, tx, ty, { dur: late ? STARFALL_T : 3, r: 330, tick: 0.5, look: 'stars', c: '#ffd76a', ci: 2, hold: late ? { stay: STARFALL_STAY, root: STARFALL_ROOT } : null, hit(e) { dmg(h, e, L(lv, 110, 50) + 0.3 * h.ap, 'magic', { skill: true }); slow(e, 0.3, 0.7); } });
+          zone(h, tx, ty, { dur: late ? STARFALL_T : 3, r: 330, tick: 0.5, look: 'stars', c: '#ffd76a', ci: 2, hold: late ? { stay: STARFALL_STAY, root: STARFALL_ROOT, fx: 'lyra2r' } : null, hit(e) { dmg(h, e, L(lv, 110, 50) + 0.3 * h.ap, 'magic', { skill: true }); slow(e, 0.3, 0.7); } });
         } },
     ],
   },
@@ -695,11 +716,11 @@ const HEROES = {
         } },
       { name: 'Tempest Beam', ic: 'beam', c: '#c8fff4', max: 3, cd: [48, 38], cost: [150, 190], range: 1300, cast: 'dir', ult: true,
         ind: { t: 'line', w: 180 }, ai: { t: 'line', speed: 2600, ult: true, r: 1150 },
-        desc: lv => `Channel for 0.6s, then unleash a huge beam: ${L(lv, 480, 240)} (+130% Magic) damage and a 0.5s stun to everything in its path.`,
+        desc: lv => `Channel for 0.6s, then unleash a huge beam: ${L(lv, 480, 240)} (+130% Magic) damage and a ${beamStun(lv).toFixed(1)}s stun to everything in its path. The Ironwill Totem does not turn this stun away.`,
         fn(h, lv, tx, ty, ang) {
           h.castLock = 0.6;
           skfx(h, 'zephyr2c', h.x, h.y, { ang });
-          beam(h, ang, { delay: 0.6, len: 1300, w: 180, c: '#c8fff4', ci: 2, hit(e) { dmg(h, e, L(lv, 480, 240) + 1.3 * h.ap, 'magic', { skill: true }); stun(e, 0.5); } });
+          beam(h, ang, { delay: 0.6, len: 1300, w: 180, c: '#c8fff4', ci: 2, hit(e) { dmg(h, e, L(lv, 480, 240) + 1.3 * h.ap, 'magic', { skill: true }); stun(e, beamStun(lv, G.kit), G.kit >= 23); } });
         } },
     ],
   },
@@ -870,13 +891,13 @@ const HEROES = {
         } },
       { name: 'Brazen Call', ic: 'gong', c: '#ffcf7a', max: 6, cd: [14, 11], cost: [70, 95], cast: 'self',
         ind: { t: 'self', r: CALL_R }, ai: { t: 'self', r: CALL_R },
-        desc: lv => `Strike the gong. Enemies within reach take ${L(lv, 100, 28)} (+40% Attack) magic damage and are taunted for ${callT(lv).toFixed(1)}s: they can do nothing but come at her and hit her with basic attacks. She gains ${L(lv, 24, 6)} Armor and Magic Resist for 3s.`,
+        desc: lv => `Strike the gong. Enemies within reach take ${L(lv, 100, 28)} (+40% Attack) magic damage and are taunted for ${callT(lv).toFixed(1)}s: they can do nothing but come at her and hit her with basic attacks. The Ironwill Totem does not turn this taunt away. She gains ${L(lv, 24, 6)} Armor and Magic Resist for 3s.`,
         fn(h, lv) {
           const pts = [];
           addBuff(h, { k: 'brazen', t: 3, armor: L(lv, 24, 6), mr: L(lv, 24, 6) });
           for (const e of enemiesIn(h.team, h.x, h.y, CALL_R)) {
             dmg(h, e, L(lv, 100, 28) + 0.4 * h.ad, 'magic', { skill: true });
-            if (!e.dead && taunt(e, h, callT(lv, G.kit)) && e.kind === 'hero') { ringAdd(h); if (pts.length < 16) pts.push(e.x, e.y); }
+            if (!e.dead && taunt(e, h, callT(lv, G.kit), G.kit >= 23) && e.kind === 'hero') { ringAdd(h); if (pts.length < 16) pts.push(e.x, e.y); }
           }
           skfx(h, 'hesta1', h.x, h.y, { r: CALL_R, pts });
         } },
@@ -899,6 +920,42 @@ const HEROES = {
           sync(null);
           skfx(h, 'hesta2', h.x, h.y, { r: POOL_R, dur: POOL_T });
           zone(h, h.x, h.y, { dur: POOL_T, r: POOL_R, tick: 0.2, follow: h, look: 'bronze', c: '#ffe2a8', ci: 2, hit() {}, each: sync }).pool = pool;
+        } },
+    ],
+  },
+  sorrel: {
+    /* a gamekeeper of the high moor with a shardlock long gun. She has Focus where others have mana (energy), a first shot that
+       counts (lethal: the Long Shot), a cloak to vanish under, a charge for whoever comes too close, and four rounds for one
+       enemy a long way off. */
+    name: 'Sorrel', title: 'Shardlock Sniper', cls: 'Marksman', spell: 'inspire', melee: false, rate: [2, 9, 4, 6], energy: true, lethal: true,
+    base: { hp: 2300, hpG: 150, mp: ENERGY_MAX, mpG: 0, ad: 118, adG: 10.5, armor: 15, armorG: 2.5, mr: 10, mrG: 1.5, as: 0.95, asG: 2.4, range: 590, ms: 245, hpRegen: 6, mpRegen: 0 },
+    look: { body: '#55624a', trim: '#c9a24a', skin: '#e0b08c', hair: '#a4502c', hat: 'cap', weapon: 'rifle', cape: '#a8452e', glow: '#7fd8ff', metal: '#8a8f98', wood: '#4a3222', pants: '#3a3530', boot: '#2e2620' },
+    skills: [
+      { name: 'Fade Out', ic: 'fade', c: '#9fe0c8', max: 6, cd: [5, 2.5], cost: [20, 20], cast: 'self', hush: true,
+        ind: { t: 'self', r: 0 }, ai: { t: 'camo', esc: true },
+        desc: lv => `Vanish under the cloak for ${CAMO_T}s. Enemies cannot see you or single you out unless they stand right beside you, though whatever covers the ground still catches you. While it lasts you move 30% faster, have +${L(lv, 30, 12)} Attack and regain Focus twice as fast. It ends when you attack, cast or are hurt, and its cooldown only starts when it ends. Under it you hold your fire until you press attack. Cast during Four Rounds, it breaks off the count and looses one round at once.`,
+        fn(h, lv) { camoOn(h, lv); recalc(h); if (h.snipe) snipeBreak(h); skfx(h, 'sorrel0', h.x, h.y, {}); } },
+      { name: 'Blast Charge', ic: 'charge', c: '#ffb35c', max: 6, cd: [12, 9], cost: [30, 30], range: NADE_R, cast: 'dir',
+        ind: { t: 'cone', a: NADE_A }, ai: { t: 'near', r: NADE_R - 100, esc: true, back: true, peel: (h, lv) => L(lv, 150, 40) + 0.5 * h.ad },
+        desc: lv => `Throw a charge that bursts in front of you: enemies in the blast take ${L(lv, 150, 40)} (+50% Attack) damage and are knocked back, and you spring back from it yourself. Cast during Four Rounds, it breaks off the count and looses one round at once.`,
+        fn(h, lv, tx, ty, ang) {
+          if (h.snipe) snipeBreak(h); camoOff(h);
+          const c = fcos(ang), s = fsin(ang); skfx(h, 'sorrel1', h.x, h.y, { ang, r: NADE_R });
+          for (const e of enemiesInCone(h.team, h.x, h.y, NADE_R, ang, NADE_A)) {
+            dmg(h, e, L(lv, 150, 40) + 0.5 * h.ad, 'phys', { skill: true });
+            if (!e.dead && !e.epic) { const dx = e.x - h.x, dy = e.y - h.y, d = hyp(dx, dy) || 1; pullTo(e, e.x + dx / d * NADE_PUSH, e.y + dy / d * NADE_PUSH, 0.24); skfx(h, 'sorrel1h', e.x, e.y, {}); }
+          }
+          if (h.rootT <= 0) { leapTo(h, h.x - c * NADE_HOP, h.y - s * NADE_HOP, 0.3, () => {}); h.leap.h = 70; }       // (held fast, she throws it all the same and stays where she is)
+        } },
+      { name: 'Four Rounds', ic: 'rounds', c: '#7fd8ff', max: 3, cd: [44, 36], cost: [40, 40], range: SNIPE_R, cast: 'point', ult: true, heroTarget: true,
+        ind: { t: 'circle', r: 150 }, ai: { t: 'snipe', ult: true },
+        desc: lv => `Take aim at one enemy hero, who is shown to your side for as long as you do, and count out ${SNIPE_N} rounds at them, one every ${SNIPE_GAP}s. You stand still for it. Each round follows its mark and deals ${L(lv, 150, 60)} (+45% Attack) damage plus 5% of the health its mark has lost, and gives you back ${SNIPE_FOCUS} Focus. A round stops in the first enemy hero it meets, so another hero can stand in its way. If the count is cut short, each round not fired takes ${Math.round(SNIPE_REFUND * 100)}% off the cooldown. Learned, it also makes every basic attack of yours ${Math.round(SNIPE_CRIT * 100 * lv)}% likelier to strike critically.`,
+        fn(h, lv, tx, ty) {
+          const t = nearestEnemyHero(h, tx, ty, 330, SNIPE_R + 80); if (!t) return false;
+          camoOff(h);
+          h.snipe = { tgt: t, n: SNIPE_N, acc: SNIPE_AIM, lv }; h.castLock = SNIPE_AIM + 0.1; h.atkTarget = null;
+          for (const e of G.heroes) if (e.team !== h.team && !e.dead && hyp(e.x - h.x, e.y - h.y) <= SNIPE_R) e.revealT = Math.max(e.revealT, G.t + 2);       // through the glass she sees whoever is out there
+          skfx(h, 'sorrel2', h.x, h.y, { tid: t.id }); skfx(h, 'sorrel2t', t.x, t.y, { tid: t.id });       // (one where she stands, one where her mark does: each is drawn only for whoever is looking there)
         } },
     ],
   },
@@ -956,6 +1013,10 @@ const PASSIVES = {
     desc: `Blows ring in her gong. Each time an enemy hero damages her, and each enemy hero she taunts, adds a Ring, up to ${RING_MAX}. At ${RING_MAX} her next basic attack strikes the gong and spends them: enemies within reach of her take 40 (+5% of her max HP) magic damage and are slowed 30% for 1s, and she is shielded for the same amount for 3s.`,
     hurt(h, src, a, f) { if ((f && f.dot) || G.t - (h.pv.t || -9) < 0.5) return; h.pv.t = G.t; ringAdd(h); },
     basic(h, t, ctx) { if ((h.pv.n || 0) < RING_MAX) return; h.pv.n = 0; ctx.big = true; peal(h); } },
+  sorrel: { name: 'Still Hand', ic: 'scope', c: '#7fd8ff', stacks: 1, quiet: true,       // (quiet: full, it shows on her gun and her attack button, not as a ring on the ground under her)
+    desc: `She has Focus where others have mana: ${ENERGY_MAX} at most, quick to come back, and a basic attack that hits returns ${ENERGY_HIT}. When she has gone ${LETHAL_T}s without being hurt, her next basic attack is a Long Shot: it reaches ${LETHAL_RANGE} further, is ${Math.round(LETHAL_CRIT * 100)}% likelier to strike critically, deals ${Math.round(LETHAL_K * 100)}% of an attack's damage as true damage (${Math.round((LETHAL_PVE - 1) * 100)}% more again to minions and creeps) and returns twice the Focus. Casting any skill readies a Long Shot at once.`,
+    cast(h) { h.pv.arm = true; },
+    basic(h, t, ctx) { if (h.camo) camoOff(h); if (ctx.ls) { h.pv.arm = false; h.pv.shot = G.t; ctx.type = 'true'; ctx.amt *= LETHAL_K; if (t.kind !== 'hero') ctx.amt *= LETHAL_PVE; ctx.big = true; ctx.focus = ENERGY_HIT * 2; } else ctx.focus = ENERGY_HIT; } },
 };
 /* a sprung ward (or an arrow that carried one): it clings to its catch for a second, then bursts around them */
 function wardBurst(h, lv, e) {
@@ -1098,13 +1159,20 @@ const SKINS = {
     { name: 'Lantern Festival', look: { body: '#a3241f', trim: '#ffd76a', hair: '#1a1210', cape: '#f2a23a', metal: '#f2c14e', glow: '#ffe08a', plume: '#ffd76a', pants: '#5a1814', boot: '#3a1210', wglow: '#ffb347' },
       sk: ['#ffb347', '#ffe08a', '#ff7a4a'], parts: ['banner', 'scarf'], aura: '#ffd76a' },
   ],
+  sorrel: [
+    { name: 'Shardlock Sniper' },
+    { name: 'Snowline Scout', look: { body: '#e4ecf2', trim: '#7fb0d8', hair: '#f1f4f7', cape: '#3d6f9c', glow: '#bfeaff', metal: '#c9d6e2', wood: '#8a97a6', pants: '#8ea2b4', boot: '#566a7c', wglow: '#bfeaff' },
+      sk: ['#bfeaff', '#8fc8ff', '#e8f8ff'], parts: ['gem'], aura: '#bfeaff' },
+    { name: 'Ember Poacher', look: { body: '#2b2424', trim: '#ff8a3c', hair: '#161212', cape: '#7a1f14', glow: '#ffb35c', metal: '#4a4040', wood: '#2a1c18', pants: '#1c1717', boot: '#141010', wglow: '#ff7a2e' },
+      sk: ['#ff9a4a', '#ffc46a', '#ff5a2e'], parts: ['visor'], aura: '#ff7a2e' },
+  ],
 };
 const _looks = {};
 function heroLook(key, skin) { const k = key + (skin | 0); return _looks[k] || (_looks[k] = Object.assign({}, HEROES[key].look, (SKINS[key][skin | 0] || {}).look)); }
 function skinColor(key, skin, i) { const s = SKINS[key][skin | 0]; return (s && s.sk && s.sk[i]) || HEROES[key].skills[i].c; }
 /* distinct cast sounds per skill (0 = default) */
 const SKILL_SND = { bram: ['whoosh', 'guard', 0, 'slam'], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
-  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'] };
+  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'], sorrel: ['wind', 'boom', 'cock'] };
 for (const k of HERO_KEYS) HEROES[k].passive = PASSIVES[k];
 for (const k of HERO_KEYS) {
   const d = HEROES[k]; d.key = k; d.base = d.base || CLASS_BASE[d.cls]; d.build = BUILDS[d.cls]; d.pos = POS_OF[d.cls];
