@@ -120,6 +120,31 @@ function halo(hex, size, opacity) {
   const s = new THREE.Sprite(m); s.scale.set(size, size, 1); return s;
 }
 
+/* ---------- bees ----------
+   One bee, nose along +x and about a unit long: a striped abdomen, a furred thorax, a dark head with two feelers, a sting. Its wings
+   are a mesh of their own, raised in a V, so that turning them over (scale.y between 1 and -1) beats them. pal: [body, bands] for a
+   hive of another colour. The meshes share their geometry and materials (own: 0, so that nothing that drops them disposes of those). */
+function beeParts(pal) {
+  const key = pal ? pal.join() : 'd', C = GX.bees || (GX.bees = {}); if (C[key]) return C[key];
+  const amber = pal ? pal[0] : '#ffc233', dark = pal ? pal[1] : '#2a1a0e', B = new PB(), W = new PB();
+  B.sph(0.5, amber, { x: -0.16, sx: 0.66, sy: 0.44, sz: 0.44, c2: shade(amber, 0.35), sh: 0.72 }, 10, 8)
+    .tor(0.196, 0.052, dark, { x: -0.31, ry: HP2 }, 5, 12).tor(0.218, 0.052, dark, { x: -0.11, ry: HP2 }, 5, 12)
+    .sph(0.2, shade(amber, -0.1), { x: 0.2, c2: shade(amber, 0.22), sh: 0.75 }, 8, 6)
+    .sph(0.15, dark, { x: 0.43, sx: 0.95 }, 8, 6)
+    .cone(0.05, 0.2, dark, { x: -0.56, rz: HP2 }, 5);
+  for (const k of [-1, 1]) { B.cyl(0.012, 0.012, 0.18, dark, { x: 0.53, y: 0.12, z: k * 0.07, rz: -0.9, rx: k * 0.4 }, 4); W.sph(0.5, '#f4fbff', { x: 0.02, y: 0.21, z: k * 0.3, sx: 0.36, sy: 0.02, sz: 0.62, rx: k * -0.55, ry: k * 0.3, sh: 1 }, 8, 4); }
+  const mb = GX.mat.beeB || (GX.mat.beeB = new THREE.MeshBasicMaterial({ vertexColors: true })), mw = GX.mat.beeW || (GX.mat.beeW = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.62, depthWrite: false, side: THREE.DoubleSide }));
+  const K = new PB(), gold = '#ffd76a';       // a crown for the queen: a band and three points, over her head
+  K.tor(0.115, 0.028, gold, { x: 0.43, y: 0.15, rx: HP2 }, 4, 10); for (const a of [0, 2.094, 4.189]) K.cone(0.04, 0.13, gold, { x: 0.43 + Math.cos(a) * 0.1, y: 0.23, z: Math.sin(a) * 0.1, c2: '#fff4c8' }, 4);
+  return C[key] = { body: B.geo(), wing: W.geo(), crown: K.geo(), mat: mb, wmat: mw };
+}
+function beeMesh(s, pal, queen) {
+  const P = beeParts(pal), g = new THREE.Group(), b = new THREE.Mesh(P.body, P.mat), w = new THREE.Mesh(P.wing, P.wmat);
+  b.userData.own = 0; w.userData.own = 0; w.userData.beeWing = 1; w.renderOrder = 3; g.add(b); g.add(w);
+  if (queen) { const k = new THREE.Mesh(P.crown, P.mat); k.userData.own = 0; g.add(k); }
+  g.rotation.order = 'YXZ'; g.scale.setScalar(s); return g;
+}
+
 /* ---------- procedural textures ---------- */
 function canvasTex(w, h, draw, o) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);

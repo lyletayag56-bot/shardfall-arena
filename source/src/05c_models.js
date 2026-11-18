@@ -375,7 +375,10 @@ const HERO_BUILD = {
     S.sph(0.118, shade(sc, -0.3), { y: -0.3, sy: 1.25 }, 8, 6).cyl(0.165, 0.165, 0.022, shade(wood, -0.1), { y: -0.44 }, 10).sph(0.046, '#2a1c10', { y: -0.385, z: 0.118, sz: 0.5 }, 6, 5);
     glowPart(R, 'skep', new THREE.SphereGeometry(0.03, 6, 5), L.glow, 0, -0.385, 0.14, 0.75);
     R.nb('bees', 0, 1.34, 0, R.B.body); R.nb('bees2', 0, 0.98, 0, R.B.body);
-    for (const [bn, r, y, a] of [['bees', 0.62, 0, 0], ['bees', 0.5, 0.2, 2.5], ['bees2', 0.7, 0, 4.2]]) { const m = glowPart(R, bn, new THREE.SphereGeometry(0.034, 6, 5), L.tend || L.glow, Math.cos(a) * r, y, Math.sin(a) * r, 0.34), ch = R.B[bn].children; m.scale.set(1, 0.8, 1.5); m.rotation.y = -a; m.userData.bee = 1; ch[ch.length - 1].userData.bee = 2; }       // (marked, body and glow, so that the view can colour them by her temper)
+    for (const [bn, r, y, a, dir] of [['bees', 0.62, 0, 0, 1], ['bees', 0.5, 0.22, 2.5, 1], ['bees2', 0.7, 0, 4.2, -1], ['bees2', 0.55, 0.26, 1.1, -1]]) {       // four bees on their rounds, each one a bee to look at: striped, winged, nose to the way it flies; and behind each a glow that the view colours by her temper (bee: 2)
+      const g = beeMesh(0.27, L.bee); g.position.set(Math.cos(a) * r, y, Math.sin(a) * r); g.rotation.y = dir * HP2 - a; R.B[bn].add(g);
+      const hl = halo(L.tend || L.glow, 0.34, 0.7); hl.position.copy(g.position); hl.userData.bee = 2; R.B[bn].add(hl);
+    }
     return { style: 'cast' };
   },
   hesta(R, L) {       // a herald in bronze and verdigris: scale armour to the knee, a mirror plate on the breast, her hair bound up in a tall knot with a red tassel down the back, a great gong on her left arm for a shield and the beater for it in her right hand
@@ -700,6 +703,8 @@ const CLIPS = {
   focus:   { d: 0.7, aLx: [0, -2.7], fLx: [0, -0.1], aRx: [0, -2.1], fRx: [0, -2.1], aRz: [0, 0.35], headRx: [0, -0.3], hipRx: [0, -0.12] },
   send:    { d: 0.5, aRx: [0, -2.5, 0.16, -2.6, 0.34, -1.25, 1, -1.1], fRx: [0, -1.1, 0.16, -1.2, 0.34, -0.08, 1, -0.3], aRz: [0, -0.5, 0.34, 0.15], spRy: [0, -0.55, 0.16, -0.6, 0.34, 0.45, 1, 0.1], hipRx: [0, -0.1, 0.16, -0.12, 0.34, 0.24, 1, 0.05], aLx: [0, -1.5, 0.34, -1.45, 1, -0.9], fLx: [0, -0.1], aLz: [0, 0.3, 0.34, -0.1], headRx: [0, -0.1, 0.34, 0.08] },
   hive:    { d: 1.0, hop: 0.14, aRx: [0, -1.5, 0.25, -1.78, 1, -1.72], fRx: [0, -0.1, 0.25, -0.02], aRz: [0, -0.1], aLx: [0, -0.7, 0.25, -0.3], aLz: [0, 0.9, 0.25, 1.25], fLx: [0, -0.5, 0.25, -0.25], headRx: [0, -0.2, 0.25, -0.45], hipRx: [0, -0.05, 0.25, -0.14] },       // the crook held up at arm's length, the skep high over her, the other arm flung wide
+  heave:   { d: 0.5, hop: 0.12, aLx: [0, 0.35, 0.2, 0.55, 0.44, -2.75, 1, -2.2], fLx: [0, -0.9, 0.2, -1.05, 0.44, -0.15, 1, -0.5], aLz: [0, -0.2, 0.44, 0.12], aRx: [0, 0.3, 0.44, 0.7, 1, 0.2], fRx: [0, -0.6], hipRx: [0, 0.42, 0.2, 0.5, 0.44, -0.26, 1, 0], hipY: [0, -0.15, 0.2, -0.2, 0.44, 0.05, 1, 0], spRy: [0, 0.35, 0.44, -0.2, 1, 0], headRx: [0, 0.2, 0.44, -0.4, 1, 0] },       // down behind the shield, then up with it from the knees
+  queen:   { d: 1.1, hop: 0.2, spin: 1, aRx: [0, -0.6, 0.18, -0.4, 0.42, -1.9, 1, -1.75], fRx: [0, -1.0, 0.18, -1.1, 0.42, -0.05], aRz: [0, 0.3, 0.42, -0.12], aLx: [0, -0.4, 0.42, -0.9, 1, -0.5], aLz: [0, 0.4, 0.42, 1.35, 1, 1.2], fLx: [0, -0.9, 0.42, -0.2], headRx: [0, 0.15, 0.42, -0.5, 1, -0.4], hipRx: [0, 0.2, 0.18, 0.25, 0.42, -0.16, 1, -0.1], hipY: [0, -0.12, 0.18, -0.16, 0.42, 0.04, 1, 0] },       // gathered low over the skep, then a full turn with the crook swept up overhead and the free arm flung wide
   gong:    { d: 0.55, aLx: [0, -1.2], fLx: [0, -0.75], aLz: [0, -0.3], aRx: [0, -1.5, 0.22, -1.6, 0.4, -0.95, 1, -0.6], aRz: [0, -1.25, 0.22, -1.35, 0.4, 0.55, 1, 0.1], fRx: [0, -0.7, 0.22, -0.8, 0.4, -0.35, 1, -0.8], spRy: [0, -0.5, 0.22, -0.55, 0.4, 0.3, 1, 0], hipRx: [0, -0.08, 0.4, 0.14, 1, 0], headRx: [0, -0.25, 0.4, -0.3, 1, 0], hipY: [0, 0, 0.4, -0.06, 1, 0] },       // the beater swung out wide and brought across onto the gong held before her
   raise:   { d: 1.0, hop: 0.1, aLx: [0, -2.3, 0.22, -2.95], fLx: [0, -0.35, 0.22, -0.12], aLz: [0, 0.12], aRx: [0, -0.5, 0.22, -0.25], aRz: [0, -0.8, 0.22, -1.2], fRx: [0, -0.7, 0.22, -0.45], headRx: [0, -0.3, 0.22, -0.45], hipRx: [0, -0.06, 0.22, -0.14] },       // the gong lifted high over her head, the beater held wide
   toss:    { d: 0.45, aRx: [0, 0.5, 0.18, 0.5, 0.36, -1.5, 1, -1.2], fRx: [0, -0.3, 0.36, -0.1], hipRx: [0, 0.3, 0.36, 0.1], hipY: [0, -0.1, 0.36, 0] },
@@ -718,10 +723,10 @@ const CLIPS = {
 const CLIP_CH = ['aLx', 'fLx', 'aLz', 'aRx', 'fRx', 'aRz', 'lLx', 'lRx', 'sLx', 'sRx', 'hipRx', 'spRy', 'headRx', 'headRy'];
 /* which clip each hero plays for skill 1, skill 2 and the ultimate ([name, seconds] overrides the length); entries 3..5 are for
    their second casts, 6..8 for a second form's, 9..11 for third casts. A skin may bring a set of its own (clips). */
-const HERO_CLIPS = { bram: ['rush', 'guard', 'leap'], thorn: ['throw', 'slam', 'pull'], kaela: ['cadA', 'lunge', 'roar', 'cadB', null, null, null, null, null, 'cadC'], rook: [['slam', 0.78], 'roar', null], vex: ['throw', 'sweep', 'stab'],
+const HERO_CLIPS = { bram: ['rush', 'guard', 'leap', null, 'heave'], thorn: ['throw', 'slam', 'pull'], kaela: ['cadA', 'lunge', 'roar', 'cadB', null, null, null, null, null, 'cadC'], rook: [['slam', 0.78], 'roar', null], vex: ['throw', 'sweep', 'stab'],
   tavi: ['throw', 'fanout', 'vault', 'lunge', 'pull', 'vault'],
   kiri: ['toss', 'bolt', 'roar', null, null, null, 'vault', 'lunge', 'roar'],       // 6..8: the Tiger's leap, rush and the turn back
-  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'hive'], hesta: ['rush', 'gong', 'raise'] };
+  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'queen'], hesta: ['rush', 'gong', 'raise'] };
 function KF(u, a) { if (u <= a[0]) return a[1]; for (let i = 2; i < a.length; i += 2) if (u <= a[i]) return lerp(a[i - 1], a[i + 1], smooth((u - a[i - 2]) / (a[i] - a[i - 2]))); return a[a.length - 1]; }
 /* which mask is over the face: the worn one sits on the face, the other is slung behind the head */
 function kiriMasks(B, f) {
@@ -945,6 +950,8 @@ function animHero(v, s, t, dt) {
     const q = v.sting || 0, sc = 1 + q * 0.3; v.beeA = (v.beeA == null ? v.seed : v.beeA) + dt * (2.3 + q * 4.8);
     B.bees.rotation.y = v.beeA; B.bees.rotation.z = Math.sin(t * 1.7 + v.seed) * (0.2 + q * 0.25); B.bees.position.y = 1.34 + Math.sin(t * 2.3 + v.seed) * 0.05; B.bees.scale.setScalar(sc);
     B.bees2.rotation.y = -v.beeA * 1.37; B.bees2.rotation.x = Math.sin(t * 1.3 + v.seed) * (0.22 + q * 0.3); B.bees2.scale.setScalar(sc);
+    if (!v.beeW) { v.beeW = []; B.bees.traverse(x => { if (x.userData.beeWing) v.beeW.push(x); }); B.bees2.traverse(x => { if (x.userData.beeWing) v.beeW.push(x); }); }
+    for (let i = 0; i < v.beeW.length; i++) v.beeW[i].scale.y = Math.cos(t * (46 + q * 16) + i * 1.9);       // wings
   }
   if (B.skep) {       // the skep hangs plumb from the crook, and comes round to it a little late when the crook is swung
     if (s.dead > 0) { B.skep.quaternion.slerp(_skI, Math.min(1, dt * 6)); v.skq = null; }

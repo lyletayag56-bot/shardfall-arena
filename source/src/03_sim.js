@@ -102,6 +102,7 @@ function newGame(opts) {
       const sk = r.player ? (opts.player.skin | 0) : r.seat != null ? Math.min(r.skin, SKINS[r.key].length - 1) : opts.skins === false ? 0 : (G.seed0 + i * 7 + team * 3 + r.key.length) % SKINS[r.key].length;
       const h = makeHero(r.key, team, sp.x + fcos(a) * 90, sp.y + fsin(a) * 90, sk);
       h.pos = r.pos; if (h.def.roles) { const ro = h.def.roles[r.role | 0]; h.role = r.role | 0; h.cls = ro.cls; h.bld = ro.build; }
+      h.sting = h.cls === 'Mage';       // (a temper to begin in, for a hero who has one: a mage's is to sting)
       const d = opts.diffs ? opts.diffs[team] : team === BLUE && opts.player ? 1 : G.diff;       // (diffs: a difficulty for each side)
       if (r.player) { h.isPlayer = true; h.inp = G.input; h.spell = r.spell || h.def.spell; G.player = h; }
       else if (r.seat != null) { h.isPlayer = true; h.inp = newInput(); h.seat = r.seat; if (r.name) h.name = r.name; h.spell = SPELLS[r.spell] ? r.spell : h.def.spell; h.botDiff = d; G.humans[r.seat] = h; }       // (botDiff: how the bot plays that takes this hero over if its player goes)
@@ -153,8 +154,9 @@ function recalcItems(h) {
 }
 function recalc(h) {
   const b = h.def.base, l = h.level - 1, it = h.itemStats;
-  let ad = 0, ap = 0, as = 0, armor = 0, mr = 0, ls = 0, range = 0, cdr = 0, slowMul = 1, haste = 0, noSlow = false, mpR = 0;
+  let ad = 0, ap = 0, as = 0, armor = 0, mr = 0, ls = 0, range = 0, cdr = 0, slowMul = 1, haste = 0, noSlow = false, mpR = 0, asK = 1, asCap = 2.5;       // (asK, asCap: Inspire's)
   for (const f of h.buffs) {
+    if (f.asMul) { asK *= f.asMul; if (f.asCap > asCap) asCap = f.asCap; }
     if (f.ad) ad += f.ad; if (f.ap) ap += f.ap; if (f.as) as += f.as; if (f.armor) armor += f.armor; if (f.mr) mr += f.mr;
     if (f.ls) ls += f.ls; if (f.range) range += f.range; if (f.cdr) cdr += f.cdr; if (f.mpR) mpR += f.mpR;
     if (f.msMul) { if (f.msMul < 1) slowMul = Math.min(slowMul, f.msMul); else haste += f.msMul - 1; }
@@ -169,7 +171,7 @@ function recalc(h) {
   h.armor = b.armor + b.armorG * l + (it.armor || 0) + armor + (fm0 ? fm0.tough : 0);
   h.mr = b.mr + b.mrG * l + (it.mr || 0) + mr + (fm0 ? fm0.tough : 0);
   const fm = h.form && h.def.forms ? h.def.forms : null;       // the second form fights hand to hand
-  h.asp = Math.min(2.5, b.as * (1 + (b.asG * l + (it.as || 0) + as + (fm ? fm.as : 0)) / 100));
+  h.asp = Math.min(asCap, b.as * (1 + (b.asG * l + (it.as || 0) + as + (fm ? fm.as : 0)) / 100) * asK);
   h.range = (fm ? fm.range : b.range) + range; h.melee = fm ? true : !!h.def.melee;
   h.crit = (it.crit || 0) / 100; h.critDmg = h.has.reaver ? 2.2 : 1.85; h.ls = ((it.ls || 0) + ls) / 100; h.sv = (it.sv || 0) / 100;
   h.cdr = Math.min(0.4, ((it.cdr || 0) + cdr) / 100);
@@ -384,7 +386,7 @@ function dmg(src, tgt, amt, type, f) {
   const structure = tgt.kind === 'turret' || tgt.kind === 'crystal';
   if (structure && !f.basic) return 0;
   let a = amt;
-  if (type === 'phys') { let ar = tgt.armor; if (src) ar = ar * (1 - (src.ppenP || 0)) - (src.ppen || 0); a *= 100 / (100 + Math.max(0, ar)); }
+  if (type === 'phys') { let ar = tgt.armor; if (src) ar = ar * (1 - (src.ppenP || 0)) - (src.ppen || 0); if (f.pen) ar -= f.pen; a *= 100 / (100 + Math.max(0, ar)); }       // (pen: armour this one blow goes through: Inspire's)
   else if (type === 'magic') { let mr = tgt.mr; if (src) mr = mr * (1 - (src.mpenP || 0)) - (src.mpen || 0); a *= 100 / (100 + Math.max(0, mr)); const im = immuneOf(tgt); if (im && im.mres) a *= 1 - im.mres; }
   if (structure && src && minionsNear(src.team, tgt.x, tgt.y, tgt.range + 60) === 0) a *= 0.4;         // backdoor protection
   if (structure && src) { tgt.hitBy = src; tgt.hitT = G.t; }
@@ -780,9 +782,11 @@ function fireBasic(u, t) {
     if (u.has.quickblade) { u.pv.qb = (u.pv.qb || 0) + 1; if (u.pv.qb % 4 === 0) { ctx.amt *= 1.8; ctx.big = true; } }
     amt = ctx.amt; if (ctx.big) crit = crit || 'big';
   }
+  const insp = u.kind === 'hero' ? hasBuff(u, 'inspire') : null, fl = { basic: true, crit: crit === true }; let inspH = 0;       // Inspire: this is one of its attacks
+  if (insp && insp.n > 0) { fl.pen = inspirePen(u); inspH = inspireHeal(u); if (--insp.n <= 0) insp.t = 0; }
   const apply = tgt => {
     if (tgt.dead) return;
-    dmg(u, tgt, amt, type, { basic: true, crit: crit === true });
+    dmg(u, tgt, amt, type, fl); if (inspH > 0 && !u.dead) heal(u, u, inspH);
     if (ctx && ctx.after) ctx.after(tgt, amt);
     if (ctx) { if (ctx.magic > 0 && !tgt.dead) dmg(u, tgt, ctx.magic, 'magic', { noVamp: true }); if (ctx.heal > 0 && !u.dead) heal(u, u, ctx.heal); if (ctx.slow && !tgt.dead) slow(tgt, ctx.slow[0], ctx.slow[1]); if (ctx.mark && !tgt.dead) useMark(u, tgt); }
     if (u.kind === 'hero' && !tgt.dead && hasBuff(u, 'crimson') && !structure) { dmg(u, tgt, 18 + 5 * u.level, 'true', { noVamp: true, n: 'Crimson buff', ic: 'rage' }); slow(tgt, u.melee ? 0.2 : 0.1, 1); }
@@ -902,6 +906,11 @@ function tickMonster(m, dt) {
 }
 
 /* ---------------- heroes ---------------- */
+/* A passive with two tempers that its player chooses between (Miel's hive, as of KIT_V 22): the press that changes it. It can be
+   made whatever else the hero is doing; the temper then keeps for MOOD_GAP seconds before it can be changed again. */
+const MOOD_GAP = 1;
+function canMood(h) { const ps = h.def.passive; return !!(ps && ps.toggle) && G.kit >= 22 && !h.dead && !(h.reviveT > 0) && !G.over && !(G.t < (h.moodT || 0)); }
+function toggleMood(h) { if (!canMood(h)) return false; h.sting = !h.sting; h.moodT = G.t + MOOD_GAP; fx('mood', h.x, h.y, { id: h.id, m: h.sting ? 1 : 0 }); return true; }
 function startRecall(h) { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap) return false; h.recallT = 6; h.atkTarget = null; h.windT = 0; fx('recall', h.x, h.y, { id: h.id }); return true; }
 /* the second cast skill i is waiting for, if any: within its window, after whatever had to land first, and not while a refreshed
    skill is to be thrown again before its follow-up (more) */
@@ -1247,11 +1256,11 @@ function step(dt) {
    A finished recording: { v, sim, opts: { seed, diff, player }, steps, t, dt, ev, chk, marks, over, winner }.
    pb (while playing one): rec, i: the step to run next, e: read position in ev, next: the step the next event belongs to. */
 const DT_Q = 7200, DU_MAX = 240, MOVE_NONE = 65535, REC_V = 1, ROSTER_0 = 12;
-const KIT_V = 21, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it.
-const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8;
+const KIT_V = 22, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer.
+const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8, A_MOOD = 9;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }
@@ -1308,6 +1317,7 @@ function actFor(h, k, a, b, c) {
     case A_RECALL: return startRecall(h);
     case A_BUY: return buyItem(h, a);
     case A_SELL: return sellItem(h, a);
+    case A_MOOD: return toggleMood(h);
   }
   return false;
 }
@@ -1329,6 +1339,7 @@ function actCan(h, k, a) {       // would this go through if it were done now? (
     case A_RECALL: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap);
     case A_BUY: return canBuy(h, a);
     case A_SELL: return !!h.items[a];
+    case A_MOOD: return canMood(h);
   }
   return false;
 }

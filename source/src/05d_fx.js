@@ -544,6 +544,7 @@ const SKFX = {
     streak3(x0, z0, x, z, 0.7, 0.35, c, 0.9, 0.7); flash3(x, 1, z, 3, 0.35, c); ring3(x, z, 0.2, 1.3, 0.4, c, 0.9); sparks(x, 0.8, z, 12, c, 3, 0.15, 0.5, 1.2);
     for (let i = 0; i < 3; i++) glint3(x + (Math.random() - .5) * 1.2, 0.6 + Math.random() * 1.4, z + (Math.random() - .5) * 1.2, 0.9, 0.4 + i * 0.1, '#ffffff'); },
   spS(e, x, z, c) { for (let i = 0; i < 3; i++) later(i * 0.08, () => ring3(x, z, 0.3, 1.1 + i * 0.35, 0.4, c, 0.8, true, 0.08 + i * 0.4)); decal3(GX.tex.swirl, x, z, 1.5, 0.6, c, 0.7, { spin: -8, r0: 0.5 }); rise3(x, z, 0.6, 10, c, 2.2, 0.6); },
+  spI(e, x, z, c) { flash3(x, 1.2, z, 3.2, 0.3, c); for (let i = 0; i < 3; i++) later(i * 0.07, () => ring3(x, z, 1.3 - i * 0.3, 0.25, 0.32, i === 1 ? '#ffffff' : c, 0.85, true, 0.1 + i * 0.5)); pillar3(x, z, 0.7, 3.4, 0.6, c, 0.5); rise3(x, z, 0.6, 16, c, 2.8, 0.7, 0.14); glint3(x, 2.5, z, 1.5, 0.4, '#ffffff'); },       // Inspire: gathered in, and up
   spA(e, x, z, c) { dome3(x, z, 1.25, 0.7, c, 0.7, { sy: 1.25 }); ring3(x, z, 0.3, 1.5, 0.45, c, 0.9); decal3(GX.tex.rune, x, z, 1.3, 0.7, c, 0.7, { spin: 2 }); glint3(x, 2.3, z, 1.4, 0.45, '#ffffff'); },
   spE(e, x, z, c) { beam3(x + 0.3, 8, z - 0.5, x, 0.1, z, 0.34, 0.4, c, 0.9); decal3(GX.tex.mark, x, z, 1.5, 0.8, c, 0.9, { spin: 3, r0: 2.4 }); xcut(x, 1.0, z, 3.4, c, 0.32); flash3(x, 0.9, z, 3.6, 0.3, c);
     ring3(x, z, 0.2, 1.6, 0.4, c, 0.9); sparks(x, 0.7, z, 16, c, 4.5, 0.17, 0.5, 1.2); scorch3(x, z, 0.9, 1.6); FX.shake = Math.max(FX.shake, 0.16); },
@@ -553,6 +554,14 @@ const SKFX = {
   bram0(e, x, z, c) { ring3(x, z, 0.3, 1.2, 0.35, c, 0.8, true); smoke(x, 0.1, z, 5, '#d8cfb4', 0.55, 0.5, 0.3); glint3(x + Math.cos(e.ang) * 0.5, 1.2, z + Math.sin(e.ang) * 0.5, 1.5, 0.35, '#ffffff'); },
   bram0h(e, x, z, c) { flash3(x, 1, z, 2.8, 0.25, c); slash3(x - Math.cos(e.ang) * 0.6, z - Math.sin(e.ang) * 0.6, e.ang, 1.0, 1.9, 0.3, c, 0.9); ring3(x, z, 0.2, 1.3, 0.35, '#ffffff', 0.8, true); glint3(x, 1.5, z, 2.2, 0.4, '#ffffff');
     sparks(x, 0.9, z, 14, c, 4.5, 0.16, 0.4, 1); debris(x, 0.2, z, 5, '#8a7f6c', 2, 0.14, 0.5); FX.shake = Math.max(FX.shake, 0.12); },
+  bram0u(e, x, z, c) {       // Heave: the shield brought up from the ground, and the ground in front of him with it
+    const a = e.ang, r = e.r * S3, ca = Math.cos(a), sa = Math.sin(a), mx = x + ca * r * 0.55, mz = z + sa * r * 0.55;
+    slash3(x, z, a, HEAVE_A, r, 0.42, c, 0.08, { op: 0.42, flat: 1 }); later(0.04, () => slash3(x, z, a, HEAVE_A, r * 1.03, 0.3, '#ffffff', 0.1, { thin: 1, op: 0.3, edge: 0.75 })); vring3(x + ca * 0.5, 1.2, z + sa * 0.5, a, 0.3, 1.5, 0.3, c, 0.8);
+    flash3(mx, 0.9, mz, 3.6, 0.25, c); pillar3(mx, mz, 0.9, 3.2, 0.5, c, 0.4); smoke(mx, 0.1, mz, 8, '#d8cfb4', 0.9, 0.6, 0.5); FX.shake = Math.max(FX.shake, 0.12);
+    decal3(GX.tex.crack, mx, mz, r * 0.6, 1.3, '#2e2014', 0.55, { nb: 1, rot: -a, gk: 0.12, fin: 0.05, fout: 0.5 });       // the ground it broke: dark, so that it shows on pale stone too, where light alone would not
+    for (let i = 0; i < 16; i++) { const q = a + (Math.random() - .5) * 2 * HEAVE_A, d = r * (0.25 + Math.random() * 0.7), px = x + Math.cos(q) * d, pz = z + Math.sin(q) * d;
+      if (i % 2) FX.add.emit(px, 0.1, pz, 0, 4 + Math.random() * 3.5, 0, 0.45, 0.13, 0.03, Math.random() < 0.4 ? '#ffffff' : c, 0.9, 6, 0);
+      else FX.alpha.emit(px, 0.1, pz, Math.cos(q) * 1.2, 4.5 + Math.random() * 3, Math.sin(q) * 1.2, 0.7, 0.17, 0.09, i % 4 ? '#7a5c3a' : '#a58a5e', 0.95, 13, 0); } },       // (and clods of it, thrown up)
   bram1(e, x, z, c) { const r = e.r * S3; dome3(x, z, r * 0.62, 0.8, c, 0.6); decal3(GX.tex.rune, x, z, r, 0.9, c, 0.75, { spin: 1.2, r0: r * 0.3 }); ring3(x, z, r * 0.25, r, 0.5, c, 0.9); ring3(x, z, r * 0.2, r * 0.85, 0.65, '#ffffff', 0.5, true);
     rise3(x, z, r * 0.8, 16, lite(c), 1.6, 0.8); sparks(x, 0.4, z, 10, c, r * 2.2, 0.15, 0.5, 1); },
   bram2a(e, x, z, c) { const r = e.r * S3, x0 = e.x0 * S3, z0 = e.y0 * S3; ring3(x0, z0, 0.3, 1.5, 0.4, c, 0.8); smoke(x0, 0.1, z0, 7, '#cfc6b0', 0.7, 0.6, 0.5); debris(x0, 0.1, z0, 6, '#7a7468', 2.2, 0.16, 0.5);
@@ -729,7 +738,9 @@ const SKFX = {
   miel0a(e, x, z, c) { ring3(x, z, 0.15, 0.85, 0.4, c, 0.8); rise3(x, z, 0.45, 12, lite(c), 1.7, 0.8, 0.12); glint3(x, 1.7, z, 1.0, 0.4, '#ffffff'); },       // honey left on a friend
   miel1(e, x, z, c) { const r = e.r * S3; dome3(x, z, r, 0.8, c, 0.38, { sy: 0.4 }); ring3(x, z, r * 0.25, r, 0.45, c, 0.9); decal3(GX.tex.comb, x, z, r, 0.7, c, 0.8, { r0: r * 0.5 }); rise3(x, z, r * 0.85, 22, lite(c), 1.6, 0.9, 0.13);       // the comb coming up out of the ground
     for (let i = 0; i < 3; i++) later(i * 0.1, () => glint3(x + (Math.random() - .5) * r, 0.5 + Math.random() * 0.8, z + (Math.random() - .5) * r, 1.0, 0.4, '#ffffff')); },
-  miel2(e, x, z, c) { const r = e.r * S3; flash3(x, 1.4, z, 4.5, 0.35, c); ring3(x, z, 0.3, r, 0.55, c, 0.9); ring3(x, z, 0.2, r * 0.8, 0.8, '#ffffff', 0.45, true); pillar3(x, z, 0.9, 4.2, 0.8, c, 0.4); decal3(GX.tex.swirl, x, z, r, 1.1, c, 0.6, { spin: -3, r0: r * 0.3 });       // the whole hive out at once
+  miel2h(e, x, z, c) { flash3(x, 1.0, z, 1.8, 0.2, c); sparks(x, 1.0, z, 8, c, 3, 0.1, 0.3, 1); ring3(x, z, 0.9, 0.2, 0.28, c, 0.8, true, 0.6); },       // stung as the hive burst out
+  miel2(e, x, z, c) { const r = e.r * S3; flash3(x, 1.4, z, 4.5, 0.35, c); ring3(x, z, 0.3, r, 0.55, c, 0.9); ring3(x, z, 0.2, r * 0.8, 0.8, '#ffffff', 0.45, true); pillar3(x, z, 0.9, 4.2, 0.8, c, 0.4); decal3(e.q ? GX.tex.comb : GX.tex.swirl, x, z, r, 1.1, c, 0.6, { spin: -3, r0: r * 0.3 });       // the whole hive out at once
+    if (e.q) { later(0.12, () => ring3(x, z, r * 0.3, r * 1.05, 0.5, '#ffffff', 0.5, true, 0.5)); glint3(x, 3.0, z, 2.2, 0.6, '#fff4c8'); FX.shake = Math.max(FX.shake, 0.08); }
     for (let i = 0; i < 40; i++) { const q = Math.random() * TAU, sp = 3 + Math.random() * 5; FX.add.emit(x, 0.8 + Math.random() * 1.2, z, Math.cos(q) * sp - Math.sin(q) * 2.5, 0.5 + Math.random() * 1.5, Math.sin(q) * sp + Math.cos(q) * 2.5, 0.5 + Math.random() * 0.3, 0.13, 0.02, Math.random() < 0.3 ? '#ffffff' : c, 1, 0, 1.2); }
     FX.shake = Math.max(FX.shake, 0.1); },
   /* Hesta */
@@ -747,6 +758,35 @@ const SKFX = {
   hestaP(e, x, z, c) { const r = e.r * S3; flash3(x, 1.1, z, 3.2, 0.28, c); decal3(GX.tex.rings, x, z, r, 0.55, c, 0.7, { r0: r * 0.2, gk: 0.5, rot: 0 }); for (let i = 0; i < 3; i++) later(i * 0.07, () => ring3(x, z, r * 0.2, r * (1 - i * 0.1), 0.42, i ? '#ffffff' : c, 0.85 - i * 0.2, i > 0, 0.08 + i * 0.3)); sparks(x, 1.0, z, 12, c, r * 2.6, 0.14, 0.4, 0.9); FX.shake = Math.max(FX.shake, 0.1); },       // and let out
 };
 const TAUNT_C = '#ff6a4a';       // the colour of being called out: on the line that calls, on the mark over the head
+/* Bees for a place on the ground: n of them on rounds of their own within r, in three lanes that go opposite ways. With a queen, she
+   is there too: twice the size, crowned, circling overhead with a glow about her. */
+function hiveBees(v, a, g, r, n, s, queen) {
+  const pal = a.src && a.src.look ? a.src.look.bee : null; v.bees = [];
+  for (let i = 0; i < n; i++) { const m = beeMesh(s, pal), lane = i % 3; g.add(m);
+    v.bees.push({ m, wing: m.children[1], s: s * (0.9 + ((i * 0.53) % 1) * 0.3), r: r * (0.3 + 0.22 * lane + 0.2 * ((i * 0.618) % 1)), y: 0.6 + lane * 0.42 + ((i * 0.37) % 1) * 0.45, w: (1.25 + ((i * 0.29) % 1) * 1.0) * (lane === 1 ? -1 : 1), ph: i * 2.4, dart: null }); }
+  if (queen) { const m = beeMesh(s * 1.9, pal, true), hl = shared(halo('#ffd76a', 1.4, 0.5)); g.add(m); g.add(hl); v.queen = { m, wing: m.children[1], s: s * 1.9, hl }; }
+}
+/* The Queen's Flight, moment by moment. The bees come out of the skep in a widening spiral and go home the same way at the end; in
+   between each keeps its round, banking into it, and every half second a few leave theirs to sting whoever of the other side is in
+   reach and come back. */
+function hiveSync(v, a, t, dt, x, z, fade, c) {
+  const out = smooth(clamp((a.dur - a.t) / 0.7, 0, 1)) * smooth(clamp(a.t / 0.6, 0, 1)), sc = 0.3 + 0.7 * out;       // (a.t is what is left of it: out in the first 0.7s, home in the last 0.6)
+  v.dartT = (v.dartT || 0) - dt;
+  if (v.dartT <= 0 && out > 0.9) { v.dartT = 0.5; let n = 0; const R2 = (a.r + 40) * (a.r + 40);
+    for (const u of G.units) { if (n >= 4) break; if (u.dead || u.team === a.team || u.kind === 'turret' || u.kind === 'crystal') continue; const dx = u.x - a.x, dy = u.y - a.y; if (dx * dx + dy * dy > R2) continue; const uv = V.views.get(u.id); if (!uv || !uv.o.visible) continue;
+      const b = v.bees[(Math.random() * v.bees.length) | 0]; if (!b.dart) { b.dart = { u, k: 0, hit: 0 }; n++; } } }
+  for (const b of v.bees) {
+    const q = b.ph + t * b.w, br = b.r * out; let px = Math.cos(q) * br, py = (b.y + Math.sin(t * 5 + b.ph) * 0.18) * (0.45 + 0.55 * out) + (1 - out) * 0.7, pz = Math.sin(q) * br, face = -q - (b.w > 0 ? HP2 : -HP2), bank = b.w > 0 ? -0.4 : 0.4;
+    if (b.dart) { const d = b.dart, u = d.u; d.k += dt / 0.42;
+      if (d.k >= 1 || u.dead) b.dart = null;
+      else { const k = Math.sin(d.k * Math.PI), tx = u.x * S3 - x, tz = u.y * S3 - z; face = -Math.atan2(tz - pz, tx - px) + (d.k > 0.5 ? Math.PI : 0); px = lerp(px, tx, k * 0.92); pz = lerp(pz, tz, k * 0.92); py = lerp(py, 1.0, k); bank = 0;
+        if (!d.hit && d.k > 0.5) { d.hit = 1; sparks(u.x * S3, 1.0, u.y * S3, 4, c, 2.2, 0.08, 0.25, 1); } } }
+    b.m.position.set(px, py, pz); b.m.rotation.set(bank, face, 0); b.m.scale.setScalar(b.s * sc); b.wing.scale.y = Math.cos(t * 55 + b.ph);
+  }
+  if (v.queen) { const Q = v.queen, qa = t * 1.5, qr = 1.05 * out; Q.m.position.set(Math.cos(qa) * qr, 2.95 + Math.sin(t * 2.2) * 0.14 - (1 - out) * 1.4, Math.sin(qa) * qr); Q.m.rotation.set(-0.35, -qa - HP2, 0); Q.m.scale.setScalar(Q.s * sc); Q.wing.scale.y = Math.cos(t * 42); Q.hl.position.copy(Q.m.position); Q.hl.scale.setScalar(1.4 * sc); }
+  while (v.acc > 0.07) { v.acc -= 0.07; const b = v.bees[(Math.random() * v.bees.length) | 0], bp = b.m.position; FX.add.emit(x + bp.x, bp.y, z + bp.z, 0, -0.15, 0, 0.3, 0.07, 0.02, Math.random() < 0.3 ? '#ffffff' : c, 0.55, 0, 0); }
+  if (Math.random() < dt * 6) for (const h of G.heroes) { if (h.team !== a.team || h.dead || Math.hypot(h.x - a.x, h.y - a.y) > a.r) continue; FX.add.emit(h.x * S3 + (Math.random() - .5) * 0.5, 0.4, h.y * S3 + (Math.random() - .5) * 0.5, 0, 1.5, 0, 0.7, 0.12, 0.03, '#ffe9a8', 0.9, 0, 0); }       // honey for friends
+}
 function heroById(id) { for (const h of G.heroes) if (h.id === id) return h; return null; }
 
 /* sim effect events -> visuals */
@@ -787,6 +827,7 @@ function ingestFx() {
         if (e.ult) { pillar3(x, z, 0.75, 3.4, 0.6, c, 0.5); flash3(x, 1.0, z, 3.0, 0.35, c); decal3(GX.tex.rune, x, z, 1.7, 0.8, c, 0.8, { spin: 3, r0: 0.5 }); } break;
       case 'block': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; flash3(x, 1.0, z, 1.5, 0.16, c); ring3(x, z, 0.72, 0.98, 0.22, c, 0.95, true, 1.0); sparks(x, 1.1, z, 6, '#ffffff', 2.6, 0.12, 0.3, 1); text3(x, top + 0.8, z, e.all ? 'IMMUNE' : 'STEADY', c, false, 0.7); break; }
       case 'totem': totemFx(e, x, z, c); break;
+      case 'mood': if (e.id === mid) snd('ui'); break;       // a temper changed (what it looks like is the view's business: see moodExtras)
       case 'taunt': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; ring3(x, z, 1.0, 0.4, 0.3, TAUNT_C, 0.9, true, 0.1); flash3(x, top * 0.7, z, 1.6, 0.25, TAUNT_C); if (e.id === mid) { text3(x, top + 0.9, z, 'TAUNTED', '#ff8a6a', true, 1.0); if (!UI.hints.taunt && UI.state === 'play') { UI.hints.taunt = 1; hint('Taunted: until it ends, your hero can only go for whoever called it out.', 6); } } break; }       // called out: for the one it happens to, the word for it
       case 'flurry': deathMark(e.tgt, e.id, c, FLURRY_T); ring3(x, z, 1.5, 0.5, 0.3, c, 0.9, true, 0.1); glint3(x, 2.4, z, 1.3, 0.35, c); break;       // Death Mark has landed: the mark is on
       case 'flurryHit': { const last = e.n <= 0, a = (e.ang || 0) + (e.n - 1) * 0.9;       // one of the fast attacks: a cut across the marked hero, each from another side; the last one bursts
@@ -848,8 +889,9 @@ function projView(p) {
     case 'chain': add(FG.sphere, '#ffffff', 0.12, 0.12, 0.12); v.spin = add(FG.oct, c, 0.26, 0.26, 0.26); v.spin.material = fxMat(c, 0.6); g.add(halo(c, 1.5, 0.9)); v.chain = chainStrip(lite(c, 0.3), true); FX.group.add(v.chain); v.ts = 0.16; break;
     case 'orb': { add(FG.sphere, '#ffffff', 0.13, 0.13, 0.13); add(FG.sphere, c, 0.21, 0.21, 0.21).material = fxMat(c, 0.55); g.add(halo(c, 1.6, 0.9)); tail(1.4, 0.3, c, 0.6);
       v.spin = new THREE.Group(); for (const k of [-1, 1]) { const m = new THREE.Mesh(FG.sphere, glowMat('#ffffff')); m.scale.setScalar(0.05); m.position.set(0, k * 0.32, 0); v.spin.add(m); } g.add(v.spin); v.ts = 0.2; break; }
-    case 'swarm': { v.spin = new THREE.Group(); for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(FG.sphere, glowMat(i % 3 ? c : '#ffffff')), a = i / 6 * TAU; m.scale.set(0.09, 0.05, 0.05); m.position.set((i % 3 - 1) * 0.2, Math.cos(a) * 0.24, Math.sin(a) * 0.24); v.spin.add(m); }       // bees in a knot, turning about the line they fly
-      g.add(v.spin); add(FG.sphere, c, 0.2, 0.13, 0.13).material = fxMat(c, 0.4); g.add(halo(c, 1.7, 0.85)); tail(1.7, 0.36, c, 0.55); v.ts = 0.12; v.buzz = 1; break; }
+    case 'swarm': { v.sw = []; const pal = p.src && p.src.look ? p.src.look.bee : null;       // bees in a knot, a leader and those behind her, weaving about the line they fly
+      for (let i = 0; i < 7; i++) { const m = beeMesh(i ? 0.3 : 0.38, pal), a = i / 6 * TAU; g.add(m); v.sw.push({ m, wing: m.children[1], ox: i ? -0.2 - ((i * 0.37) % 1) * 0.6 : 0.26, a, r: i ? 0.24 + ((i * 0.61) % 1) * 0.18 : 0, ph: i * 1.3 }); }
+      g.add(halo(c, 1.5, 0.55)); tail(1.5, 0.3, c, 0.4); v.ts = 0.1; v.buzz = 1; break; }
     default: add(FG.sphere, shade(c, 0.4), 0.1, 0.1, 0.1); g.add(halo(c, 0.8, 0.8)); tail(0.7, 0.14, c, 0.5); v.ts = 0.12;
   }
   if (p.src && (p.src.kind === 'turret' || p.src.kind === 'crystal') && nearCam(p.src.x, p.src.y, 200)) { const y = p.src.kind === 'turret' ? 4.05 : 2.8; flash3(p.src.x * S3, y, p.src.y * S3, 2.2, 0.22, c); glint3(p.src.x * S3, y, p.src.y * S3, 1.6, 0.25, '#ffffff'); }
@@ -869,6 +911,7 @@ function syncProjs(dt) {
     const vis = V.team < 0 || p.team === V.team || nearCam(p.x, p.y, 0), px = p.x * S3, pz = p.y * S3;
     v.m.visible = vis; v.m.position.set(px, y, pz); v.m.rotation.y = -p.ang;
     if (v.grow) v.m.scale.setScalar(1 + (p.k || 0) * 1.1);
+    if (v.sw) { v.age = (v.age || 0) + dt; for (const b of v.sw) { const q = b.a + v.age * 7; b.m.position.set(b.ox + Math.sin(v.age * 9 + b.ph) * 0.05, Math.cos(q) * b.r, Math.sin(q) * b.r); b.m.rotation.set(Math.sin(v.age * 6 + b.ph) * 0.25, 0, 0); b.wing.scale.y = Math.cos(v.age * 55 + b.ph); } }
     if (v.spin) v.spin.rotation.x += dt * 26; if (v.spinY) v.spinY.rotation.y += dt * 34; if (v.cor) v.cor.material.rotation -= dt * 7;
     if (v.chain) { const s = p.src; v.chain.visible = vis; chainSet(v.chain, s.x * S3 + Math.cos(p.ang) * 0.4, s.y * S3 + Math.sin(p.ang) * 0.4, px, pz, 0.95, v.look === 'hook' ? 0.15 : 0.19); }
     if (!vis || !nearCam(p.x, p.y, 200)) continue;
@@ -915,10 +958,9 @@ function areaView(a) {
     else if (a.look === 'stars') { deco(GX.tex.rune, c); v.fill.material.opacity = 0.08; }
     else if (a.look === 'bramble') { deco(GX.tex.crack, hostile ? '#ff8a6a' : '#9fe05a', 1.0); v.fill.material.opacity = 0.07; }       // roots spreading under the ground
     else if (a.look === 'trap') { deco(GX.tex.mark, c, 0.8); v.trap = new THREE.Group(); v.trap.add(shared(new THREE.Mesh(FG.trap, GX.mat.trap))); for (const k of [-1, 1]) { const j = shared(new THREE.Mesh(FG.jaw, GX.mat.trap)); j.rotation.x = k * 1.45; v.trap.add(j); } v.trap.position.y = 0.06; v.trap.scale.setScalar(1.35); g.add(v.trap); v.lamp = shared(halo(c, 0.6, 0.9)); v.lamp.position.y = 0.25; g.add(v.lamp); }
-    else if (a.look === 'comb') { deco(GX.tex.comb, c, 1.0); v.fill.material.opacity = 0.06; }
+    else if (a.look === 'comb') { deco(GX.tex.comb, c, 1.0); v.fill.material.opacity = 0.06; hiveBees(v, a, g, r * 0.8, 3, 0.3, false); }       // (three bees about their business over it)
     else if (a.look === 'bronze') { deco(GX.tex.rings, c, 1.0); v.fill.material.opacity = 0.05; v.dome = new THREE.Mesh(FG.dome, fxMat(c, 0.1, { map: GX.tex.hex })); v.dome.scale.set(r, r * 0.42, r); v.dome.renderOrder = 4; g.add(v.dome); }       // the shield a side shares: a low dome over the ground it covers
-    else if (a.look === 'hive') { deco(GX.tex.swirl, lite(c, 0.25), 1.04); v.fill.material.opacity = 0.05; v.bees = [];       // the hive in the air about her: bees on their rounds, at every distance out to its reach
-      for (let i = 0; i < 16; i++) { const m = new THREE.Mesh(FG.sphere, fxMat(i % 3 ? c : '#ffffff', 0.95)); m.scale.set(0.12, 0.07, 0.07); g.add(m); v.bees.push({ m, r: r * (0.24 + 0.72 * ((i * 0.618) % 1)), y: 0.45 + ((i * 0.37) % 1) * 1.5, w: (1.5 + ((i * 0.29) % 1) * 1.9) * (i % 2 ? 1 : -1), ph: i * 2.4 }); } }
+    else if (a.look === 'hive') { deco(GX.tex.comb, lite(c, 0.25), 1.0); v.fill.material.opacity = 0.04; hiveBees(v, a, g, r, V.q < 1 ? 9 : 14, 0.36, !!a.q); }       // the hive in the air about her: bees on their rounds at every distance out to its reach, and (the Queen's Flight) the queen over her head
     else if (a.look === 'cyclone') { deco(GX.tex.swirl, lite(c, 0.3), 1.15); v.rings = []; for (let i = 0; i < 7; i++) { const q = new THREE.Mesh(new THREE.RingGeometry(0.87, 1, 24, 1, 0, 3.4).rotateX(-HP2), fxMat(i % 2 ? '#ffffff' : lite(c, 0.2), 0.3)); q.userData.ownGeo = 1; const k = r * (0.22 + i * 0.115); q.scale.set(k, 1, k); q.position.y = 0.15 + i * 0.4; g.add(q); v.rings.push(q); } }
     else if (a.look === 'spin') { v.fill.visible = false; v.rim.visible = false; deco(GX.tex.swirl, c, 1.05); v.rings = []; for (let i = 0; i < 4; i++) { const q = new THREE.Mesh(new THREE.RingGeometry(i % 2 ? 0.94 : 0.76, 1, 24, 1, (i >> 1) * Math.PI, 1.7).rotateX(-HP2), fxMat(i % 2 ? '#ffffff' : c, 0.5)); q.userData.ownGeo = 1; const k = r * (i < 2 ? 1 : 0.82); q.scale.set(k, 1, k); q.position.y = i < 2 ? 0.85 : 1.3; g.add(q); v.rings.push(q); } }
   }
@@ -947,14 +989,13 @@ function syncAreas(t, dt) {
       v.acc += dt;
       if (a.look === 'stars') { v.dec.material.opacity = 0.58 * fade; v.dec.rotation.y = t * 0.8; while (v.acc > 0.075) { v.acc -= 0.075; const q = Math.random() * TAU, d = Math.sqrt(Math.random()) * r * 0.92; starFall(x + Math.cos(q) * d, z + Math.sin(q) * d, Math.random() < 0.3 ? '#ffffff' : c); } if (Math.random() < dt * 16) { const q = Math.random() * TAU, d = Math.sqrt(Math.random()) * r; FX.add.emit(x + Math.cos(q) * d, 0.05, z + Math.sin(q) * d, 0, 1.4, 0, 0.7, 0.13, 0.03, c, 0.9, 0, 0); } }
       else if (a.look === 'comb') { v.dec.material.opacity = (0.46 + 0.1 * Math.sin(t * 3 + a.x)) * fade; v.dec.rotation.y = 0.3 + t * 0.1; v.fill.material.opacity = 0.06 * fade;
+        for (const b of v.bees) { const q = b.ph + t * b.w * 0.6; b.m.position.set(Math.cos(q) * b.r, 0.5 + (b.y - 0.5) * 0.35 + Math.sin(t * 4 + b.ph) * 0.1, Math.sin(q) * b.r); b.m.rotation.set(0, -q - (b.w > 0 ? HP2 : -HP2), 0); b.m.scale.setScalar(b.s * Math.min(1, fade * 1.2)); b.wing.scale.y = Math.cos(t * 50 + b.ph); }
         if (v.acc > 0.1) { v.acc = 0; const q = Math.random() * TAU, d = Math.sqrt(Math.random()) * r * 0.92; FX.add.emit(x + Math.cos(q) * d, 0.08, z + Math.sin(q) * d, 0, 0.8 + Math.random() * 0.6, 0, 0.9, 0.13, 0.03, Math.random() < 0.3 ? '#ffffff' : c, 0.9, 0, 0); } }
       else if (a.look === 'bronze') { const pf = a.pool ? clamp(a.pool.v / a.pool.v0, 0, 1) : 1;       // (it thins as it is worn down)
         v.dec.material.opacity = (0.12 + 0.16 * pf) * fade; v.dec.rotation.y = 0; { const q = r * 2 * (0.94 + 0.06 * Math.sin(t * 4)); v.dec.scale.set(q, 1, q); } v.fill.material.opacity = 0.05 * fade; v.rim.material.opacity = (0.45 + 0.5 * pf) * fade;
         v.dome.material.opacity = (0.03 + 0.08 * pf) * fade * (0.85 + 0.15 * Math.sin(t * 5)); v.dome.rotation.y = -t * 0.3;
         if (v.acc > 0.7) { v.acc = 0; ring3(x, z, r * 0.15, r * 0.97, 0.9, c, 0.22, true, 0.08); } }
-      else if (a.look === 'hive') { v.dec.material.opacity = 0.26 * fade; v.dec.rotation.y = -t * 1.7; v.fill.material.opacity = 0.05 * fade;
-        for (const b of v.bees) { const q = b.ph + t * b.w; b.m.position.set(Math.cos(q) * b.r, b.y + Math.sin(t * 5 + b.ph) * 0.2, Math.sin(q) * b.r); b.m.rotation.y = -q - (b.w > 0 ? HP2 : -HP2); b.m.material.opacity = 0.95 * fade; }
-        while (v.acc > 0.045) { v.acc -= 0.045; const b = v.bees[(Math.random() * v.bees.length) | 0], bp = b.m.position; FX.add.emit(x + bp.x, bp.y, z + bp.z, 0, 0, 0, 0.32, 0.1, 0.02, Math.random() < 0.25 ? '#ffffff' : c, 0.7, 0, 0); } }
+      else if (a.look === 'hive') { v.dec.material.opacity = 0.2 * fade; v.dec.rotation.y = -t * 0.45; v.fill.material.opacity = 0.04 * fade; hiveSync(v, a, t, dt, x, z, fade, c); }
       else if (a.look === 'cyclone') { v.dec.material.opacity = 0.42 * fade; v.dec.rotation.y = t * 7; v.rings.forEach((q, i) => { q.rotation.y = -t * (10 - i * 0.9) + i * 1.3; q.position.x = Math.sin(t * 3 + i * 0.8) * 0.05 * i; q.material.opacity = (i % 2 ? 0.26 : 0.36) * fade; });
         while (v.acc > 0.03) { v.acc -= 0.03; const q = Math.random() * TAU, d = r * (0.25 + Math.random() * 0.7); FX.add.emit(x + Math.cos(q) * d, 0.1 + Math.random() * 0.4, z + Math.sin(q) * d, -Math.sin(q) * 5, 2.6, Math.cos(q) * 5, 0.55, 0.16, 0.04, Math.random() < 0.5 ? '#ffffff' : c, 0.8, 0, 0.5); if (Math.random() < 0.25) FX.alpha.emit(x + Math.cos(q) * d, 0.1, z + Math.sin(q) * d, -Math.sin(q) * 4, 2.2, Math.cos(q) * 4, 0.6, 0.12, 0.08, '#b9a98a', 0.9, 3, 0.4); } }
       else if (a.look === 'spin') { v.dec.material.opacity = 0.55 * fade; v.dec.rotation.y = -t * 16; v.rings.forEach((q, i) => { q.rotation.y = -t * (i < 2 ? 21 : 17) + (i < 2 ? 0 : 1.2); q.material.opacity = (i % 2 ? 0.6 : 0.34) * fade; });

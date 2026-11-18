@@ -77,6 +77,8 @@ const ICONS = {
   cut1: `<path ${F} d="M3 19c7 0 15-6 16-15 2.5 9-4.5 18-16 15z"/>`,
   cut2: `<path ${F} opacity=".4" d="M3 19c7 0 15-6 16-15 2.5 9-4.5 18-16 15z"/><path ${F} d="M21 19c-7 0-15-6-16-15-2.5 9 4.5 18 16 15z"/>`,
   cut3: `<path ${F} d="M11.5 19.2l-5.600-7.400h3.500c.4-4.600 3-8 8.600-10.100-3.200 3.100-4.400 6.200-4.300 10.100h3.400z"/><path d="M2.500 21.500h19M4.500 17.500l-2-2M19.500 17.500l2-2"/>`,
+  heave: `<path ${F} d="M12 2.4l7 7.2h-4.4V15H9.4V9.6H5z"/><path d="M4.2 17.4c2.6 2.4 5.2 3.4 7.8 3.4s5.200-1 7.8-3.4"/>`,
+  inspire: `<path ${F} d="M12 2.2c1 3.600 4.400 5.400 4.400 10.200a4.400 4.400 0 0 1-8.800 0c0-1.600.6-2.800 1.500-3.800.3 1.500 1 2.300 1.900 2.600C10.400 8.200 10.800 5 12 2.200z"/><path d="M5.4 17.800l2.200-1.300M18.600 17.800l-2.200-1.300M12 19.400v2.600"/>`,
   gong: `<path d="M3 3h18M7.5 3l1.6 3.4M16.5 3l-1.6 3.4"/><circle ${F} cx="12" cy="13.6" r="7.9"/><circle cx="12" cy="13.6" r="3.5" stroke="#0d1b21" stroke-width="1.7"/>`,
   linked: `<path d="M2.6 16.5a9.4 9.4 0 0 1 18.8 0"/><circle ${F} cx="12" cy="13.6" r="2.7"/><circle ${F} cx="6.3" cy="17.3" r="2.1"/><circle ${F} cx="17.7" cy="17.3" r="2.1"/><path d="M2.6 21.4h18.8"/>`,
   lnExp: `<path ${F} d="M12 2.6l7.4 7.6h-4.6v4.6H9.2v-4.6H4.6z"/><path d="M7 18.2h10M9.2 21.6h5.6"/>`,
@@ -390,9 +392,11 @@ function skillButtons() {
 /* A passive with two tempers (Miel's hive: tending or stinging): which it is in is a badge on the portrait of the status plate. */
 function moodTag(h) {
   const ps = h && !h.dead ? h.def.passive : null, md = ps && ps.moods, k = md ? h.id * 4 + ps.mood(h) : -1; if (UI.last.mood === k) return; UI.last.mood = k;
-  const el = $('stMood'); el.hidden = k < 0; if (k < 0) return;
-  const m = md[k & 3]; el.style.setProperty('--c', heroLook(h.key, h.skin)[m.look] || ps.c); el.innerHTML = icon(m.ic); el.title = m.name; el.setAttribute('aria-label', ps.name + ': ' + m.name);
+  const el = $('stMood'), bt = $('bMd'), tg = k >= 0 && !!ps.toggle && G.kit >= 22 && h === G.player; el.hidden = k < 0; bt.hidden = !tg; if (k < 0) return;
+  const m = md[k & 3], c = heroLook(h.key, h.skin)[m.look] || ps.c; el.style.setProperty('--c', c); el.innerHTML = icon(m.ic); el.title = m.name; el.setAttribute('aria-label', ps.name + ': ' + m.name);
+  if (tg) { const o = md[1 - (k & 3)]; bt.style.setProperty('--c', c); bt.innerHTML = icon(m.ic) + '<span class="key">X</span>'; bt.setAttribute('aria-label', `${m.name}. Press to change to ${o.name}`); bt.title = `${m.name} (press for ${o.name})`; }
 }
+function doMood() { const me = G.player, ps = me && me.def.passive; if (UI.paused || UI.ended || !ps || !ps.toggle || G.kit < 22) return; if (!act(A_MOOD)) snd('deny'); }       // the temper of a passive that has two, changed
 function buildHud() {
   const me = G.player, d = me.def;
   $('stImg').src = portrait(me.key, me.skin);
@@ -458,6 +462,7 @@ function updateHud(dt) {
       const cl = canLevel(me, i) && !me.dead; if (UI.last['up' + i] !== cl) { UI.last['up' + i] = cl; $('u' + i).hidden = !cl; }
     }
   }
+  { const ib = me.dead ? null : hasBuff(me, 'inspire'), n = ib ? ib.n : 0; if (UI.last.insp !== n) { UI.last.insp = n; const b = $('bSp'); b.classList.toggle('live', n > 0); if (n > 0) b.dataset.n = n; else delete b.dataset.n; } }       // Inspire: the attacks it has left
   {       // the built-in heal, and what a stacking passive has gathered
     const b = $('bHl'), cd = me.healCd, p = cd > 0 ? clamp(cd / MEND.cd, 0, 1) : 0, pk = Math.round(p * 100), n = cd > 0 ? String(Math.ceil(cd)) : '';
     if (UI.last.hlp !== pk) { UI.last.hlp = pk; b.children[1].style.setProperty('--p', p.toFixed(3)); } if (UI.last.hln !== n) { UI.last.hln = n; b.children[2].textContent = n; }
@@ -487,6 +492,7 @@ function updateHud(dt) {
     if (can) { const it = ITEMS[nb], pr = itemPrice(me, nb); q.innerHTML = `<span class="ii">${icon(it.ic, it.c)}</span><span>${esc(it.name)}<br><small>${it.part ? 'Part' : pr < it.cost ? 'Forge' : 'Buy'} · ${pr}g</small></span>`; q.setAttribute('aria-label', `Buy ${it.name} for ${pr} gold`); }
     else if (wait) { const it = ITEMS[pk]; q.innerHTML = `<span class="ii">${icon(it.ic, it.c)}</span><span>${esc(it.name)}<br><small>${wait}</small></span>`; q.setAttribute('aria-label', `${it.name}, your priority: ${wait}. Opens the shop`); } }
   if (can && !UI.hints.buy && !(UI.hintT > 0)) { UI.hints.buy = 1; hint('You can afford ' + ITEMS[nb].name + (nb !== wantItem(me) ? ', a part of ' + ITEMS[wantItem(me)].name : '') + '. Tap the gold chip under your purse to buy it.', 7); }       // (said once, when nothing else is being said: the first thing a match says is where to go)
+  if (!UI.hints.mood && !(UI.hintT > 0) && G.t > 12 && !$('bMd').hidden) { UI.hints.mood = 1; hint(`${me.def.passive.name}: the temper is yours to choose. The round button above your ultimate (or the X key) changes between Tending, for stronger heals and shields, and Stinging, for stronger damage.`, 10); }       // (once a match, like the one above)
   // team portraits: health and respawn timers (enemy health only while they are in sight)
   for (const p of UI.tps) {
     const h = p.h, tx = h.dead ? String(Math.ceil(h.respawnT)) : '';
@@ -866,6 +872,7 @@ function bindInput() {
     if (k === 'b') { act(A_RECALL); return; }
     if (k === 'g') { doMend(); return; }
     if (k === 'z') { doItem(); return; }
+    if (k === 'x') { doMood(); return; }
     if (k === ' ') { e.preventDefault(); G.input.fresh = true; G.input.atkMode = 0; }
     if (k === 'c') { G.input.fresh = true; G.input.atkMode = 1; } if (k === 'v') { G.input.fresh = true; G.input.atkMode = 2; }
     if (k.startsWith('Arrow')) e.preventDefault();
@@ -947,6 +954,7 @@ function bindInput() {
   });
   for (let i = 0; i < 3; i++) $('u' + i).addEventListener('click', () => { if (UI.state === 'play' && act(A_LEVEL, i)) snd('level'); });
   $('bRc').addEventListener('click', () => { if (!UI.paused && !UI.ended) act(A_RECALL); });
+  $('bMd').addEventListener('click', doMood);
   $('bIt').addEventListener('click', doItem); $('bIt').addEventListener('mouseenter', () => { if (!UI.touch && UI.state === 'play') showItemTip(); }); $('bIt').addEventListener('mouseleave', () => { $('tip').hidden = true; });
   $('bHl').addEventListener('click', doMend); $('bHl').addEventListener('mouseenter', () => { if (!UI.touch && UI.state === 'play') showMendTip(); }); $('bHl').addEventListener('mouseleave', () => { $('tip').hidden = true; });
   // minimap peek
@@ -1381,7 +1389,7 @@ function pbJump(d) {       // the 15-second buttons and keys: presses in quick s
   B.want = clamp(from + d, 0, B.rec.t); B.wantT = 0.24; B.drag = -1; pbTipAt(B.want);
 }
 function pbWant(dt) { const B = UI.pb; if (B.want < 0) return; B.wantT -= dt; if (B.wantT > 0) return; const t = B.want; B.want = -1; $('pbTip').hidden = true; UI.last.pbp = -1; if (Math.abs(t - G.t) > 0.3 || B.seek) pbSeek(t); }
-const PB_ACT = { [A_MEND]: 'Heal', [A_RECALL]: 'Recalling', [A_SELL]: 'Sold an item' };
+const PB_ACT = { [A_MEND]: 'Heal', [A_RECALL]: 'Recalling', [A_SELL]: 'Sold an item', [A_MOOD]: 'Changed temper' };
 function pbDid() {       // what the player last did, for a moment, on his plate
   const d = G.pb.did, me = G.player; if (!d || !d.ok || G.t - d.t > 1.6) return '';
   if (d.k === A_CAST) return d.a === 3 ? SPELLS[me.spell].name : skDef(me, d.a).name;

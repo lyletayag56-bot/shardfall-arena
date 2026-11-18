@@ -158,6 +158,9 @@ body:not(.touch) #joy { display: none; }
 #bS2 { width: calc(var(--u) * 74); height: calc(var(--u) * 74); right: calc(var(--u) * 33); bottom: calc(var(--u) * 129); }
 #bSp { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 119); bottom: calc(var(--u) * 177); }
 #bRc { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 195); bottom: calc(var(--u) * 85); }
+#bMd { width: calc(var(--u) * 48); height: calc(var(--u) * 48); right: calc(var(--u) * 52); bottom: calc(var(--u) * 212); border-color: var(--c, var(--brass)); color: var(--c, var(--gold)); box-shadow: 0 0 10px var(--c, transparent), 0 4px 10px rgba(0,0,0,.55); }       /* the temper of a passive that has two: press to change it */
+#bSp.live { box-shadow: 0 0 0 3px #ff8a4a, 0 0 20px #ff8a4a, 0 4px 10px rgba(0,0,0,.55); }       /* Inspire running: how many of its attacks are left */
+#bSp.live::before { content: attr(data-n); position: absolute; right: -7px; top: -7px; min-width: 21px; height: 21px; padding: 0 5px; box-sizing: border-box; border-radius: 11px; background: #ff8a4a; color: #1a0a04; font: 700 15px/21px var(--f-display); text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.6); z-index: 2; }       /* (on the corner, clear of the cooldown number in the middle) */
 #bHl { width: calc(var(--u) * 54); height: calc(var(--u) * 54); right: calc(var(--u) * 192); bottom: calc(var(--u) * 148); border-color: #4fbf74; }
 #bHl.idle { filter: saturate(.45) brightness(.8); }
 /* the pressed item: only there while one is carried; lit, with its time left running round the rim, while it works */
@@ -619,6 +622,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
       <button class="rb" id="bHl" aria-label="Heal"></button>
       <button class="rb" id="bIt" aria-label="Use item" hidden></button>
       <button class="rb" id="bSp" aria-label="Battle spell"></button>
+      <button class="rb" id="bMd" aria-label="Change temper" hidden></button>
       <button class="rb" id="bS0" aria-label="Skill 1"></button>
       <button class="rb" id="bS1" aria-label="Skill 2"></button>
       <button class="rb ult" id="bS2" aria-label="Ultimate"></button>
@@ -665,10 +669,12 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
             <dt>Attack</dt><dd>Hold the red button, <kbd>Space</kbd> or the left mouse button, or right-click an enemy. The small buttons focus minions (<kbd>C</kbd>) or turrets (<kbd>V</kbd>).</dd>
             <dt>Skills</dt><dd>Tap to auto-aim, or drag a skill button to aim it and release. Keyboard: hold <kbd>Q</kbd> <kbd>E</kbd> <kbd>R</kbd>, aim with the mouse, release. <kbd>F</kbd> is your battle spell. When a skill button lights up with a white rim, it has a second cast waiting: press it again before the rim runs out. A press that comes a moment early is kept and goes off the instant it can, so combos chain.</dd>
             <dt>Chains</dt><dd>Kaela's first skill, Triple Cadence, is three presses of one button: a step and a cut, another, and then a leap that comes down on the ground and throws whoever is in front of her into the air for a moment, unable to act. Each press has 3 seconds to follow the last; the three dots on the button show how far along you are, the icon shows what the next press does, and the cooldown starts when the chain ends. Aim each cut on its own: drag the button, or just tap and she turns on the nearest enemy. Each step stops at the first enemy in her way, so she cuts from in front of them. Her ultimate, Bloodrage, puts wings of light on her back for as long as the rage lasts: when they gutter and fold, it is over.</dd>
+            <dt>Inspire</dt><dd>A battle spell for heroes who fight with basic attacks. For 5 seconds your next 8 basic attacks come 55% faster, and may go past the usual limit on attack speed; each ignores 8 Armor plus 1 for each of your levels and gives back 60 health plus 15% of your Attack and Magic. The spell button counts the attacks that are left. 75 seconds to cool.</dd>
             <dt>Lanes</dt><dd>Before a match, choose where you play under <b>Lane</b>: the <b>EXP Lane</b> (top, on your own), the <b>Jungle</b> (the creep camps between the lanes), the <b>Mid Lane</b>, the <b>Gold Lane</b> (bottom) or the <b>Roam</b> (beside the gold laner at first, then wherever the fight is). Every hero has a lane it is made for, marked with a gold dot, but any hero may take any lane, and each hero remembers the one you gave it. Your side's bots take the four places you leave, so the team is always whole. Taking the Jungle sets Retribution as your battle spell; you may change it back. At a table of friends each player chooses a lane the same way and everyone sees the choices; if two take the same lane, the table says which place then stays empty.</dd>
-            <dt>Taunt</dt><dd>Hesta, the Brazen Herald, strikes her gong with Brazen Call, and every enemy near her is taunted: for a second or so, marked with a red sign over the head, they can do nothing but walk at her and hit her with basic attacks. No skills, no spell, no recall, and the stick does nothing until it ends. What shrugs off a stun shrugs off a taunt. Every hero she taunts and every blow an enemy hero lands on her adds a Ring, shown as dots on her attack button; at four her next basic attack lets the gong out around her and shields her. Her ultimate, Stand as One, puts a single shield over her and every allied hero within its ring: whatever hits any of them comes off the same shield, so it is strongest for whoever is being hit hardest. Step out of the ring and you leave it.</dd>
-            <dt>Roles</dt><dd>Miel, the Amber Hivekeeper, can be played in two roles. Choose one under her name before the match: as a <b>Support</b> she goes to the bottom lane beside the carry and the shop recommends a build that keeps her team alive; as a <b>Mage</b> she holds the middle lane alone and the build is for damage. Your team's bots fill the other places around the one you take. Each of her skills does something for allies and something to enemies at once, and her passive follows the company she keeps: with an allied hero within reach of her she tends, and her heals and shields are 20% stronger (her bees turn pale and unhurried); with none near she stings, and her skills deal 20% more damage (they turn hot and quick). The badge on her portrait at the bottom of the screen says which: a heart while she tends, a sting while she stings. Bots play her in either role.</dd>
-            <dt>Stings</dt><dd>Miel's first skill, Stinger Flight, leaves a sting in every enemy it goes through, shown as a bright mote circling them. A sting lasts 8 seconds, hurts every second and slows a little. Hit the same enemy again before it runs out and there are two, then three at the most: each flight that lands adds one and starts the time of all of them again, and the damage and the slow are as many times over. Keeping the swarm on one enemy is where her damage is. A sting is not a blow: it does not interrupt a recall.</dd>
+            <dt>Taunt</dt><dd>Hesta, the Brazen Herald, strikes her gong with Brazen Call, and every enemy near her is taunted: marked with a red sign over the head, they can do nothing but walk at her and hit her with basic attacks. It holds 1.5 seconds at the skill's first level and 3.5 at its last. No skills, no spell, no recall, and the stick does nothing until it ends. What shrugs off a stun shrugs off a taunt. Every hero she taunts and every blow an enemy hero lands on her adds a Ring, shown as dots on her attack button; at four her next basic attack lets the gong out around her and shields her. Her ultimate, Stand as One, puts a single shield over her and every allied hero within its ring: whatever hits any of them comes off the same shield, so it is strongest for whoever is being hit hardest. Step out of the ring and you leave it.</dd>
+            <dt>Roles</dt><dd>Miel, the Amber Hivekeeper, can be played in two roles. Choose one under her name before the match: as a <b>Support</b> she goes to the bottom lane beside the carry and the shop recommends a build that keeps her team alive; as a <b>Mage</b> she holds the middle lane alone and the build is for damage. Your team's bots fill the other places around the one you take. Each of her skills does something for allies and something to enemies at once, and her passive has two tempers that you choose between: while she tends, her heals and shields are 20% stronger (the glow about her bees turns pale and they fly unhurried); while she stings, her skills deal 20% more damage (it turns hot and they fly quick). Change it with the small round button above the ultimate, or the X key; it then keeps for a second. A Support starts tending and a Mage stinging. The badge on her portrait says which she is in: a heart or a sting. Bots play her in either role and change temper by the company they keep.</dd>
+            <dt>Stings</dt><dd>Miel's first skill, Stinger Flight, leaves a sting in every enemy it goes through, shown as a bright mote circling them. A sting lasts 8 seconds, hurts every second and slows a little. Hit the same enemy again before it runs out and there are two, then three at the most: each flight that lands adds one and starts the time of all of them again, and the damage and the slow are as many times over. Keeping the swarm on one enemy is where her damage is. A sting is not a blow: it does not interrupt a recall. Her ultimate, Queen's Flight, opens with a burst that hurts and slows every enemy in reach, puts a sting in each and heals her allies at once; then the hive stays out around her for 6 seconds.</dd>
+            <dt>Charge and Heave</dt><dd>Bram's Shield Rush no longer stops at the first hero. He runs the whole way, and every enemy in his path is hurt and pushed along in front of the shield to where the charge ends. For 4 seconds after it the skill button is lit: cast again to heave the shield up, and enemies in front of him are hurt and thrown into the air for 1 second. The second cast costs nothing. What cannot be moved (a steady hero, the Shardlord) is hurt but stays where it is.</dd>
             <dt>Chat</dt><dd>In a match with other players the speech bubble under the minimap opens the chat: pick <b>Team</b> or <b>All</b>, then tap a ready-made line or <b>Type…</b> your own (on a keyboard: Enter for the team, Shift+Enter for everyone). <b>Mute</b> hides what the others say.</dd>
             <dt>Friends</dt><dd><b>Friends</b> opens a table that everyone who has this page open can join from their own Friends list. Each player picks a side, a hero and says they are ready; the host starts. All on one side is your team against bots; on both sides is friends against friends; bots fill the empty places. Inside Claude everyone must be signed in and have the page shared with them by name; on the open web anyone with the page can join, and a table has an invite link to send. Your own hero answers the stick at once; skills and attacks land a moment after the press, on every screen at the same time. The match cannot be paused, and if someone looks away for more than a few seconds a bot plays on for them.</dd>
             <dt>1v1</dt><dd><b>1v1</b> is one hero a side on the middle lane: two turrets, then the crystal, no jungle. Fight a bot of the level and hero you choose, or a friend at a 1v1 table. From the sixth minute the turrets and crystals take more and more damage, so it does not drag on.</dd>
@@ -739,7 +745,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-const SIM_ID = 'c575d909';
+const SIM_ID = '7bf6a433';
 const SITE_URL = "https://lyletayag56-bot.github.io/shardfall-arena/";
 const TURN_URL = "";
 'use strict';
@@ -974,7 +980,11 @@ const POS_KEYS = ['top', 'jungle', 'mid', 'carry', 'roam'], POS_SPARE = ['roam',
    none she stings: her skills hit STING_K times harder. Her comb stands COMB_T seconds and is COMB_R across; the hive flies HIVE_T
    seconds, HIVE_R around her. */
 const TEND_R = 600, TEND_K = 1.2, STING_K = 1.2, COMB_R = 250, COMB_T = 4, HIVE_R = 430, HIVE_T = 5;
-function tending(h) { for (const a of G.heroes) if (a !== h && a.team === h.team && !a.dead && hyp(a.x - h.x, a.y - h.y) <= TEND_R) return true; return false; }
+/* As of KIT_V 22 the temper is the player's to choose (h.sting, changed with toggleMood: a press of its own, A_MOOD); a bot still
+   goes by the company it is in, as everyone did before. HIVE_T2: how long the Queen's Flight lasts as of the same kit. */
+const HIVE_T2 = 6;
+function tendNear(h) { for (const a of G.heroes) if (a !== h && a.team === h.team && !a.dead && hyp(a.x - h.x, a.y - h.y) <= TEND_R) return true; return false; }
+function tending(h) { return G.kit >= 22 && h.isPlayer ? !h.sting : tendNear(h); }
 /* Her stings. Every enemy that Stinger Flight goes through keeps a sting for STING_T seconds: each second it takes stingDmg and it is
    STING_SLOW slower. A flight that hits a stung enemy adds another sting (STING_MAX at most) and starts the time of all of them
    again; the hurt and the slow are both as many times over as there are stings. (u.sg, on the stung: n stings until `until`, the
@@ -1003,10 +1013,18 @@ function stingTick(u) {       // (called for every stung unit, every step)
 }
 
 /* ---------------- battle spells ---------------- */
+/* Bram's Shield Rush as of KIT_V 22. RUSH_AGAIN: how long after the charge its second cast, Heave, can be made; HEAVE_R, HEAVE_A: how
+   far in front of him Heave reaches and how wide to either side (radians); HEAVE_T: how long it keeps them in the air. */
+const RUSH_AGAIN = 4, HEAVE_R = 270, HEAVE_A = 1.15, HEAVE_T = 1;
+/* Inspire: for INSPIRE_T seconds the next INSPIRE_N basic attacks are quicker (INSPIRE_AS times, and up to INSPIRE_CAP a second, past
+   the usual limit of 2.5), go through some armour and give back some health. */
+const INSPIRE_T = 5, INSPIRE_N = 8, INSPIRE_AS = 1.55, INSPIRE_CAP = 4.2;
+function inspirePen(h) { return 8 + h.level; }
+function inspireHeal(h) { return 60 + 0.15 * h.ad + 0.15 * h.ap; }
 /* Hesta's gong. CALL_R: how far Brazen Call reaches; POOL_R, POOL_T: the reach and the life of the shield her side shares; RING_MAX:
    how many Rings the gong holds before her next basic attack lets them out; PEAL_R: how far that peal carries. */
 const CALL_R = 300, POOL_R = 480, POOL_T = 5, RING_MAX = 4, PEAL_R = 300;
-function callT(lv) { return L(lv, 0.9, 0.1); }       // how long Brazen Call holds a hero
+function callT(lv, kit) { return kit < 22 ? L(lv, 0.9, 0.1) : L(lv, 1.5, 0.4); }       // how long Brazen Call holds a hero: 1.5 to 3.5s as of KIT_V 22 (0.9 to 1.4 before; a description gives no kit and says today's)
 function ringAdd(h) { if (h.dead) return; const n = h.pv.n || 0; if (n >= RING_MAX) return; h.pv.n = n + 1; if (n + 1 === RING_MAX) skfx(h, 'hestaR', h.x, h.y, {}); }
 function pealAmt(h) { return 40 + 0.05 * h.maxHp; }
 function peal(h) {       // the gong let out: a blow to everyone near her, and a shield for her of as much
@@ -1038,6 +1056,11 @@ const SPELLS = {
       skfx(h, 'spE', t.x, t.y, { c: '#ff5d5d' });
       dmg(h, t, executeDmg(h, t), 'true', { skill: true, noVamp: true });
     },
+  },
+  inspire: {
+    name: 'Inspire', ic: 'inspire', c: '#ff8a4a', cd: 75, cast: 'self', ind: { t: 'self', r: 0 },
+    desc: `For ${INSPIRE_T} seconds your next ${INSPIRE_N} basic attacks come 55% faster, past the usual limit on attack speed. Each one ignores 8 (+1 per level) of the target's Armor and restores 60 (+15% Attack, +15% Magic) health.`,
+    fn(h) { addBuff(h, { k: 'inspire', t: INSPIRE_T, n: INSPIRE_N, asMul: INSPIRE_AS, asCap: INSPIRE_CAP, aura: '#ff8a4a' }); skfx(h, 'spI', h.x, h.y, { c: '#ff8a4a' }); },
   },
   retribution: {
     name: 'Retribution', ic: 'smite', c: '#f2c14e', cd: 35, range: 480, cast: 'point', ind: { t: 'circle', r: 120 },
@@ -1073,17 +1096,36 @@ const HEROES = {
     name: 'Bram', title: 'Oathbound Warden', cls: 'Tank', spell: 'aegis', melee: true, rate: [9, 4, 7, 5],
     look: { body: '#5f7387', trim: '#e0b04a', skin: '#e2b792', hair: '#4a3323', hat: 'helm', weapon: 'shield', cape: '#31506e' },
     skills: [
+      /* As of KIT_V 22 the charge no longer stops at the first hero: it sweeps everything in its way along to where it ends (each one
+         is carried the rest of the way from where it was met, at the pace of the charge), and for RUSH_AGAIN seconds the skill has a
+         second cast, Heave, that throws whatever is in front of him into the air. Before, it stunned the first hero it struck. */
       { name: 'Shield Rush', ic: 'dash', c: '#e0b04a', max: 6, cd: [9, 7], cost: [60, 85], range: 440, cast: 'dir', noRoot: true,
-        ind: { t: 'line', w: 110 }, ai: { t: 'gap', esc: true },
-        desc: lv => `Charge forward. The first enemy hero struck takes ${L(lv, 220, 50)} (+60% Attack) damage and is stunned for 0.8s.`,
+        ind: { t: 'line', w: 120 }, ai: { t: 'gap', esc: true, thru22: true },
+        desc: lv => `Charge forward behind the shield. Every enemy in the way takes ${L(lv, 130, 30)} (+40% Attack) damage and is pushed along to the end of the charge. Within ${RUSH_AGAIN}s cast again to heave the shield up: enemies in front of you take ${L(lv, 140, 30)} (+40% Attack) damage and are thrown into the air for ${HEAVE_T}s.`,
         fn(h, lv, tx, ty, ang) {
           skfx(h, 'bram0', h.x, h.y, { ang });
-          startDash(h, ang, 440, 1150, { w: 70, stopOnHero: true, hit(e) {
-            dmg(h, e, L(lv, 220, 50) + 0.6 * h.ad, 'phys', { skill: true });
-            if (e.kind === 'hero') stun(e, 0.8); else slow(e, 0.4, 1);
-            skfx(h, 'bram0h', e.x, e.y, { ang });
+          if (G.kit < 22) {
+            startDash(h, ang, 440, 1150, { w: 70, stopOnHero: true, hit(e) {
+              dmg(h, e, L(lv, 220, 50) + 0.6 * h.ad, 'phys', { skill: true });
+              if (e.kind === 'hero') stun(e, 0.8); else slow(e, 0.4, 1);
+              skfx(h, 'bram0h', e.x, e.y, { ang });
+            } });
+            return;
+          }
+          const c = fcos(ang), s = fsin(ang);
+          startDash(h, ang, 440, 1150, { w: 80, hit(e) {
+            dmg(h, e, L(lv, 130, 30) + 0.4 * h.ad, 'phys', { skill: true });
+            const left = h.dash ? h.dash.left : 0; if (!e.dead && !e.epic && left > 8) pullTo(e, e.x + c * left, e.y + s * left, left / 1150);       // swept along: the rest of the way, at his pace
+            skfx(h, 'bram0h', e.x, e.y, { ang, push: 1 });
           } });
-        } },
+          h.re[0] = { until: G.t + RUSH_AGAIN + 0.4 };       // (the charge itself takes 0.4s of it)
+        },
+        two: { name: 'Heave', ic: 'heave', cast: 'dir', range: HEAVE_R, noRoot: false, ind: { t: 'cone', a: HEAVE_A }, ai: { t: 'heave', r: HEAVE_R },
+          desc: lv => `Heave the shield up: enemies in front of you take ${L(lv, 140, 30)} (+40% Attack) damage and are thrown into the air for ${HEAVE_T}s.`,
+          fn(h, lv, tx, ty, ang) {
+            skfx(h, 'bram0u', h.x, h.y, { ang, r: HEAVE_R });
+            for (const e of enemiesInCone(h.team, h.x, h.y, HEAVE_R, ang, HEAVE_A)) { dmg(h, e, L(lv, 140, 30) + 0.4 * h.ad, 'phys', { skill: true }); if (!e.dead) knockUp(e, HEAVE_T, 170); }
+          } } },
       { name: 'Bulwark', ic: 'shield', c: '#9db8d8', max: 6, cd: [11, 8.5], cost: [70, 95], cast: 'self',
         ind: { t: 'self', r: 320 }, ai: { t: 'shield', r: 320 },
         desc: lv => `Gain a shield of ${L(lv, 300, 70)} (+8% max HP) for 3.5s. Nearby enemies take ${L(lv, 120, 35)} (+40% Attack) magic damage and are slowed 35% for 2s.`,
@@ -1515,7 +1557,7 @@ const HEROES = {
     name: 'Miel', title: 'Amber Hivekeeper', cls: 'Support', cls2: 'Mage', spell: 'flicker', melee: false, rate: [4, 7, 5, 3],
     roles: [{ cls: 'Support', pos: 'roam', does: 'Keeps the carry alive in the bottom lane and follows the fights.' }, { cls: 'Mage', pos: 'mid', does: 'Holds the middle lane alone and stings whoever comes into reach.' }],
     base: { hp: 2460, hpG: 160, mp: 520, mpG: 45, ad: 104, adG: 5.0, armor: 17, armorG: 2.7, mr: 11, mrG: 1.6, as: 0.80, asG: 1.0, range: 530, ms: 250, hpRegen: 6.5, mpRegen: 4.3 },
-    look: { body: '#f1e6c8', trim: '#e9a21f', skin: '#edc9a4', hair: '#4a2f1c', hat: 'veil', weapon: 'skep', cape: '#8a5a1c', glow: '#ffc94a', band: '#3a2a1a', straw: '#d9a441', pants: '#6a4a26', boot: '#3a2a1a', tend: '#fff0b0', sting: '#ff6a2a' },
+    look: { body: '#f1e6c8', trim: '#e9a21f', skin: '#edc9a4', hair: '#4a2f1c', hat: 'veil', weapon: 'skep', cape: '#8a5a1c', glow: '#ffc94a', band: '#3a2a1a', straw: '#d9a441', pants: '#6a4a26', boot: '#3a2a1a', tend: '#fff0b0', sting: '#ff6a2a', bee: ['#ffc233', '#2a1a0e'] },       // (bee: the colours of her bees, body and bands)
     skills: [
       { name: 'Stinger Flight', ic: 'sting', c: '#ffb52e', max: 6, cd: [7.5, 5.5], cost: [65, 90], range: 880, cast: 'dir',
         ind: { t: 'line', w: 100 }, ai: { t: 'line', speed: 1500, wave: true },
@@ -1540,13 +1582,26 @@ const HEROES = {
         } },
       { name: "Queen's Flight", ic: 'crown', c: '#ff9a2e', max: 3, cd: [50, 40], cost: [140, 180], cast: 'self', ult: true,
         ind: { t: 'self', r: HIVE_R }, ai: { t: 'self', r: HIVE_R, ult: true, mend: true },
-        desc: lv => `The whole hive takes wing around you for ${HIVE_T}s and you move 20% faster. Every 0.5s enemies within reach take ${L(lv, 50, 26)} (+15% Magic) damage and are slowed 20%, and allied heroes within reach, you among them, regain ${L(lv, 32, 15)} (+8% Magic) health.`,
+        desc: lv => `The queen leads the whole hive out around you for ${HIVE_T2}s and you move 25% faster. As it bursts out, enemies within reach take ${L(lv, 100, 55)} (+30% Magic) damage, are slowed 40% for 1.5s and keep a sting, and allied heroes within reach, you among them, regain ${L(lv, 50, 30)} (+12% Magic) health. Then every 0.5s enemies within reach take ${L(lv, 50, 26)} (+15% Magic) damage and are slowed 25%, and allies regain ${L(lv, 32, 15)} (+8% Magic) health.`,
         fn(h, lv) {
-          addBuff(h, { k: 'hive', t: HIVE_T, msMul: 1.2 });
-          skfx(h, 'miel2', h.x, h.y, { r: HIVE_R, dur: HIVE_T });
-          zone(h, h.x, h.y, { dur: HIVE_T, r: HIVE_R, tick: 0.5, follow: h, look: 'hive', c: '#ff9a2e', ci: 2,
-            hit(e) { dmg(h, e, L(lv, 50, 26) + 0.15 * h.ap, 'magic', { skill: true }); slow(e, 0.2, 0.7); },
-            each(a) { for (const p of alliesIn(h.team, a.x, a.y, a.r)) heal(h, p, L(lv, 32, 15) + 0.08 * h.ap); } });
+          if (G.kit < 22) {       // as it was: five seconds of the hive about her, and no more
+            addBuff(h, { k: 'hive', t: HIVE_T, msMul: 1.2 });
+            skfx(h, 'miel2', h.x, h.y, { r: HIVE_R, dur: HIVE_T });
+            zone(h, h.x, h.y, { dur: HIVE_T, r: HIVE_R, tick: 0.5, follow: h, look: 'hive', c: '#ff9a2e', ci: 2,
+              hit(e) { dmg(h, e, L(lv, 50, 26) + 0.15 * h.ap, 'magic', { skill: true }); slow(e, 0.2, 0.7); },
+              each(a) { for (const p of alliesIn(h.team, a.x, a.y, a.r)) heal(h, p, L(lv, 32, 15) + 0.08 * h.ap); } });
+            return;
+          }
+          addBuff(h, { k: 'hive', t: HIVE_T2, msMul: 1.25 });
+          skfx(h, 'miel2', h.x, h.y, { r: HIVE_R, dur: HIVE_T2, q: 1 });
+          for (const e of enemiesIn(h.team, h.x, h.y, HIVE_R)) {       // the burst: a blow, a slow and a sting for everyone in reach
+            dmg(h, e, L(lv, 100, 55) + 0.3 * h.ap, 'magic', { skill: true });
+            if (!e.dead) { slow(e, 0.4, 1.5); sting(h, e, Math.max(1, h.sk[0])); skfx(h, 'miel2h', e.x, e.y, { tid: e.id }); }
+          }
+          for (const p of alliesIn(h.team, h.x, h.y, HIVE_R)) { heal(h, p, L(lv, 50, 30) + 0.12 * h.ap); if (p !== h) skfx(h, 'miel0a', p.x, p.y, { tid: p.id }); }
+          zone(h, h.x, h.y, { dur: HIVE_T2, r: HIVE_R, tick: 0.5, follow: h, look: 'hive', c: '#ff9a2e', ci: 2,
+            hit(e) { dmg(h, e, L(lv, 50, 26) + 0.15 * h.ap, 'magic', { skill: true }); slow(e, 0.25, 0.7); },
+            each(a) { for (const p of alliesIn(h.team, a.x, a.y, a.r)) heal(h, p, L(lv, 32, 15) + 0.08 * h.ap); } }).q = 1;       // (q: the queen is out, for the eye)
         } },
     ],
   },
@@ -1571,7 +1626,7 @@ const HEROES = {
           addBuff(h, { k: 'brazen', t: 3, armor: L(lv, 24, 6), mr: L(lv, 24, 6) });
           for (const e of enemiesIn(h.team, h.x, h.y, CALL_R)) {
             dmg(h, e, L(lv, 100, 28) + 0.4 * h.ad, 'magic', { skill: true });
-            if (!e.dead && taunt(e, h, callT(lv)) && e.kind === 'hero') { ringAdd(h); if (pts.length < 16) pts.push(e.x, e.y); }
+            if (!e.dead && taunt(e, h, callT(lv, G.kit)) && e.kind === 'hero') { ringAdd(h); if (pts.length < 16) pts.push(e.x, e.y); }
           }
           skfx(h, 'hesta1', h.x, h.y, { r: CALL_R, pts });
         } },
@@ -1642,8 +1697,8 @@ const PASSIVES = {
     desc: 'Her heals are 25% stronger on allies below 40% HP, and allies she heals gain 15% Move Speed for 2s.',
     healMul(h, t) { return t.hp < t.maxHp * 0.4 ? 1.25 : 1; },
     healed(h, t) { if (t !== h) addBuff(t, { k: 'grace', t: 2, msMul: 1.15 }); } },
-  miel: { name: 'Tend and Sting', ic: 'bee', c: '#ffc94a',
-    desc: 'The hive has two tempers. With an allied hero within reach of her she tends: her heals and shields are 20% stronger. With none near she stings: her skills deal 20% more damage.',
+  miel: { name: 'Tend and Sting', ic: 'bee', c: '#ffc94a', toggle: true,       // (toggle: the temper is changed by a press of its own, see toggleMood)
+    desc: 'The hive has two tempers, and which it is in is yours to choose. Tending: her heals and shields are 20% stronger. Stinging: her skills deal 20% more damage. Change it with the temper button at any time; it then keeps for a second before it can change again.',
     moods: [{ name: 'Tending', ic: 'heart', look: 'tend' }, { name: 'Stinging', ic: 'sting', look: 'sting' }], mood(h) { return tending(h) ? 0 : 1; },       // (which of the two she is in: for the view to show)
     healMul(h) { return tending(h) ? TEND_K : 1; },
     dmgMul(h, t, f) { return f.skill && !tending(h) ? STING_K : 1; } },
@@ -1781,9 +1836,9 @@ const SKINS = {
   ],
   miel: [
     { name: 'Amber Hivekeeper' },
-    { name: 'Royal Jelly', look: { body: '#3a2456', trim: '#ffd76a', hair: '#f1e4ff', hat: 'tiara', cape: '#241238', glow: '#d59bff', band: '#ffd76a', straw: '#8a5fd0', veil: '#d9c2f5', glove: '#5a3f86', wood: '#4a3470', pants: '#2a1a40', boot: '#1c1030', tend: '#f1e4ff', sting: '#ff6ad0' },
+    { name: 'Royal Jelly', look: { body: '#3a2456', trim: '#ffd76a', hair: '#f1e4ff', hat: 'tiara', cape: '#241238', glow: '#d59bff', band: '#ffd76a', straw: '#8a5fd0', veil: '#d9c2f5', glove: '#5a3f86', wood: '#4a3470', pants: '#2a1a40', boot: '#1c1030', tend: '#f1e4ff', sting: '#ff6ad0', bee: ['#ffd76a', '#4a2a7a'] },
       sk: ['#c98cff', '#ffd76a', '#ff8fe0'], aura: '#d59bff' },
-    { name: 'Frost Apiary', look: { body: '#e6f3fa', trim: '#6fc3e8', hair: '#dfeaf2', cape: '#2f6f96', glow: '#aee9ff', band: '#2f6f96', straw: '#cfe9f5', veil: '#f4fbff', glove: '#7fa9c0', wood: '#5c7f96', pants: '#5c8298', boot: '#35586c', tend: '#e8fbff', sting: '#4fa8ff' },
+    { name: 'Frost Apiary', look: { body: '#e6f3fa', trim: '#6fc3e8', hair: '#dfeaf2', cape: '#2f6f96', glow: '#aee9ff', band: '#2f6f96', straw: '#cfe9f5', veil: '#f4fbff', glove: '#7fa9c0', wood: '#5c7f96', pants: '#5c8298', boot: '#35586c', tend: '#e8fbff', sting: '#4fa8ff', bee: ['#e6f6ff', '#2f6f96'] },
       sk: ['#8fe0ff', '#dff6ff', '#6fb8ff'], aura: '#aee9ff' },
   ],
   hesta: [
@@ -1798,7 +1853,7 @@ const _looks = {};
 function heroLook(key, skin) { const k = key + (skin | 0); return _looks[k] || (_looks[k] = Object.assign({}, HEROES[key].look, (SKINS[key][skin | 0] || {}).look)); }
 function skinColor(key, skin, i) { const s = SKINS[key][skin | 0]; return (s && s.sk && s.sk[i]) || HEROES[key].skills[i].c; }
 /* distinct cast sounds per skill (0 = default) */
-const SKILL_SND = { bram: ['whoosh', 'guard', 0], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
+const SKILL_SND = { bram: ['whoosh', 'guard', 0, 'slam'], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
   lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'] };
 for (const k of HERO_KEYS) HEROES[k].passive = PASSIVES[k];
 for (const k of HERO_KEYS) {
@@ -1807,12 +1862,16 @@ for (const k of HERO_KEYS) {
   d.skills.forEach((s, i) => { s.snd = SKILL_SND[k][i] || null; if (s.three) s.three = Object.assign({}, s, s.three, { two: null, three: null, stage: 3, snd: SKILL_SND[k][i + 9] || s.snd }); if (s.two) s.two = Object.assign({}, s, s.two, { two: null, three: null, stage: 2, snd: SKILL_SND[k][i + 3] || s.snd }); if (s.alt) s.alt = Object.assign({}, s, s.alt, { alt: null, two: null, form: 1, snd: SKILL_SND[k][i + 6] || s.snd }); });
 }
 
+/* These two numbers as they stood for every hero up to KIT_V 21. They are read off the skills as written, so rewriting a skill moves
+   them; a match of an older kit is played by the numbers its bots went by then (defMagic, defCc). */
+const DEF_21 = { bram: [0.2222222222222222, 2], thorn: [0.6666666666666666, 2], kaela: [0, 3], rook: [0, 0], vex: [0, 0], tavi: [0, 0], kiri: [1, 1], lyra: [1, 2], zephyr: [1, 1], orin: [0, 2], mira: [0, 1], sera: [1, 1], miel: [1, 0], hesta: [0.2857142857142857, 1] };
 /* What each hero is to play against, worked out from its own skills: magic is the share of its damage that is magic (0..1), ccN how
    many of its skills stun, root, pull or throw. The bots read these when they choose what to buy. */
 for (const k of HERO_KEYS) {
   const d = HEROES[k], caster = d.cls === 'Mage' || d.cls === 'Support'; let m = 0, p = caster ? 0 : 1.5, cc = 0;
   for (const s of d.skills) for (const q of [s, s.two, s.three, s.alt]) { if (!q) continue; const src = String(q.fn); m += (src.match(/'magic'/g) || []).length; p += (src.match(/'phys'/g) || []).length; if (/stun|root|pull|into the air|knock|taunt/i.test(q.desc(1))) cc++; }
   d.magic = m + p > 0 ? m / (m + p) : caster ? 1 : 0; if (caster && d.magic < 0.6) d.magic = 0.6; d.ccN = cc;
+  { const q = DEF_21[k]; d.magic21 = q ? q[0] : d.magic; d.ccN21 = q ? q[1] : d.ccN; }
 }
 /* difficulty presets for bots */
 const DIFFS = [
@@ -2247,6 +2306,7 @@ function newGame(opts) {
       const sk = r.player ? (opts.player.skin | 0) : r.seat != null ? Math.min(r.skin, SKINS[r.key].length - 1) : opts.skins === false ? 0 : (G.seed0 + i * 7 + team * 3 + r.key.length) % SKINS[r.key].length;
       const h = makeHero(r.key, team, sp.x + fcos(a) * 90, sp.y + fsin(a) * 90, sk);
       h.pos = r.pos; if (h.def.roles) { const ro = h.def.roles[r.role | 0]; h.role = r.role | 0; h.cls = ro.cls; h.bld = ro.build; }
+      h.sting = h.cls === 'Mage';       // (a temper to begin in, for a hero who has one: a mage's is to sting)
       const d = opts.diffs ? opts.diffs[team] : team === BLUE && opts.player ? 1 : G.diff;       // (diffs: a difficulty for each side)
       if (r.player) { h.isPlayer = true; h.inp = G.input; h.spell = r.spell || h.def.spell; G.player = h; }
       else if (r.seat != null) { h.isPlayer = true; h.inp = newInput(); h.seat = r.seat; if (r.name) h.name = r.name; h.spell = SPELLS[r.spell] ? r.spell : h.def.spell; h.botDiff = d; G.humans[r.seat] = h; }       // (botDiff: how the bot plays that takes this hero over if its player goes)
@@ -2298,8 +2358,9 @@ function recalcItems(h) {
 }
 function recalc(h) {
   const b = h.def.base, l = h.level - 1, it = h.itemStats;
-  let ad = 0, ap = 0, as = 0, armor = 0, mr = 0, ls = 0, range = 0, cdr = 0, slowMul = 1, haste = 0, noSlow = false, mpR = 0;
+  let ad = 0, ap = 0, as = 0, armor = 0, mr = 0, ls = 0, range = 0, cdr = 0, slowMul = 1, haste = 0, noSlow = false, mpR = 0, asK = 1, asCap = 2.5;       // (asK, asCap: Inspire's)
   for (const f of h.buffs) {
+    if (f.asMul) { asK *= f.asMul; if (f.asCap > asCap) asCap = f.asCap; }
     if (f.ad) ad += f.ad; if (f.ap) ap += f.ap; if (f.as) as += f.as; if (f.armor) armor += f.armor; if (f.mr) mr += f.mr;
     if (f.ls) ls += f.ls; if (f.range) range += f.range; if (f.cdr) cdr += f.cdr; if (f.mpR) mpR += f.mpR;
     if (f.msMul) { if (f.msMul < 1) slowMul = Math.min(slowMul, f.msMul); else haste += f.msMul - 1; }
@@ -2314,7 +2375,7 @@ function recalc(h) {
   h.armor = b.armor + b.armorG * l + (it.armor || 0) + armor + (fm0 ? fm0.tough : 0);
   h.mr = b.mr + b.mrG * l + (it.mr || 0) + mr + (fm0 ? fm0.tough : 0);
   const fm = h.form && h.def.forms ? h.def.forms : null;       // the second form fights hand to hand
-  h.asp = Math.min(2.5, b.as * (1 + (b.asG * l + (it.as || 0) + as + (fm ? fm.as : 0)) / 100));
+  h.asp = Math.min(asCap, b.as * (1 + (b.asG * l + (it.as || 0) + as + (fm ? fm.as : 0)) / 100) * asK);
   h.range = (fm ? fm.range : b.range) + range; h.melee = fm ? true : !!h.def.melee;
   h.crit = (it.crit || 0) / 100; h.critDmg = h.has.reaver ? 2.2 : 1.85; h.ls = ((it.ls || 0) + ls) / 100; h.sv = (it.sv || 0) / 100;
   h.cdr = Math.min(0.4, ((it.cdr || 0) + cdr) / 100);
@@ -2529,7 +2590,7 @@ function dmg(src, tgt, amt, type, f) {
   const structure = tgt.kind === 'turret' || tgt.kind === 'crystal';
   if (structure && !f.basic) return 0;
   let a = amt;
-  if (type === 'phys') { let ar = tgt.armor; if (src) ar = ar * (1 - (src.ppenP || 0)) - (src.ppen || 0); a *= 100 / (100 + Math.max(0, ar)); }
+  if (type === 'phys') { let ar = tgt.armor; if (src) ar = ar * (1 - (src.ppenP || 0)) - (src.ppen || 0); if (f.pen) ar -= f.pen; a *= 100 / (100 + Math.max(0, ar)); }       // (pen: armour this one blow goes through: Inspire's)
   else if (type === 'magic') { let mr = tgt.mr; if (src) mr = mr * (1 - (src.mpenP || 0)) - (src.mpen || 0); a *= 100 / (100 + Math.max(0, mr)); const im = immuneOf(tgt); if (im && im.mres) a *= 1 - im.mres; }
   if (structure && src && minionsNear(src.team, tgt.x, tgt.y, tgt.range + 60) === 0) a *= 0.4;         // backdoor protection
   if (structure && src) { tgt.hitBy = src; tgt.hitT = G.t; }
@@ -2925,9 +2986,11 @@ function fireBasic(u, t) {
     if (u.has.quickblade) { u.pv.qb = (u.pv.qb || 0) + 1; if (u.pv.qb % 4 === 0) { ctx.amt *= 1.8; ctx.big = true; } }
     amt = ctx.amt; if (ctx.big) crit = crit || 'big';
   }
+  const insp = u.kind === 'hero' ? hasBuff(u, 'inspire') : null, fl = { basic: true, crit: crit === true }; let inspH = 0;       // Inspire: this is one of its attacks
+  if (insp && insp.n > 0) { fl.pen = inspirePen(u); inspH = inspireHeal(u); if (--insp.n <= 0) insp.t = 0; }
   const apply = tgt => {
     if (tgt.dead) return;
-    dmg(u, tgt, amt, type, { basic: true, crit: crit === true });
+    dmg(u, tgt, amt, type, fl); if (inspH > 0 && !u.dead) heal(u, u, inspH);
     if (ctx && ctx.after) ctx.after(tgt, amt);
     if (ctx) { if (ctx.magic > 0 && !tgt.dead) dmg(u, tgt, ctx.magic, 'magic', { noVamp: true }); if (ctx.heal > 0 && !u.dead) heal(u, u, ctx.heal); if (ctx.slow && !tgt.dead) slow(tgt, ctx.slow[0], ctx.slow[1]); if (ctx.mark && !tgt.dead) useMark(u, tgt); }
     if (u.kind === 'hero' && !tgt.dead && hasBuff(u, 'crimson') && !structure) { dmg(u, tgt, 18 + 5 * u.level, 'true', { noVamp: true, n: 'Crimson buff', ic: 'rage' }); slow(tgt, u.melee ? 0.2 : 0.1, 1); }
@@ -3047,6 +3110,11 @@ function tickMonster(m, dt) {
 }
 
 /* ---------------- heroes ---------------- */
+/* A passive with two tempers that its player chooses between (Miel's hive, as of KIT_V 22): the press that changes it. It can be
+   made whatever else the hero is doing; the temper then keeps for MOOD_GAP seconds before it can be changed again. */
+const MOOD_GAP = 1;
+function canMood(h) { const ps = h.def.passive; return !!(ps && ps.toggle) && G.kit >= 22 && !h.dead && !(h.reviveT > 0) && !G.over && !(G.t < (h.moodT || 0)); }
+function toggleMood(h) { if (!canMood(h)) return false; h.sting = !h.sting; h.moodT = G.t + MOOD_GAP; fx('mood', h.x, h.y, { id: h.id, m: h.sting ? 1 : 0 }); return true; }
 function startRecall(h) { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap) return false; h.recallT = 6; h.atkTarget = null; h.windT = 0; fx('recall', h.x, h.y, { id: h.id }); return true; }
 /* the second cast skill i is waiting for, if any: within its window, after whatever had to land first, and not while a refreshed
    skill is to be thrown again before its follow-up (more) */
@@ -3392,11 +3460,11 @@ function step(dt) {
    A finished recording: { v, sim, opts: { seed, diff, player }, steps, t, dt, ev, chk, marks, over, winner }.
    pb (while playing one): rec, i: the step to run next, e: read position in ev, next: the step the next event belongs to. */
 const DT_Q = 7200, DU_MAX = 240, MOVE_NONE = 65535, REC_V = 1, ROSTER_0 = 12;
-const KIT_V = 21, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it.
-const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8;
+const KIT_V = 22, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer.
+const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8, A_MOOD = 9;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }
@@ -3453,6 +3521,7 @@ function actFor(h, k, a, b, c) {
     case A_RECALL: return startRecall(h);
     case A_BUY: return buyItem(h, a);
     case A_SELL: return sellItem(h, a);
+    case A_MOOD: return toggleMood(h);
   }
   return false;
 }
@@ -3474,6 +3543,7 @@ function actCan(h, k, a) {       // would this go through if it were done now? (
     case A_RECALL: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap);
     case A_BUY: return canBuy(h, a);
     case A_SELL: return !!h.items[a];
+    case A_MOOD: return canMood(h);
   }
   return false;
 }
@@ -3855,17 +3925,18 @@ function aiDanger(h) {
    magic, armour against one that does not, the boots to match; a piece of safety for a carry once someone over there is fed; armour
    or resist piercing moved up when they have two or more heroes who are hard to bring down; and the Ironwill Totem only when they have
    the crowd control to make it worth pressing. What is already in the bag (or begun) is never thrown over. */
+const defMagic = d => G.kit >= 22 ? d.magic : d.magic21, defCc = d => G.kit >= 22 ? d.ccN : d.ccN21;       // what a hero is to play against, by the kit of the match
 function aiBuild(h) {
   const base = (h.bld || h.def.build).slice(), cls = h.cls || h.def.cls, foes = G.heroes.filter(e => e.team !== h.team); if (!foes.length) return base;       // (bld, cls: the build and class of the role it is played in)
   let phys = 0, magic = 0, cc = 0, tough = 0, fed = null;
-  for (const e of foes) { const w = 1 + e.goldEarned / 5000 + e.kills * 0.12, m = e.def.magic; magic += w * m; phys += w * (1 - m); cc += e.def.ccN; if (e.def.cls === 'Tank' || (e.def.cls === 'Fighter' && e.items.some(k => ITEMS[k].armor >= 30 || ITEMS[k].hp >= 500))) tough++; if (e.kills >= 4 && e.kills >= e.deaths * 2 && (!fed || e.kills > fed.kills)) fed = e; }
+  for (const e of foes) { const w = 1 + e.goldEarned / 5000 + e.kills * 0.12, m = defMagic(e.def); magic += w * m; phys += w * (1 - m); cc += defCc(e.def); if (e.def.cls === 'Tank' || (e.def.cls === 'Fighter' && e.items.some(k => ITEMS[k].armor >= 30 || ITEMS[k].hp >= 500))) tough++; if (e.kills >= 4 && e.kills >= e.deaths * 2 && (!fed || e.kills > fed.kills)) fed = e; }
   const ms = magic / (magic + phys), swap = (from, to) => { const i = base.indexOf(from); if (i >= 0 && !base.includes(to)) base[i] = to; }, up = (k, to) => { const i = base.indexOf(k); if (i > to) { base.splice(i, 1); base.splice(to, 0, k); } };
   if (cls !== 'Mage') { if (ms >= 0.58 && (cls === 'Tank' || cls === 'Fighter' || cls === 'Support' || ms >= 0.75)) for (const b of ['greaves', 'swift']) swap(b, 'wardboots'); else if (ms <= 0.3 && (cls === 'Tank' || cls === 'Fighter' || cls === 'Support')) swap('wardboots', 'greaves'); }
   if (base.includes('ironbark') && base.includes('spellward')) { if (ms > 0.5) up('spellward', base.indexOf('ironbark')); }
   else if (ms > 0.62) swap('ironbark', 'spellward'); else if (ms < 0.25) swap('spellward', 'ironbark');
   if (base.includes('totem') && cc <= 2) swap('totem', cls === 'Marksman' ? 'quickblade' : cls === 'Assassin' ? 'sunder' : 'titan');
   if (tough >= 2) { if (cls === 'Mage') up('voidcrystal', 2); else if (cls === 'Marksman' || cls === 'Assassin' || cls === 'Fighter') { if (!base.includes('giantslayer') && !base.includes('sunder')) base[5] = 'giantslayer'; up(base.includes('giantslayer') ? 'giantslayer' : 'sunder', 2); } }
-  if (fed && (cls === 'Marksman' || cls === 'Mage' || cls === 'Assassin')) { const k = fed.def.magic > 0.5 ? 'spellward' : 'bastion'; if (!base.includes(k)) base[4] = k; }
+  if (fed && (cls === 'Marksman' || cls === 'Mage' || cls === 'Assassin')) { const k = defMagic(fed.def) > 0.5 ? 'spellward' : 'bastion'; if (!base.includes(k)) base[4] = k; }
   // what is owned keeps its place, and so does the item being saved for if a part of it is already in the bag
   const mine = h.items.filter(k => !ITEMS[k].part), cur = (h.ai.build || h.bld || h.def.build).find(k => !mine.includes(k)), begun = cur && missingParts(h, cur).length < (ITEMS[cur].from || []).length ? [cur] : [];
   const out = mine.slice(); for (const k of begun.concat(base)) if (!out.includes(k) && out.length < 6 && !(ITEMS[k].boots && out.some(q => ITEMS[q].boots))) out.push(k);
@@ -4148,6 +4219,9 @@ function aiRecast(h, t, foes, only) {
       if (turretThreat(h.team, m.x, m.y, 40, h) && !(h.ai.P.dive && m.kind === 'hero' && m.hp / m.maxHp < 0.3 && hpF > 0.6)) continue;
       if (m.kind === 'hero' && hpF < 0.35) continue;
       if (hyp(m.x - h.x, m.y - h.y) - m.r > h.range + 40 && castSkill(h, i, m.x, m.y)) return true;
+    } else if (A.t === 'heave') {       // whatever the charge swept along is in front of him now: up it goes (at a hero if there is one, at anything as the chance runs out)
+      let best = null, bd = 1e9; for (const e of enemiesIn(h.team, h.x, h.y, A.r)) { const d = hyp(e.x - h.x, e.y - h.y) - (e.kind === 'hero' ? 400 : 0) - (e === t ? 200 : 0); if (d < bd) { bd = d; best = e; } }
+      if (best && (best.kind === 'hero' || re.until - G.t < 1.2) && castSkill(h, i, best.x, best.y)) return true;
     } else if (A.t === 'gap2' && t && t.kind === 'hero') {
       const d = hyp(t.x - h.x, t.y - h.y);
       if (d > h.range + 110 && d <= s.range + h.range && t.hp / t.maxHp < 0.45 && hpF > 0.35 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h) && castSkill(h, i, t.x, t.y)) return true;
@@ -4172,7 +4246,7 @@ function aiCombat(h, t, foes) {
         if (d <= s.range + A.r * 0.4) { let fr = null, fd = A.r * 1.5; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead) { const q = hyp(p.x - t.x, p.y - t.y); if (q < fd && hyp(p.x - h.x, p.y - h.y) < s.range + A.r) { fd = q; fr = p; } }
           c = fr ? { x: (fr.x + t.x) / 2, y: (fr.y + t.y) / 2 } : aiAim(h, t, 0, 0.25); }
         break;
-      case 'gap': if (A.thru) { if (d > h.range + 40 && d <= s.range + 70 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h) && !turretThreat(h.team, h.x + (t.x - h.x) / d * s.range, h.y + (t.y - h.y) / d * s.range, 40, h)) c = { x: t.x, y: t.y }; break; }       // (thru: a run that goes through its target and on: from where it still reaches him, and not if it ends under a turret)
+      case 'gap': if (A.thru || (A.thru22 && G.kit >= 22)) { if (d > h.range + 40 && d <= s.range + 70 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h) && !turretThreat(h.team, h.x + (t.x - h.x) / d * s.range, h.y + (t.y - h.y) / d * s.range, 40, h)) c = { x: t.x, y: t.y }; break; }       // (thru: a run that goes through its target and on: from where it still reaches him, and not if it ends under a turret)
         if (d > h.range + 70 && d <= s.range + h.range + 60 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h)) c = { x: t.x, y: t.y }; break;
       case 'kite': if (d <= h.range + 120 && h.rootT <= 0) { const an = fatan2(h.y - t.y, h.x - t.x) + (rnd() < .5 ? 1 : -1) * (d < 300 ? 0.4 : 1.2); const x = h.x + fcos(an) * 280, y = h.y + fsin(an) * 280; if (walkable(x, y)) c = { x, y }; } break;
       case 'buff': if (d <= h.range + 260) c = { x: h.x, y: h.y }; break;
@@ -4276,6 +4350,7 @@ function aiSpell(h, t, ctx, ax, ay) {
     case 'flicker': if (ctx === 'flee' && hpF < 0.3 && t && t._d < 450 && h.rootT <= 0) castSkill(h, 3, h.x + ax * 420, h.y + ay * 420); break;
     case 'sprint': if ((ctx === 'flee' && hpF < 0.4) || (ctx === 'fight' && t && t.hp / t.maxHp < 0.3 && hyp(t.x - h.x, t.y - h.y) > h.range + 80)) castSkill(h, 3, h.x, h.y); break;
     case 'aegis': if (hpF < 0.42 && G.t - h.lastDmgT < 1.2) castSkill(h, 3, h.x, h.y); break;
+    case 'inspire': if (ctx === 'fight' && t && t.kind === 'hero' && hpF > 0.2 && hyp(t.x - h.x, t.y - h.y) - t.r <= h.range + 60) castSkill(h, 3, h.x, h.y); break;
     case 'execute': if (ctx === 'fight' && t && hyp(t.x - h.x, t.y - h.y) < 560 && t.hp + shieldOf(t) <= executeDmg(h, t) * 0.95) castSkill(h, 3, t.x, t.y); break;
   }
 }
@@ -4340,7 +4415,7 @@ function ncEncAct(a) {
   switch (a[0]) {
     case A_CAST: return 'c' + a[1] + ncF2s(a[2]) + ',' + ncF2s(a[3]);
     case A_LEVEL: return 'l' + a[1]; case A_SELL: return 's' + a[1]; case A_BUY: return 'b' + ITEM_KEYS.indexOf(a[1]).toString(36);
-    case A_MEND: return 'm'; case A_ITEM: return 'i'; case A_RECALL: return 'r';
+    case A_MEND: return 'm'; case A_ITEM: return 'i'; case A_RECALL: return 'r'; case A_MOOD: return 't';
   }
   return '';
 }
@@ -4350,7 +4425,7 @@ function ncDecAct(s) {       // null: not a press this build knows (it is left o
   if (k === 'l') { const i = ncNum(r, 2); return i < 0 ? null : [A_LEVEL, i]; }
   if (k === 's') { const i = ncNum(r, 5); return i < 0 ? null : [A_SELL, i]; }
   if (k === 'b') { const i = ncNum(r, ITEM_KEYS.length - 1); return i < 0 ? null : [A_BUY, ITEM_KEYS[i]]; }
-  if (r === '') { if (k === 'm') return [A_MEND]; if (k === 'i') return [A_ITEM]; if (k === 'r') return [A_RECALL]; }
+  if (r === '') { if (k === 'm') return [A_MEND]; if (k === 'i') return [A_ITEM]; if (k === 'r') return [A_RECALL]; if (k === 't') return [A_MOOD]; }
   return null;
 }
 function ncEnc1(f) { let s = (f.mc === MOVE_NONE ? '' : f.mc.toString(36)) + '.' + f.bits.toString(36) + (f.bits & 16 ? '.' + f.hint.toString(36) : ''); for (const a of f.acts) s += '!' + ncEncAct(a); return s; }
@@ -4673,6 +4748,31 @@ function halo(hex, size, opacity) {
   const k = 's' + hex + (opacity || 1); let m = GX.mat[k];
   if (!m) m = GX.mat[k] = new THREE.SpriteMaterial({ map: GX.tex.glow, color: lin(hex), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: opacity || 1, toneMapped: false });
   const s = new THREE.Sprite(m); s.scale.set(size, size, 1); return s;
+}
+
+/* ---------- bees ----------
+   One bee, nose along +x and about a unit long: a striped abdomen, a furred thorax, a dark head with two feelers, a sting. Its wings
+   are a mesh of their own, raised in a V, so that turning them over (scale.y between 1 and -1) beats them. pal: [body, bands] for a
+   hive of another colour. The meshes share their geometry and materials (own: 0, so that nothing that drops them disposes of those). */
+function beeParts(pal) {
+  const key = pal ? pal.join() : 'd', C = GX.bees || (GX.bees = {}); if (C[key]) return C[key];
+  const amber = pal ? pal[0] : '#ffc233', dark = pal ? pal[1] : '#2a1a0e', B = new PB(), W = new PB();
+  B.sph(0.5, amber, { x: -0.16, sx: 0.66, sy: 0.44, sz: 0.44, c2: shade(amber, 0.35), sh: 0.72 }, 10, 8)
+    .tor(0.196, 0.052, dark, { x: -0.31, ry: HP2 }, 5, 12).tor(0.218, 0.052, dark, { x: -0.11, ry: HP2 }, 5, 12)
+    .sph(0.2, shade(amber, -0.1), { x: 0.2, c2: shade(amber, 0.22), sh: 0.75 }, 8, 6)
+    .sph(0.15, dark, { x: 0.43, sx: 0.95 }, 8, 6)
+    .cone(0.05, 0.2, dark, { x: -0.56, rz: HP2 }, 5);
+  for (const k of [-1, 1]) { B.cyl(0.012, 0.012, 0.18, dark, { x: 0.53, y: 0.12, z: k * 0.07, rz: -0.9, rx: k * 0.4 }, 4); W.sph(0.5, '#f4fbff', { x: 0.02, y: 0.21, z: k * 0.3, sx: 0.36, sy: 0.02, sz: 0.62, rx: k * -0.55, ry: k * 0.3, sh: 1 }, 8, 4); }
+  const mb = GX.mat.beeB || (GX.mat.beeB = new THREE.MeshBasicMaterial({ vertexColors: true })), mw = GX.mat.beeW || (GX.mat.beeW = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.62, depthWrite: false, side: THREE.DoubleSide }));
+  const K = new PB(), gold = '#ffd76a';       // a crown for the queen: a band and three points, over her head
+  K.tor(0.115, 0.028, gold, { x: 0.43, y: 0.15, rx: HP2 }, 4, 10); for (const a of [0, 2.094, 4.189]) K.cone(0.04, 0.13, gold, { x: 0.43 + Math.cos(a) * 0.1, y: 0.23, z: Math.sin(a) * 0.1, c2: '#fff4c8' }, 4);
+  return C[key] = { body: B.geo(), wing: W.geo(), crown: K.geo(), mat: mb, wmat: mw };
+}
+function beeMesh(s, pal, queen) {
+  const P = beeParts(pal), g = new THREE.Group(), b = new THREE.Mesh(P.body, P.mat), w = new THREE.Mesh(P.wing, P.wmat);
+  b.userData.own = 0; w.userData.own = 0; w.userData.beeWing = 1; w.renderOrder = 3; g.add(b); g.add(w);
+  if (queen) { const k = new THREE.Mesh(P.crown, P.mat); k.userData.own = 0; g.add(k); }
+  g.rotation.order = 'YXZ'; g.scale.setScalar(s); return g;
 }
 
 /* ---------- procedural textures ---------- */
@@ -5586,7 +5686,10 @@ const HERO_BUILD = {
     S.sph(0.118, shade(sc, -0.3), { y: -0.3, sy: 1.25 }, 8, 6).cyl(0.165, 0.165, 0.022, shade(wood, -0.1), { y: -0.44 }, 10).sph(0.046, '#2a1c10', { y: -0.385, z: 0.118, sz: 0.5 }, 6, 5);
     glowPart(R, 'skep', new THREE.SphereGeometry(0.03, 6, 5), L.glow, 0, -0.385, 0.14, 0.75);
     R.nb('bees', 0, 1.34, 0, R.B.body); R.nb('bees2', 0, 0.98, 0, R.B.body);
-    for (const [bn, r, y, a] of [['bees', 0.62, 0, 0], ['bees', 0.5, 0.2, 2.5], ['bees2', 0.7, 0, 4.2]]) { const m = glowPart(R, bn, new THREE.SphereGeometry(0.034, 6, 5), L.tend || L.glow, Math.cos(a) * r, y, Math.sin(a) * r, 0.34), ch = R.B[bn].children; m.scale.set(1, 0.8, 1.5); m.rotation.y = -a; m.userData.bee = 1; ch[ch.length - 1].userData.bee = 2; }       // (marked, body and glow, so that the view can colour them by her temper)
+    for (const [bn, r, y, a, dir] of [['bees', 0.62, 0, 0, 1], ['bees', 0.5, 0.22, 2.5, 1], ['bees2', 0.7, 0, 4.2, -1], ['bees2', 0.55, 0.26, 1.1, -1]]) {       // four bees on their rounds, each one a bee to look at: striped, winged, nose to the way it flies; and behind each a glow that the view colours by her temper (bee: 2)
+      const g = beeMesh(0.27, L.bee); g.position.set(Math.cos(a) * r, y, Math.sin(a) * r); g.rotation.y = dir * HP2 - a; R.B[bn].add(g);
+      const hl = halo(L.tend || L.glow, 0.34, 0.7); hl.position.copy(g.position); hl.userData.bee = 2; R.B[bn].add(hl);
+    }
     return { style: 'cast' };
   },
   hesta(R, L) {       // a herald in bronze and verdigris: scale armour to the knee, a mirror plate on the breast, her hair bound up in a tall knot with a red tassel down the back, a great gong on her left arm for a shield and the beater for it in her right hand
@@ -5911,6 +6014,8 @@ const CLIPS = {
   focus:   { d: 0.7, aLx: [0, -2.7], fLx: [0, -0.1], aRx: [0, -2.1], fRx: [0, -2.1], aRz: [0, 0.35], headRx: [0, -0.3], hipRx: [0, -0.12] },
   send:    { d: 0.5, aRx: [0, -2.5, 0.16, -2.6, 0.34, -1.25, 1, -1.1], fRx: [0, -1.1, 0.16, -1.2, 0.34, -0.08, 1, -0.3], aRz: [0, -0.5, 0.34, 0.15], spRy: [0, -0.55, 0.16, -0.6, 0.34, 0.45, 1, 0.1], hipRx: [0, -0.1, 0.16, -0.12, 0.34, 0.24, 1, 0.05], aLx: [0, -1.5, 0.34, -1.45, 1, -0.9], fLx: [0, -0.1], aLz: [0, 0.3, 0.34, -0.1], headRx: [0, -0.1, 0.34, 0.08] },
   hive:    { d: 1.0, hop: 0.14, aRx: [0, -1.5, 0.25, -1.78, 1, -1.72], fRx: [0, -0.1, 0.25, -0.02], aRz: [0, -0.1], aLx: [0, -0.7, 0.25, -0.3], aLz: [0, 0.9, 0.25, 1.25], fLx: [0, -0.5, 0.25, -0.25], headRx: [0, -0.2, 0.25, -0.45], hipRx: [0, -0.05, 0.25, -0.14] },       // the crook held up at arm's length, the skep high over her, the other arm flung wide
+  heave:   { d: 0.5, hop: 0.12, aLx: [0, 0.35, 0.2, 0.55, 0.44, -2.75, 1, -2.2], fLx: [0, -0.9, 0.2, -1.05, 0.44, -0.15, 1, -0.5], aLz: [0, -0.2, 0.44, 0.12], aRx: [0, 0.3, 0.44, 0.7, 1, 0.2], fRx: [0, -0.6], hipRx: [0, 0.42, 0.2, 0.5, 0.44, -0.26, 1, 0], hipY: [0, -0.15, 0.2, -0.2, 0.44, 0.05, 1, 0], spRy: [0, 0.35, 0.44, -0.2, 1, 0], headRx: [0, 0.2, 0.44, -0.4, 1, 0] },       // down behind the shield, then up with it from the knees
+  queen:   { d: 1.1, hop: 0.2, spin: 1, aRx: [0, -0.6, 0.18, -0.4, 0.42, -1.9, 1, -1.75], fRx: [0, -1.0, 0.18, -1.1, 0.42, -0.05], aRz: [0, 0.3, 0.42, -0.12], aLx: [0, -0.4, 0.42, -0.9, 1, -0.5], aLz: [0, 0.4, 0.42, 1.35, 1, 1.2], fLx: [0, -0.9, 0.42, -0.2], headRx: [0, 0.15, 0.42, -0.5, 1, -0.4], hipRx: [0, 0.2, 0.18, 0.25, 0.42, -0.16, 1, -0.1], hipY: [0, -0.12, 0.18, -0.16, 0.42, 0.04, 1, 0] },       // gathered low over the skep, then a full turn with the crook swept up overhead and the free arm flung wide
   gong:    { d: 0.55, aLx: [0, -1.2], fLx: [0, -0.75], aLz: [0, -0.3], aRx: [0, -1.5, 0.22, -1.6, 0.4, -0.95, 1, -0.6], aRz: [0, -1.25, 0.22, -1.35, 0.4, 0.55, 1, 0.1], fRx: [0, -0.7, 0.22, -0.8, 0.4, -0.35, 1, -0.8], spRy: [0, -0.5, 0.22, -0.55, 0.4, 0.3, 1, 0], hipRx: [0, -0.08, 0.4, 0.14, 1, 0], headRx: [0, -0.25, 0.4, -0.3, 1, 0], hipY: [0, 0, 0.4, -0.06, 1, 0] },       // the beater swung out wide and brought across onto the gong held before her
   raise:   { d: 1.0, hop: 0.1, aLx: [0, -2.3, 0.22, -2.95], fLx: [0, -0.35, 0.22, -0.12], aLz: [0, 0.12], aRx: [0, -0.5, 0.22, -0.25], aRz: [0, -0.8, 0.22, -1.2], fRx: [0, -0.7, 0.22, -0.45], headRx: [0, -0.3, 0.22, -0.45], hipRx: [0, -0.06, 0.22, -0.14] },       // the gong lifted high over her head, the beater held wide
   toss:    { d: 0.45, aRx: [0, 0.5, 0.18, 0.5, 0.36, -1.5, 1, -1.2], fRx: [0, -0.3, 0.36, -0.1], hipRx: [0, 0.3, 0.36, 0.1], hipY: [0, -0.1, 0.36, 0] },
@@ -5929,10 +6034,10 @@ const CLIPS = {
 const CLIP_CH = ['aLx', 'fLx', 'aLz', 'aRx', 'fRx', 'aRz', 'lLx', 'lRx', 'sLx', 'sRx', 'hipRx', 'spRy', 'headRx', 'headRy'];
 /* which clip each hero plays for skill 1, skill 2 and the ultimate ([name, seconds] overrides the length); entries 3..5 are for
    their second casts, 6..8 for a second form's, 9..11 for third casts. A skin may bring a set of its own (clips). */
-const HERO_CLIPS = { bram: ['rush', 'guard', 'leap'], thorn: ['throw', 'slam', 'pull'], kaela: ['cadA', 'lunge', 'roar', 'cadB', null, null, null, null, null, 'cadC'], rook: [['slam', 0.78], 'roar', null], vex: ['throw', 'sweep', 'stab'],
+const HERO_CLIPS = { bram: ['rush', 'guard', 'leap', null, 'heave'], thorn: ['throw', 'slam', 'pull'], kaela: ['cadA', 'lunge', 'roar', 'cadB', null, null, null, null, null, 'cadC'], rook: [['slam', 0.78], 'roar', null], vex: ['throw', 'sweep', 'stab'],
   tavi: ['throw', 'fanout', 'vault', 'lunge', 'pull', 'vault'],
   kiri: ['toss', 'bolt', 'roar', null, null, null, 'vault', 'lunge', 'roar'],       // 6..8: the Tiger's leap, rush and the turn back
-  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'hive'], hesta: ['rush', 'gong', 'raise'] };
+  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'queen'], hesta: ['rush', 'gong', 'raise'] };
 function KF(u, a) { if (u <= a[0]) return a[1]; for (let i = 2; i < a.length; i += 2) if (u <= a[i]) return lerp(a[i - 1], a[i + 1], smooth((u - a[i - 2]) / (a[i] - a[i - 2]))); return a[a.length - 1]; }
 /* which mask is over the face: the worn one sits on the face, the other is slung behind the head */
 function kiriMasks(B, f) {
@@ -6156,6 +6261,8 @@ function animHero(v, s, t, dt) {
     const q = v.sting || 0, sc = 1 + q * 0.3; v.beeA = (v.beeA == null ? v.seed : v.beeA) + dt * (2.3 + q * 4.8);
     B.bees.rotation.y = v.beeA; B.bees.rotation.z = Math.sin(t * 1.7 + v.seed) * (0.2 + q * 0.25); B.bees.position.y = 1.34 + Math.sin(t * 2.3 + v.seed) * 0.05; B.bees.scale.setScalar(sc);
     B.bees2.rotation.y = -v.beeA * 1.37; B.bees2.rotation.x = Math.sin(t * 1.3 + v.seed) * (0.22 + q * 0.3); B.bees2.scale.setScalar(sc);
+    if (!v.beeW) { v.beeW = []; B.bees.traverse(x => { if (x.userData.beeWing) v.beeW.push(x); }); B.bees2.traverse(x => { if (x.userData.beeWing) v.beeW.push(x); }); }
+    for (let i = 0; i < v.beeW.length; i++) v.beeW[i].scale.y = Math.cos(t * (46 + q * 16) + i * 1.9);       // wings
   }
   if (B.skep) {       // the skep hangs plumb from the crook, and comes round to it a little late when the crook is swung
     if (s.dead > 0) { B.skep.quaternion.slerp(_skI, Math.min(1, dt * 6)); v.skq = null; }
@@ -6769,6 +6876,7 @@ const SKFX = {
     streak3(x0, z0, x, z, 0.7, 0.35, c, 0.9, 0.7); flash3(x, 1, z, 3, 0.35, c); ring3(x, z, 0.2, 1.3, 0.4, c, 0.9); sparks(x, 0.8, z, 12, c, 3, 0.15, 0.5, 1.2);
     for (let i = 0; i < 3; i++) glint3(x + (Math.random() - .5) * 1.2, 0.6 + Math.random() * 1.4, z + (Math.random() - .5) * 1.2, 0.9, 0.4 + i * 0.1, '#ffffff'); },
   spS(e, x, z, c) { for (let i = 0; i < 3; i++) later(i * 0.08, () => ring3(x, z, 0.3, 1.1 + i * 0.35, 0.4, c, 0.8, true, 0.08 + i * 0.4)); decal3(GX.tex.swirl, x, z, 1.5, 0.6, c, 0.7, { spin: -8, r0: 0.5 }); rise3(x, z, 0.6, 10, c, 2.2, 0.6); },
+  spI(e, x, z, c) { flash3(x, 1.2, z, 3.2, 0.3, c); for (let i = 0; i < 3; i++) later(i * 0.07, () => ring3(x, z, 1.3 - i * 0.3, 0.25, 0.32, i === 1 ? '#ffffff' : c, 0.85, true, 0.1 + i * 0.5)); pillar3(x, z, 0.7, 3.4, 0.6, c, 0.5); rise3(x, z, 0.6, 16, c, 2.8, 0.7, 0.14); glint3(x, 2.5, z, 1.5, 0.4, '#ffffff'); },       // Inspire: gathered in, and up
   spA(e, x, z, c) { dome3(x, z, 1.25, 0.7, c, 0.7, { sy: 1.25 }); ring3(x, z, 0.3, 1.5, 0.45, c, 0.9); decal3(GX.tex.rune, x, z, 1.3, 0.7, c, 0.7, { spin: 2 }); glint3(x, 2.3, z, 1.4, 0.45, '#ffffff'); },
   spE(e, x, z, c) { beam3(x + 0.3, 8, z - 0.5, x, 0.1, z, 0.34, 0.4, c, 0.9); decal3(GX.tex.mark, x, z, 1.5, 0.8, c, 0.9, { spin: 3, r0: 2.4 }); xcut(x, 1.0, z, 3.4, c, 0.32); flash3(x, 0.9, z, 3.6, 0.3, c);
     ring3(x, z, 0.2, 1.6, 0.4, c, 0.9); sparks(x, 0.7, z, 16, c, 4.5, 0.17, 0.5, 1.2); scorch3(x, z, 0.9, 1.6); FX.shake = Math.max(FX.shake, 0.16); },
@@ -6778,6 +6886,14 @@ const SKFX = {
   bram0(e, x, z, c) { ring3(x, z, 0.3, 1.2, 0.35, c, 0.8, true); smoke(x, 0.1, z, 5, '#d8cfb4', 0.55, 0.5, 0.3); glint3(x + Math.cos(e.ang) * 0.5, 1.2, z + Math.sin(e.ang) * 0.5, 1.5, 0.35, '#ffffff'); },
   bram0h(e, x, z, c) { flash3(x, 1, z, 2.8, 0.25, c); slash3(x - Math.cos(e.ang) * 0.6, z - Math.sin(e.ang) * 0.6, e.ang, 1.0, 1.9, 0.3, c, 0.9); ring3(x, z, 0.2, 1.3, 0.35, '#ffffff', 0.8, true); glint3(x, 1.5, z, 2.2, 0.4, '#ffffff');
     sparks(x, 0.9, z, 14, c, 4.5, 0.16, 0.4, 1); debris(x, 0.2, z, 5, '#8a7f6c', 2, 0.14, 0.5); FX.shake = Math.max(FX.shake, 0.12); },
+  bram0u(e, x, z, c) {       // Heave: the shield brought up from the ground, and the ground in front of him with it
+    const a = e.ang, r = e.r * S3, ca = Math.cos(a), sa = Math.sin(a), mx = x + ca * r * 0.55, mz = z + sa * r * 0.55;
+    slash3(x, z, a, HEAVE_A, r, 0.42, c, 0.08, { op: 0.42, flat: 1 }); later(0.04, () => slash3(x, z, a, HEAVE_A, r * 1.03, 0.3, '#ffffff', 0.1, { thin: 1, op: 0.3, edge: 0.75 })); vring3(x + ca * 0.5, 1.2, z + sa * 0.5, a, 0.3, 1.5, 0.3, c, 0.8);
+    flash3(mx, 0.9, mz, 3.6, 0.25, c); pillar3(mx, mz, 0.9, 3.2, 0.5, c, 0.4); smoke(mx, 0.1, mz, 8, '#d8cfb4', 0.9, 0.6, 0.5); FX.shake = Math.max(FX.shake, 0.12);
+    decal3(GX.tex.crack, mx, mz, r * 0.6, 1.3, '#2e2014', 0.55, { nb: 1, rot: -a, gk: 0.12, fin: 0.05, fout: 0.5 });       // the ground it broke: dark, so that it shows on pale stone too, where light alone would not
+    for (let i = 0; i < 16; i++) { const q = a + (Math.random() - .5) * 2 * HEAVE_A, d = r * (0.25 + Math.random() * 0.7), px = x + Math.cos(q) * d, pz = z + Math.sin(q) * d;
+      if (i % 2) FX.add.emit(px, 0.1, pz, 0, 4 + Math.random() * 3.5, 0, 0.45, 0.13, 0.03, Math.random() < 0.4 ? '#ffffff' : c, 0.9, 6, 0);
+      else FX.alpha.emit(px, 0.1, pz, Math.cos(q) * 1.2, 4.5 + Math.random() * 3, Math.sin(q) * 1.2, 0.7, 0.17, 0.09, i % 4 ? '#7a5c3a' : '#a58a5e', 0.95, 13, 0); } },       // (and clods of it, thrown up)
   bram1(e, x, z, c) { const r = e.r * S3; dome3(x, z, r * 0.62, 0.8, c, 0.6); decal3(GX.tex.rune, x, z, r, 0.9, c, 0.75, { spin: 1.2, r0: r * 0.3 }); ring3(x, z, r * 0.25, r, 0.5, c, 0.9); ring3(x, z, r * 0.2, r * 0.85, 0.65, '#ffffff', 0.5, true);
     rise3(x, z, r * 0.8, 16, lite(c), 1.6, 0.8); sparks(x, 0.4, z, 10, c, r * 2.2, 0.15, 0.5, 1); },
   bram2a(e, x, z, c) { const r = e.r * S3, x0 = e.x0 * S3, z0 = e.y0 * S3; ring3(x0, z0, 0.3, 1.5, 0.4, c, 0.8); smoke(x0, 0.1, z0, 7, '#cfc6b0', 0.7, 0.6, 0.5); debris(x0, 0.1, z0, 6, '#7a7468', 2.2, 0.16, 0.5);
@@ -6954,7 +7070,9 @@ const SKFX = {
   miel0a(e, x, z, c) { ring3(x, z, 0.15, 0.85, 0.4, c, 0.8); rise3(x, z, 0.45, 12, lite(c), 1.7, 0.8, 0.12); glint3(x, 1.7, z, 1.0, 0.4, '#ffffff'); },       // honey left on a friend
   miel1(e, x, z, c) { const r = e.r * S3; dome3(x, z, r, 0.8, c, 0.38, { sy: 0.4 }); ring3(x, z, r * 0.25, r, 0.45, c, 0.9); decal3(GX.tex.comb, x, z, r, 0.7, c, 0.8, { r0: r * 0.5 }); rise3(x, z, r * 0.85, 22, lite(c), 1.6, 0.9, 0.13);       // the comb coming up out of the ground
     for (let i = 0; i < 3; i++) later(i * 0.1, () => glint3(x + (Math.random() - .5) * r, 0.5 + Math.random() * 0.8, z + (Math.random() - .5) * r, 1.0, 0.4, '#ffffff')); },
-  miel2(e, x, z, c) { const r = e.r * S3; flash3(x, 1.4, z, 4.5, 0.35, c); ring3(x, z, 0.3, r, 0.55, c, 0.9); ring3(x, z, 0.2, r * 0.8, 0.8, '#ffffff', 0.45, true); pillar3(x, z, 0.9, 4.2, 0.8, c, 0.4); decal3(GX.tex.swirl, x, z, r, 1.1, c, 0.6, { spin: -3, r0: r * 0.3 });       // the whole hive out at once
+  miel2h(e, x, z, c) { flash3(x, 1.0, z, 1.8, 0.2, c); sparks(x, 1.0, z, 8, c, 3, 0.1, 0.3, 1); ring3(x, z, 0.9, 0.2, 0.28, c, 0.8, true, 0.6); },       // stung as the hive burst out
+  miel2(e, x, z, c) { const r = e.r * S3; flash3(x, 1.4, z, 4.5, 0.35, c); ring3(x, z, 0.3, r, 0.55, c, 0.9); ring3(x, z, 0.2, r * 0.8, 0.8, '#ffffff', 0.45, true); pillar3(x, z, 0.9, 4.2, 0.8, c, 0.4); decal3(e.q ? GX.tex.comb : GX.tex.swirl, x, z, r, 1.1, c, 0.6, { spin: -3, r0: r * 0.3 });       // the whole hive out at once
+    if (e.q) { later(0.12, () => ring3(x, z, r * 0.3, r * 1.05, 0.5, '#ffffff', 0.5, true, 0.5)); glint3(x, 3.0, z, 2.2, 0.6, '#fff4c8'); FX.shake = Math.max(FX.shake, 0.08); }
     for (let i = 0; i < 40; i++) { const q = Math.random() * TAU, sp = 3 + Math.random() * 5; FX.add.emit(x, 0.8 + Math.random() * 1.2, z, Math.cos(q) * sp - Math.sin(q) * 2.5, 0.5 + Math.random() * 1.5, Math.sin(q) * sp + Math.cos(q) * 2.5, 0.5 + Math.random() * 0.3, 0.13, 0.02, Math.random() < 0.3 ? '#ffffff' : c, 1, 0, 1.2); }
     FX.shake = Math.max(FX.shake, 0.1); },
   /* Hesta */
@@ -6972,6 +7090,35 @@ const SKFX = {
   hestaP(e, x, z, c) { const r = e.r * S3; flash3(x, 1.1, z, 3.2, 0.28, c); decal3(GX.tex.rings, x, z, r, 0.55, c, 0.7, { r0: r * 0.2, gk: 0.5, rot: 0 }); for (let i = 0; i < 3; i++) later(i * 0.07, () => ring3(x, z, r * 0.2, r * (1 - i * 0.1), 0.42, i ? '#ffffff' : c, 0.85 - i * 0.2, i > 0, 0.08 + i * 0.3)); sparks(x, 1.0, z, 12, c, r * 2.6, 0.14, 0.4, 0.9); FX.shake = Math.max(FX.shake, 0.1); },       // and let out
 };
 const TAUNT_C = '#ff6a4a';       // the colour of being called out: on the line that calls, on the mark over the head
+/* Bees for a place on the ground: n of them on rounds of their own within r, in three lanes that go opposite ways. With a queen, she
+   is there too: twice the size, crowned, circling overhead with a glow about her. */
+function hiveBees(v, a, g, r, n, s, queen) {
+  const pal = a.src && a.src.look ? a.src.look.bee : null; v.bees = [];
+  for (let i = 0; i < n; i++) { const m = beeMesh(s, pal), lane = i % 3; g.add(m);
+    v.bees.push({ m, wing: m.children[1], s: s * (0.9 + ((i * 0.53) % 1) * 0.3), r: r * (0.3 + 0.22 * lane + 0.2 * ((i * 0.618) % 1)), y: 0.6 + lane * 0.42 + ((i * 0.37) % 1) * 0.45, w: (1.25 + ((i * 0.29) % 1) * 1.0) * (lane === 1 ? -1 : 1), ph: i * 2.4, dart: null }); }
+  if (queen) { const m = beeMesh(s * 1.9, pal, true), hl = shared(halo('#ffd76a', 1.4, 0.5)); g.add(m); g.add(hl); v.queen = { m, wing: m.children[1], s: s * 1.9, hl }; }
+}
+/* The Queen's Flight, moment by moment. The bees come out of the skep in a widening spiral and go home the same way at the end; in
+   between each keeps its round, banking into it, and every half second a few leave theirs to sting whoever of the other side is in
+   reach and come back. */
+function hiveSync(v, a, t, dt, x, z, fade, c) {
+  const out = smooth(clamp((a.dur - a.t) / 0.7, 0, 1)) * smooth(clamp(a.t / 0.6, 0, 1)), sc = 0.3 + 0.7 * out;       // (a.t is what is left of it: out in the first 0.7s, home in the last 0.6)
+  v.dartT = (v.dartT || 0) - dt;
+  if (v.dartT <= 0 && out > 0.9) { v.dartT = 0.5; let n = 0; const R2 = (a.r + 40) * (a.r + 40);
+    for (const u of G.units) { if (n >= 4) break; if (u.dead || u.team === a.team || u.kind === 'turret' || u.kind === 'crystal') continue; const dx = u.x - a.x, dy = u.y - a.y; if (dx * dx + dy * dy > R2) continue; const uv = V.views.get(u.id); if (!uv || !uv.o.visible) continue;
+      const b = v.bees[(Math.random() * v.bees.length) | 0]; if (!b.dart) { b.dart = { u, k: 0, hit: 0 }; n++; } } }
+  for (const b of v.bees) {
+    const q = b.ph + t * b.w, br = b.r * out; let px = Math.cos(q) * br, py = (b.y + Math.sin(t * 5 + b.ph) * 0.18) * (0.45 + 0.55 * out) + (1 - out) * 0.7, pz = Math.sin(q) * br, face = -q - (b.w > 0 ? HP2 : -HP2), bank = b.w > 0 ? -0.4 : 0.4;
+    if (b.dart) { const d = b.dart, u = d.u; d.k += dt / 0.42;
+      if (d.k >= 1 || u.dead) b.dart = null;
+      else { const k = Math.sin(d.k * Math.PI), tx = u.x * S3 - x, tz = u.y * S3 - z; face = -Math.atan2(tz - pz, tx - px) + (d.k > 0.5 ? Math.PI : 0); px = lerp(px, tx, k * 0.92); pz = lerp(pz, tz, k * 0.92); py = lerp(py, 1.0, k); bank = 0;
+        if (!d.hit && d.k > 0.5) { d.hit = 1; sparks(u.x * S3, 1.0, u.y * S3, 4, c, 2.2, 0.08, 0.25, 1); } } }
+    b.m.position.set(px, py, pz); b.m.rotation.set(bank, face, 0); b.m.scale.setScalar(b.s * sc); b.wing.scale.y = Math.cos(t * 55 + b.ph);
+  }
+  if (v.queen) { const Q = v.queen, qa = t * 1.5, qr = 1.05 * out; Q.m.position.set(Math.cos(qa) * qr, 2.95 + Math.sin(t * 2.2) * 0.14 - (1 - out) * 1.4, Math.sin(qa) * qr); Q.m.rotation.set(-0.35, -qa - HP2, 0); Q.m.scale.setScalar(Q.s * sc); Q.wing.scale.y = Math.cos(t * 42); Q.hl.position.copy(Q.m.position); Q.hl.scale.setScalar(1.4 * sc); }
+  while (v.acc > 0.07) { v.acc -= 0.07; const b = v.bees[(Math.random() * v.bees.length) | 0], bp = b.m.position; FX.add.emit(x + bp.x, bp.y, z + bp.z, 0, -0.15, 0, 0.3, 0.07, 0.02, Math.random() < 0.3 ? '#ffffff' : c, 0.55, 0, 0); }
+  if (Math.random() < dt * 6) for (const h of G.heroes) { if (h.team !== a.team || h.dead || Math.hypot(h.x - a.x, h.y - a.y) > a.r) continue; FX.add.emit(h.x * S3 + (Math.random() - .5) * 0.5, 0.4, h.y * S3 + (Math.random() - .5) * 0.5, 0, 1.5, 0, 0.7, 0.12, 0.03, '#ffe9a8', 0.9, 0, 0); }       // honey for friends
+}
 function heroById(id) { for (const h of G.heroes) if (h.id === id) return h; return null; }
 
 /* sim effect events -> visuals */
@@ -7012,6 +7159,7 @@ function ingestFx() {
         if (e.ult) { pillar3(x, z, 0.75, 3.4, 0.6, c, 0.5); flash3(x, 1.0, z, 3.0, 0.35, c); decal3(GX.tex.rune, x, z, 1.7, 0.8, c, 0.8, { spin: 3, r0: 0.5 }); } break;
       case 'block': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; flash3(x, 1.0, z, 1.5, 0.16, c); ring3(x, z, 0.72, 0.98, 0.22, c, 0.95, true, 1.0); sparks(x, 1.1, z, 6, '#ffffff', 2.6, 0.12, 0.3, 1); text3(x, top + 0.8, z, e.all ? 'IMMUNE' : 'STEADY', c, false, 0.7); break; }
       case 'totem': totemFx(e, x, z, c); break;
+      case 'mood': if (e.id === mid) snd('ui'); break;       // a temper changed (what it looks like is the view's business: see moodExtras)
       case 'taunt': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; ring3(x, z, 1.0, 0.4, 0.3, TAUNT_C, 0.9, true, 0.1); flash3(x, top * 0.7, z, 1.6, 0.25, TAUNT_C); if (e.id === mid) { text3(x, top + 0.9, z, 'TAUNTED', '#ff8a6a', true, 1.0); if (!UI.hints.taunt && UI.state === 'play') { UI.hints.taunt = 1; hint('Taunted: until it ends, your hero can only go for whoever called it out.', 6); } } break; }       // called out: for the one it happens to, the word for it
       case 'flurry': deathMark(e.tgt, e.id, c, FLURRY_T); ring3(x, z, 1.5, 0.5, 0.3, c, 0.9, true, 0.1); glint3(x, 2.4, z, 1.3, 0.35, c); break;       // Death Mark has landed: the mark is on
       case 'flurryHit': { const last = e.n <= 0, a = (e.ang || 0) + (e.n - 1) * 0.9;       // one of the fast attacks: a cut across the marked hero, each from another side; the last one bursts
@@ -7073,8 +7221,9 @@ function projView(p) {
     case 'chain': add(FG.sphere, '#ffffff', 0.12, 0.12, 0.12); v.spin = add(FG.oct, c, 0.26, 0.26, 0.26); v.spin.material = fxMat(c, 0.6); g.add(halo(c, 1.5, 0.9)); v.chain = chainStrip(lite(c, 0.3), true); FX.group.add(v.chain); v.ts = 0.16; break;
     case 'orb': { add(FG.sphere, '#ffffff', 0.13, 0.13, 0.13); add(FG.sphere, c, 0.21, 0.21, 0.21).material = fxMat(c, 0.55); g.add(halo(c, 1.6, 0.9)); tail(1.4, 0.3, c, 0.6);
       v.spin = new THREE.Group(); for (const k of [-1, 1]) { const m = new THREE.Mesh(FG.sphere, glowMat('#ffffff')); m.scale.setScalar(0.05); m.position.set(0, k * 0.32, 0); v.spin.add(m); } g.add(v.spin); v.ts = 0.2; break; }
-    case 'swarm': { v.spin = new THREE.Group(); for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(FG.sphere, glowMat(i % 3 ? c : '#ffffff')), a = i / 6 * TAU; m.scale.set(0.09, 0.05, 0.05); m.position.set((i % 3 - 1) * 0.2, Math.cos(a) * 0.24, Math.sin(a) * 0.24); v.spin.add(m); }       // bees in a knot, turning about the line they fly
-      g.add(v.spin); add(FG.sphere, c, 0.2, 0.13, 0.13).material = fxMat(c, 0.4); g.add(halo(c, 1.7, 0.85)); tail(1.7, 0.36, c, 0.55); v.ts = 0.12; v.buzz = 1; break; }
+    case 'swarm': { v.sw = []; const pal = p.src && p.src.look ? p.src.look.bee : null;       // bees in a knot, a leader and those behind her, weaving about the line they fly
+      for (let i = 0; i < 7; i++) { const m = beeMesh(i ? 0.3 : 0.38, pal), a = i / 6 * TAU; g.add(m); v.sw.push({ m, wing: m.children[1], ox: i ? -0.2 - ((i * 0.37) % 1) * 0.6 : 0.26, a, r: i ? 0.24 + ((i * 0.61) % 1) * 0.18 : 0, ph: i * 1.3 }); }
+      g.add(halo(c, 1.5, 0.55)); tail(1.5, 0.3, c, 0.4); v.ts = 0.1; v.buzz = 1; break; }
     default: add(FG.sphere, shade(c, 0.4), 0.1, 0.1, 0.1); g.add(halo(c, 0.8, 0.8)); tail(0.7, 0.14, c, 0.5); v.ts = 0.12;
   }
   if (p.src && (p.src.kind === 'turret' || p.src.kind === 'crystal') && nearCam(p.src.x, p.src.y, 200)) { const y = p.src.kind === 'turret' ? 4.05 : 2.8; flash3(p.src.x * S3, y, p.src.y * S3, 2.2, 0.22, c); glint3(p.src.x * S3, y, p.src.y * S3, 1.6, 0.25, '#ffffff'); }
@@ -7094,6 +7243,7 @@ function syncProjs(dt) {
     const vis = V.team < 0 || p.team === V.team || nearCam(p.x, p.y, 0), px = p.x * S3, pz = p.y * S3;
     v.m.visible = vis; v.m.position.set(px, y, pz); v.m.rotation.y = -p.ang;
     if (v.grow) v.m.scale.setScalar(1 + (p.k || 0) * 1.1);
+    if (v.sw) { v.age = (v.age || 0) + dt; for (const b of v.sw) { const q = b.a + v.age * 7; b.m.position.set(b.ox + Math.sin(v.age * 9 + b.ph) * 0.05, Math.cos(q) * b.r, Math.sin(q) * b.r); b.m.rotation.set(Math.sin(v.age * 6 + b.ph) * 0.25, 0, 0); b.wing.scale.y = Math.cos(v.age * 55 + b.ph); } }
     if (v.spin) v.spin.rotation.x += dt * 26; if (v.spinY) v.spinY.rotation.y += dt * 34; if (v.cor) v.cor.material.rotation -= dt * 7;
     if (v.chain) { const s = p.src; v.chain.visible = vis; chainSet(v.chain, s.x * S3 + Math.cos(p.ang) * 0.4, s.y * S3 + Math.sin(p.ang) * 0.4, px, pz, 0.95, v.look === 'hook' ? 0.15 : 0.19); }
     if (!vis || !nearCam(p.x, p.y, 200)) continue;
@@ -7140,10 +7290,9 @@ function areaView(a) {
     else if (a.look === 'stars') { deco(GX.tex.rune, c); v.fill.material.opacity = 0.08; }
     else if (a.look === 'bramble') { deco(GX.tex.crack, hostile ? '#ff8a6a' : '#9fe05a', 1.0); v.fill.material.opacity = 0.07; }       // roots spreading under the ground
     else if (a.look === 'trap') { deco(GX.tex.mark, c, 0.8); v.trap = new THREE.Group(); v.trap.add(shared(new THREE.Mesh(FG.trap, GX.mat.trap))); for (const k of [-1, 1]) { const j = shared(new THREE.Mesh(FG.jaw, GX.mat.trap)); j.rotation.x = k * 1.45; v.trap.add(j); } v.trap.position.y = 0.06; v.trap.scale.setScalar(1.35); g.add(v.trap); v.lamp = shared(halo(c, 0.6, 0.9)); v.lamp.position.y = 0.25; g.add(v.lamp); }
-    else if (a.look === 'comb') { deco(GX.tex.comb, c, 1.0); v.fill.material.opacity = 0.06; }
+    else if (a.look === 'comb') { deco(GX.tex.comb, c, 1.0); v.fill.material.opacity = 0.06; hiveBees(v, a, g, r * 0.8, 3, 0.3, false); }       // (three bees about their business over it)
     else if (a.look === 'bronze') { deco(GX.tex.rings, c, 1.0); v.fill.material.opacity = 0.05; v.dome = new THREE.Mesh(FG.dome, fxMat(c, 0.1, { map: GX.tex.hex })); v.dome.scale.set(r, r * 0.42, r); v.dome.renderOrder = 4; g.add(v.dome); }       // the shield a side shares: a low dome over the ground it covers
-    else if (a.look === 'hive') { deco(GX.tex.swirl, lite(c, 0.25), 1.04); v.fill.material.opacity = 0.05; v.bees = [];       // the hive in the air about her: bees on their rounds, at every distance out to its reach
-      for (let i = 0; i < 16; i++) { const m = new THREE.Mesh(FG.sphere, fxMat(i % 3 ? c : '#ffffff', 0.95)); m.scale.set(0.12, 0.07, 0.07); g.add(m); v.bees.push({ m, r: r * (0.24 + 0.72 * ((i * 0.618) % 1)), y: 0.45 + ((i * 0.37) % 1) * 1.5, w: (1.5 + ((i * 0.29) % 1) * 1.9) * (i % 2 ? 1 : -1), ph: i * 2.4 }); } }
+    else if (a.look === 'hive') { deco(GX.tex.comb, lite(c, 0.25), 1.0); v.fill.material.opacity = 0.04; hiveBees(v, a, g, r, V.q < 1 ? 9 : 14, 0.36, !!a.q); }       // the hive in the air about her: bees on their rounds at every distance out to its reach, and (the Queen's Flight) the queen over her head
     else if (a.look === 'cyclone') { deco(GX.tex.swirl, lite(c, 0.3), 1.15); v.rings = []; for (let i = 0; i < 7; i++) { const q = new THREE.Mesh(new THREE.RingGeometry(0.87, 1, 24, 1, 0, 3.4).rotateX(-HP2), fxMat(i % 2 ? '#ffffff' : lite(c, 0.2), 0.3)); q.userData.ownGeo = 1; const k = r * (0.22 + i * 0.115); q.scale.set(k, 1, k); q.position.y = 0.15 + i * 0.4; g.add(q); v.rings.push(q); } }
     else if (a.look === 'spin') { v.fill.visible = false; v.rim.visible = false; deco(GX.tex.swirl, c, 1.05); v.rings = []; for (let i = 0; i < 4; i++) { const q = new THREE.Mesh(new THREE.RingGeometry(i % 2 ? 0.94 : 0.76, 1, 24, 1, (i >> 1) * Math.PI, 1.7).rotateX(-HP2), fxMat(i % 2 ? '#ffffff' : c, 0.5)); q.userData.ownGeo = 1; const k = r * (i < 2 ? 1 : 0.82); q.scale.set(k, 1, k); q.position.y = i < 2 ? 0.85 : 1.3; g.add(q); v.rings.push(q); } }
   }
@@ -7172,14 +7321,13 @@ function syncAreas(t, dt) {
       v.acc += dt;
       if (a.look === 'stars') { v.dec.material.opacity = 0.58 * fade; v.dec.rotation.y = t * 0.8; while (v.acc > 0.075) { v.acc -= 0.075; const q = Math.random() * TAU, d = Math.sqrt(Math.random()) * r * 0.92; starFall(x + Math.cos(q) * d, z + Math.sin(q) * d, Math.random() < 0.3 ? '#ffffff' : c); } if (Math.random() < dt * 16) { const q = Math.random() * TAU, d = Math.sqrt(Math.random()) * r; FX.add.emit(x + Math.cos(q) * d, 0.05, z + Math.sin(q) * d, 0, 1.4, 0, 0.7, 0.13, 0.03, c, 0.9, 0, 0); } }
       else if (a.look === 'comb') { v.dec.material.opacity = (0.46 + 0.1 * Math.sin(t * 3 + a.x)) * fade; v.dec.rotation.y = 0.3 + t * 0.1; v.fill.material.opacity = 0.06 * fade;
+        for (const b of v.bees) { const q = b.ph + t * b.w * 0.6; b.m.position.set(Math.cos(q) * b.r, 0.5 + (b.y - 0.5) * 0.35 + Math.sin(t * 4 + b.ph) * 0.1, Math.sin(q) * b.r); b.m.rotation.set(0, -q - (b.w > 0 ? HP2 : -HP2), 0); b.m.scale.setScalar(b.s * Math.min(1, fade * 1.2)); b.wing.scale.y = Math.cos(t * 50 + b.ph); }
         if (v.acc > 0.1) { v.acc = 0; const q = Math.random() * TAU, d = Math.sqrt(Math.random()) * r * 0.92; FX.add.emit(x + Math.cos(q) * d, 0.08, z + Math.sin(q) * d, 0, 0.8 + Math.random() * 0.6, 0, 0.9, 0.13, 0.03, Math.random() < 0.3 ? '#ffffff' : c, 0.9, 0, 0); } }
       else if (a.look === 'bronze') { const pf = a.pool ? clamp(a.pool.v / a.pool.v0, 0, 1) : 1;       // (it thins as it is worn down)
         v.dec.material.opacity = (0.12 + 0.16 * pf) * fade; v.dec.rotation.y = 0; { const q = r * 2 * (0.94 + 0.06 * Math.sin(t * 4)); v.dec.scale.set(q, 1, q); } v.fill.material.opacity = 0.05 * fade; v.rim.material.opacity = (0.45 + 0.5 * pf) * fade;
         v.dome.material.opacity = (0.03 + 0.08 * pf) * fade * (0.85 + 0.15 * Math.sin(t * 5)); v.dome.rotation.y = -t * 0.3;
         if (v.acc > 0.7) { v.acc = 0; ring3(x, z, r * 0.15, r * 0.97, 0.9, c, 0.22, true, 0.08); } }
-      else if (a.look === 'hive') { v.dec.material.opacity = 0.26 * fade; v.dec.rotation.y = -t * 1.7; v.fill.material.opacity = 0.05 * fade;
-        for (const b of v.bees) { const q = b.ph + t * b.w; b.m.position.set(Math.cos(q) * b.r, b.y + Math.sin(t * 5 + b.ph) * 0.2, Math.sin(q) * b.r); b.m.rotation.y = -q - (b.w > 0 ? HP2 : -HP2); b.m.material.opacity = 0.95 * fade; }
-        while (v.acc > 0.045) { v.acc -= 0.045; const b = v.bees[(Math.random() * v.bees.length) | 0], bp = b.m.position; FX.add.emit(x + bp.x, bp.y, z + bp.z, 0, 0, 0, 0.32, 0.1, 0.02, Math.random() < 0.25 ? '#ffffff' : c, 0.7, 0, 0); } }
+      else if (a.look === 'hive') { v.dec.material.opacity = 0.2 * fade; v.dec.rotation.y = -t * 0.45; v.fill.material.opacity = 0.04 * fade; hiveSync(v, a, t, dt, x, z, fade, c); }
       else if (a.look === 'cyclone') { v.dec.material.opacity = 0.42 * fade; v.dec.rotation.y = t * 7; v.rings.forEach((q, i) => { q.rotation.y = -t * (10 - i * 0.9) + i * 1.3; q.position.x = Math.sin(t * 3 + i * 0.8) * 0.05 * i; q.material.opacity = (i % 2 ? 0.26 : 0.36) * fade; });
         while (v.acc > 0.03) { v.acc -= 0.03; const q = Math.random() * TAU, d = r * (0.25 + Math.random() * 0.7); FX.add.emit(x + Math.cos(q) * d, 0.1 + Math.random() * 0.4, z + Math.sin(q) * d, -Math.sin(q) * 5, 2.6, Math.cos(q) * 5, 0.55, 0.16, 0.04, Math.random() < 0.5 ? '#ffffff' : c, 0.8, 0, 0.5); if (Math.random() < 0.25) FX.alpha.emit(x + Math.cos(q) * d, 0.1, z + Math.sin(q) * d, -Math.sin(q) * 4, 2.2, Math.cos(q) * 4, 0.6, 0.12, 0.08, '#b9a98a', 0.9, 3, 0.4); } }
       else if (a.look === 'spin') { v.dec.material.opacity = 0.55 * fade; v.dec.rotation.y = -t * 16; v.rings.forEach((q, i) => { q.rotation.y = -t * (i < 2 ? 21 : 17) + (i < 2 ? 0 : 1.2); q.material.opacity = (i % 2 ? 0.6 : 0.34) * fade; });
@@ -7941,6 +8089,8 @@ const ICONS = {
   cut1: `<path ${F} d="M3 19c7 0 15-6 16-15 2.5 9-4.5 18-16 15z"/>`,
   cut2: `<path ${F} opacity=".4" d="M3 19c7 0 15-6 16-15 2.5 9-4.5 18-16 15z"/><path ${F} d="M21 19c-7 0-15-6-16-15-2.5 9 4.5 18 16 15z"/>`,
   cut3: `<path ${F} d="M11.5 19.2l-5.600-7.400h3.500c.4-4.600 3-8 8.600-10.100-3.200 3.100-4.400 6.200-4.300 10.100h3.400z"/><path d="M2.500 21.500h19M4.500 17.500l-2-2M19.500 17.500l2-2"/>`,
+  heave: `<path ${F} d="M12 2.4l7 7.2h-4.4V15H9.4V9.6H5z"/><path d="M4.2 17.4c2.6 2.4 5.2 3.4 7.8 3.4s5.200-1 7.8-3.4"/>`,
+  inspire: `<path ${F} d="M12 2.2c1 3.600 4.400 5.400 4.400 10.200a4.400 4.400 0 0 1-8.800 0c0-1.600.6-2.800 1.500-3.800.3 1.500 1 2.300 1.900 2.600C10.400 8.200 10.800 5 12 2.200z"/><path d="M5.4 17.800l2.200-1.300M18.600 17.800l-2.200-1.300M12 19.400v2.600"/>`,
   gong: `<path d="M3 3h18M7.5 3l1.6 3.4M16.5 3l-1.6 3.4"/><circle ${F} cx="12" cy="13.6" r="7.9"/><circle cx="12" cy="13.6" r="3.5" stroke="#0d1b21" stroke-width="1.7"/>`,
   linked: `<path d="M2.6 16.5a9.4 9.4 0 0 1 18.8 0"/><circle ${F} cx="12" cy="13.6" r="2.7"/><circle ${F} cx="6.3" cy="17.3" r="2.1"/><circle ${F} cx="17.7" cy="17.3" r="2.1"/><path d="M2.6 21.4h18.8"/>`,
   lnExp: `<path ${F} d="M12 2.6l7.4 7.6h-4.6v4.6H9.2v-4.6H4.6z"/><path d="M7 18.2h10M9.2 21.6h5.6"/>`,
@@ -8254,9 +8404,11 @@ function skillButtons() {
 /* A passive with two tempers (Miel's hive: tending or stinging): which it is in is a badge on the portrait of the status plate. */
 function moodTag(h) {
   const ps = h && !h.dead ? h.def.passive : null, md = ps && ps.moods, k = md ? h.id * 4 + ps.mood(h) : -1; if (UI.last.mood === k) return; UI.last.mood = k;
-  const el = $('stMood'); el.hidden = k < 0; if (k < 0) return;
-  const m = md[k & 3]; el.style.setProperty('--c', heroLook(h.key, h.skin)[m.look] || ps.c); el.innerHTML = icon(m.ic); el.title = m.name; el.setAttribute('aria-label', ps.name + ': ' + m.name);
+  const el = $('stMood'), bt = $('bMd'), tg = k >= 0 && !!ps.toggle && G.kit >= 22 && h === G.player; el.hidden = k < 0; bt.hidden = !tg; if (k < 0) return;
+  const m = md[k & 3], c = heroLook(h.key, h.skin)[m.look] || ps.c; el.style.setProperty('--c', c); el.innerHTML = icon(m.ic); el.title = m.name; el.setAttribute('aria-label', ps.name + ': ' + m.name);
+  if (tg) { const o = md[1 - (k & 3)]; bt.style.setProperty('--c', c); bt.innerHTML = icon(m.ic) + '<span class="key">X</span>'; bt.setAttribute('aria-label', `${m.name}. Press to change to ${o.name}`); bt.title = `${m.name} (press for ${o.name})`; }
 }
+function doMood() { const me = G.player, ps = me && me.def.passive; if (UI.paused || UI.ended || !ps || !ps.toggle || G.kit < 22) return; if (!act(A_MOOD)) snd('deny'); }       // the temper of a passive that has two, changed
 function buildHud() {
   const me = G.player, d = me.def;
   $('stImg').src = portrait(me.key, me.skin);
@@ -8322,6 +8474,7 @@ function updateHud(dt) {
       const cl = canLevel(me, i) && !me.dead; if (UI.last['up' + i] !== cl) { UI.last['up' + i] = cl; $('u' + i).hidden = !cl; }
     }
   }
+  { const ib = me.dead ? null : hasBuff(me, 'inspire'), n = ib ? ib.n : 0; if (UI.last.insp !== n) { UI.last.insp = n; const b = $('bSp'); b.classList.toggle('live', n > 0); if (n > 0) b.dataset.n = n; else delete b.dataset.n; } }       // Inspire: the attacks it has left
   {       // the built-in heal, and what a stacking passive has gathered
     const b = $('bHl'), cd = me.healCd, p = cd > 0 ? clamp(cd / MEND.cd, 0, 1) : 0, pk = Math.round(p * 100), n = cd > 0 ? String(Math.ceil(cd)) : '';
     if (UI.last.hlp !== pk) { UI.last.hlp = pk; b.children[1].style.setProperty('--p', p.toFixed(3)); } if (UI.last.hln !== n) { UI.last.hln = n; b.children[2].textContent = n; }
@@ -8351,6 +8504,7 @@ function updateHud(dt) {
     if (can) { const it = ITEMS[nb], pr = itemPrice(me, nb); q.innerHTML = `<span class="ii">${icon(it.ic, it.c)}</span><span>${esc(it.name)}<br><small>${it.part ? 'Part' : pr < it.cost ? 'Forge' : 'Buy'} · ${pr}g</small></span>`; q.setAttribute('aria-label', `Buy ${it.name} for ${pr} gold`); }
     else if (wait) { const it = ITEMS[pk]; q.innerHTML = `<span class="ii">${icon(it.ic, it.c)}</span><span>${esc(it.name)}<br><small>${wait}</small></span>`; q.setAttribute('aria-label', `${it.name}, your priority: ${wait}. Opens the shop`); } }
   if (can && !UI.hints.buy && !(UI.hintT > 0)) { UI.hints.buy = 1; hint('You can afford ' + ITEMS[nb].name + (nb !== wantItem(me) ? ', a part of ' + ITEMS[wantItem(me)].name : '') + '. Tap the gold chip under your purse to buy it.', 7); }       // (said once, when nothing else is being said: the first thing a match says is where to go)
+  if (!UI.hints.mood && !(UI.hintT > 0) && G.t > 12 && !$('bMd').hidden) { UI.hints.mood = 1; hint(`${me.def.passive.name}: the temper is yours to choose. The round button above your ultimate (or the X key) changes between Tending, for stronger heals and shields, and Stinging, for stronger damage.`, 10); }       // (once a match, like the one above)
   // team portraits: health and respawn timers (enemy health only while they are in sight)
   for (const p of UI.tps) {
     const h = p.h, tx = h.dead ? String(Math.ceil(h.respawnT)) : '';
@@ -8730,6 +8884,7 @@ function bindInput() {
     if (k === 'b') { act(A_RECALL); return; }
     if (k === 'g') { doMend(); return; }
     if (k === 'z') { doItem(); return; }
+    if (k === 'x') { doMood(); return; }
     if (k === ' ') { e.preventDefault(); G.input.fresh = true; G.input.atkMode = 0; }
     if (k === 'c') { G.input.fresh = true; G.input.atkMode = 1; } if (k === 'v') { G.input.fresh = true; G.input.atkMode = 2; }
     if (k.startsWith('Arrow')) e.preventDefault();
@@ -8811,6 +8966,7 @@ function bindInput() {
   });
   for (let i = 0; i < 3; i++) $('u' + i).addEventListener('click', () => { if (UI.state === 'play' && act(A_LEVEL, i)) snd('level'); });
   $('bRc').addEventListener('click', () => { if (!UI.paused && !UI.ended) act(A_RECALL); });
+  $('bMd').addEventListener('click', doMood);
   $('bIt').addEventListener('click', doItem); $('bIt').addEventListener('mouseenter', () => { if (!UI.touch && UI.state === 'play') showItemTip(); }); $('bIt').addEventListener('mouseleave', () => { $('tip').hidden = true; });
   $('bHl').addEventListener('click', doMend); $('bHl').addEventListener('mouseenter', () => { if (!UI.touch && UI.state === 'play') showMendTip(); }); $('bHl').addEventListener('mouseleave', () => { $('tip').hidden = true; });
   // minimap peek
@@ -9245,7 +9401,7 @@ function pbJump(d) {       // the 15-second buttons and keys: presses in quick s
   B.want = clamp(from + d, 0, B.rec.t); B.wantT = 0.24; B.drag = -1; pbTipAt(B.want);
 }
 function pbWant(dt) { const B = UI.pb; if (B.want < 0) return; B.wantT -= dt; if (B.wantT > 0) return; const t = B.want; B.want = -1; $('pbTip').hidden = true; UI.last.pbp = -1; if (Math.abs(t - G.t) > 0.3 || B.seek) pbSeek(t); }
-const PB_ACT = { [A_MEND]: 'Heal', [A_RECALL]: 'Recalling', [A_SELL]: 'Sold an item' };
+const PB_ACT = { [A_MEND]: 'Heal', [A_RECALL]: 'Recalling', [A_SELL]: 'Sold an item', [A_MOOD]: 'Changed temper' };
 function pbDid() {       // what the player last did, for a moment, on his plate
   const d = G.pb.did, me = G.player; if (!d || !d.ok || G.t - d.t > 1.6) return '';
   if (d.k === A_CAST) return d.a === 3 ? SPELLS[me.spell].name : skDef(me, d.a).name;
@@ -9729,7 +9885,7 @@ function linkAsk(name) { const R = LK.rooms.get(name); if (R && !R.left) lkAsk(R
    NET.ok: 0 not asked yet, 1 connected, -1 this view cannot connect. chan: the table (null: not at one). P: the pages at the table,
    as read. hs: this page hosts. go: what the host started. M: the match in progress, as the turn exchange holds it (ncNew).
    ============================================================ */
-const NETV = 5;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
+const NETV = 6;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
 const NET_AWAY = 6000;        // ms the page of a seat may be missing from the table during a match before the seat counts as gone (connections are refreshed now and then, and that is no leaving)
 const NET_GO_MS = 15000;      // ms the host keeps saying how a match started
 const NET_BYTES = 3900;       // the most a page may keep in a room is 4 KiB

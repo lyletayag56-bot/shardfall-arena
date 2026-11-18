@@ -58,7 +58,7 @@ function ncEncAct(a) {
   switch (a[0]) {
     case A_CAST: return 'c' + a[1] + ncF2s(a[2]) + ',' + ncF2s(a[3]);
     case A_LEVEL: return 'l' + a[1]; case A_SELL: return 's' + a[1]; case A_BUY: return 'b' + ITEM_KEYS.indexOf(a[1]).toString(36);
-    case A_MEND: return 'm'; case A_ITEM: return 'i'; case A_RECALL: return 'r';
+    case A_MEND: return 'm'; case A_ITEM: return 'i'; case A_RECALL: return 'r'; case A_MOOD: return 't';
   }
   return '';
 }
@@ -68,7 +68,7 @@ function ncDecAct(s) {       // null: not a press this build knows (it is left o
   if (k === 'l') { const i = ncNum(r, 2); return i < 0 ? null : [A_LEVEL, i]; }
   if (k === 's') { const i = ncNum(r, 5); return i < 0 ? null : [A_SELL, i]; }
   if (k === 'b') { const i = ncNum(r, ITEM_KEYS.length - 1); return i < 0 ? null : [A_BUY, ITEM_KEYS[i]]; }
-  if (r === '') { if (k === 'm') return [A_MEND]; if (k === 'i') return [A_ITEM]; if (k === 'r') return [A_RECALL]; }
+  if (r === '') { if (k === 'm') return [A_MEND]; if (k === 'i') return [A_ITEM]; if (k === 'r') return [A_RECALL]; if (k === 't') return [A_MOOD]; }
   return null;
 }
 function ncEnc1(f) { let s = (f.mc === MOVE_NONE ? '' : f.mc.toString(36)) + '.' + f.bits.toString(36) + (f.bits & 16 ? '.' + f.hint.toString(36) : ''); for (const a of f.acts) s += '!' + ncEncAct(a); return s; }

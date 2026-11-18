@@ -230,7 +230,11 @@ const POS_KEYS = ['top', 'jungle', 'mid', 'carry', 'roam'], POS_SPARE = ['roam',
    none she stings: her skills hit STING_K times harder. Her comb stands COMB_T seconds and is COMB_R across; the hive flies HIVE_T
    seconds, HIVE_R around her. */
 const TEND_R = 600, TEND_K = 1.2, STING_K = 1.2, COMB_R = 250, COMB_T = 4, HIVE_R = 430, HIVE_T = 5;
-function tending(h) { for (const a of G.heroes) if (a !== h && a.team === h.team && !a.dead && hyp(a.x - h.x, a.y - h.y) <= TEND_R) return true; return false; }
+/* As of KIT_V 22 the temper is the player's to choose (h.sting, changed with toggleMood: a press of its own, A_MOOD); a bot still
+   goes by the company it is in, as everyone did before. HIVE_T2: how long the Queen's Flight lasts as of the same kit. */
+const HIVE_T2 = 6;
+function tendNear(h) { for (const a of G.heroes) if (a !== h && a.team === h.team && !a.dead && hyp(a.x - h.x, a.y - h.y) <= TEND_R) return true; return false; }
+function tending(h) { return G.kit >= 22 && h.isPlayer ? !h.sting : tendNear(h); }
 /* Her stings. Every enemy that Stinger Flight goes through keeps a sting for STING_T seconds: each second it takes stingDmg and it is
    STING_SLOW slower. A flight that hits a stung enemy adds another sting (STING_MAX at most) and starts the time of all of them
    again; the hurt and the slow are both as many times over as there are stings. (u.sg, on the stung: n stings until `until`, the
@@ -259,10 +263,18 @@ function stingTick(u) {       // (called for every stung unit, every step)
 }
 
 /* ---------------- battle spells ---------------- */
+/* Bram's Shield Rush as of KIT_V 22. RUSH_AGAIN: how long after the charge its second cast, Heave, can be made; HEAVE_R, HEAVE_A: how
+   far in front of him Heave reaches and how wide to either side (radians); HEAVE_T: how long it keeps them in the air. */
+const RUSH_AGAIN = 4, HEAVE_R = 270, HEAVE_A = 1.15, HEAVE_T = 1;
+/* Inspire: for INSPIRE_T seconds the next INSPIRE_N basic attacks are quicker (INSPIRE_AS times, and up to INSPIRE_CAP a second, past
+   the usual limit of 2.5), go through some armour and give back some health. */
+const INSPIRE_T = 5, INSPIRE_N = 8, INSPIRE_AS = 1.55, INSPIRE_CAP = 4.2;
+function inspirePen(h) { return 8 + h.level; }
+function inspireHeal(h) { return 60 + 0.15 * h.ad + 0.15 * h.ap; }
 /* Hesta's gong. CALL_R: how far Brazen Call reaches; POOL_R, POOL_T: the reach and the life of the shield her side shares; RING_MAX:
    how many Rings the gong holds before her next basic attack lets them out; PEAL_R: how far that peal carries. */
 const CALL_R = 300, POOL_R = 480, POOL_T = 5, RING_MAX = 4, PEAL_R = 300;
-function callT(lv) { return L(lv, 0.9, 0.1); }       // how long Brazen Call holds a hero
+function callT(lv, kit) { return kit < 22 ? L(lv, 0.9, 0.1) : L(lv, 1.5, 0.4); }       // how long Brazen Call holds a hero: 1.5 to 3.5s as of KIT_V 22 (0.9 to 1.4 before; a description gives no kit and says today's)
 function ringAdd(h) { if (h.dead) return; const n = h.pv.n || 0; if (n >= RING_MAX) return; h.pv.n = n + 1; if (n + 1 === RING_MAX) skfx(h, 'hestaR', h.x, h.y, {}); }
 function pealAmt(h) { return 40 + 0.05 * h.maxHp; }
 function peal(h) {       // the gong let out: a blow to everyone near her, and a shield for her of as much
@@ -294,6 +306,11 @@ const SPELLS = {
       skfx(h, 'spE', t.x, t.y, { c: '#ff5d5d' });
       dmg(h, t, executeDmg(h, t), 'true', { skill: true, noVamp: true });
     },
+  },
+  inspire: {
+    name: 'Inspire', ic: 'inspire', c: '#ff8a4a', cd: 75, cast: 'self', ind: { t: 'self', r: 0 },
+    desc: `For ${INSPIRE_T} seconds your next ${INSPIRE_N} basic attacks come 55% faster, past the usual limit on attack speed. Each one ignores 8 (+1 per level) of the target's Armor and restores 60 (+15% Attack, +15% Magic) health.`,
+    fn(h) { addBuff(h, { k: 'inspire', t: INSPIRE_T, n: INSPIRE_N, asMul: INSPIRE_AS, asCap: INSPIRE_CAP, aura: '#ff8a4a' }); skfx(h, 'spI', h.x, h.y, { c: '#ff8a4a' }); },
   },
   retribution: {
     name: 'Retribution', ic: 'smite', c: '#f2c14e', cd: 35, range: 480, cast: 'point', ind: { t: 'circle', r: 120 },
@@ -329,17 +346,36 @@ const HEROES = {
     name: 'Bram', title: 'Oathbound Warden', cls: 'Tank', spell: 'aegis', melee: true, rate: [9, 4, 7, 5],
     look: { body: '#5f7387', trim: '#e0b04a', skin: '#e2b792', hair: '#4a3323', hat: 'helm', weapon: 'shield', cape: '#31506e' },
     skills: [
+      /* As of KIT_V 22 the charge no longer stops at the first hero: it sweeps everything in its way along to where it ends (each one
+         is carried the rest of the way from where it was met, at the pace of the charge), and for RUSH_AGAIN seconds the skill has a
+         second cast, Heave, that throws whatever is in front of him into the air. Before, it stunned the first hero it struck. */
       { name: 'Shield Rush', ic: 'dash', c: '#e0b04a', max: 6, cd: [9, 7], cost: [60, 85], range: 440, cast: 'dir', noRoot: true,
-        ind: { t: 'line', w: 110 }, ai: { t: 'gap', esc: true },
-        desc: lv => `Charge forward. The first enemy hero struck takes ${L(lv, 220, 50)} (+60% Attack) damage and is stunned for 0.8s.`,
+        ind: { t: 'line', w: 120 }, ai: { t: 'gap', esc: true, thru22: true },
+        desc: lv => `Charge forward behind the shield. Every enemy in the way takes ${L(lv, 130, 30)} (+40% Attack) damage and is pushed along to the end of the charge. Within ${RUSH_AGAIN}s cast again to heave the shield up: enemies in front of you take ${L(lv, 140, 30)} (+40% Attack) damage and are thrown into the air for ${HEAVE_T}s.`,
         fn(h, lv, tx, ty, ang) {
           skfx(h, 'bram0', h.x, h.y, { ang });
-          startDash(h, ang, 440, 1150, { w: 70, stopOnHero: true, hit(e) {
-            dmg(h, e, L(lv, 220, 50) + 0.6 * h.ad, 'phys', { skill: true });
-            if (e.kind === 'hero') stun(e, 0.8); else slow(e, 0.4, 1);
-            skfx(h, 'bram0h', e.x, e.y, { ang });
+          if (G.kit < 22) {
+            startDash(h, ang, 440, 1150, { w: 70, stopOnHero: true, hit(e) {
+              dmg(h, e, L(lv, 220, 50) + 0.6 * h.ad, 'phys', { skill: true });
+              if (e.kind === 'hero') stun(e, 0.8); else slow(e, 0.4, 1);
+              skfx(h, 'bram0h', e.x, e.y, { ang });
+            } });
+            return;
+          }
+          const c = fcos(ang), s = fsin(ang);
+          startDash(h, ang, 440, 1150, { w: 80, hit(e) {
+            dmg(h, e, L(lv, 130, 30) + 0.4 * h.ad, 'phys', { skill: true });
+            const left = h.dash ? h.dash.left : 0; if (!e.dead && !e.epic && left > 8) pullTo(e, e.x + c * left, e.y + s * left, left / 1150);       // swept along: the rest of the way, at his pace
+            skfx(h, 'bram0h', e.x, e.y, { ang, push: 1 });
           } });
-        } },
+          h.re[0] = { until: G.t + RUSH_AGAIN + 0.4 };       // (the charge itself takes 0.4s of it)
+        },
+        two: { name: 'Heave', ic: 'heave', cast: 'dir', range: HEAVE_R, noRoot: false, ind: { t: 'cone', a: HEAVE_A }, ai: { t: 'heave', r: HEAVE_R },
+          desc: lv => `Heave the shield up: enemies in front of you take ${L(lv, 140, 30)} (+40% Attack) damage and are thrown into the air for ${HEAVE_T}s.`,
+          fn(h, lv, tx, ty, ang) {
+            skfx(h, 'bram0u', h.x, h.y, { ang, r: HEAVE_R });
+            for (const e of enemiesInCone(h.team, h.x, h.y, HEAVE_R, ang, HEAVE_A)) { dmg(h, e, L(lv, 140, 30) + 0.4 * h.ad, 'phys', { skill: true }); if (!e.dead) knockUp(e, HEAVE_T, 170); }
+          } } },
       { name: 'Bulwark', ic: 'shield', c: '#9db8d8', max: 6, cd: [11, 8.5], cost: [70, 95], cast: 'self',
         ind: { t: 'self', r: 320 }, ai: { t: 'shield', r: 320 },
         desc: lv => `Gain a shield of ${L(lv, 300, 70)} (+8% max HP) for 3.5s. Nearby enemies take ${L(lv, 120, 35)} (+40% Attack) magic damage and are slowed 35% for 2s.`,
@@ -771,7 +807,7 @@ const HEROES = {
     name: 'Miel', title: 'Amber Hivekeeper', cls: 'Support', cls2: 'Mage', spell: 'flicker', melee: false, rate: [4, 7, 5, 3],
     roles: [{ cls: 'Support', pos: 'roam', does: 'Keeps the carry alive in the bottom lane and follows the fights.' }, { cls: 'Mage', pos: 'mid', does: 'Holds the middle lane alone and stings whoever comes into reach.' }],
     base: { hp: 2460, hpG: 160, mp: 520, mpG: 45, ad: 104, adG: 5.0, armor: 17, armorG: 2.7, mr: 11, mrG: 1.6, as: 0.80, asG: 1.0, range: 530, ms: 250, hpRegen: 6.5, mpRegen: 4.3 },
-    look: { body: '#f1e6c8', trim: '#e9a21f', skin: '#edc9a4', hair: '#4a2f1c', hat: 'veil', weapon: 'skep', cape: '#8a5a1c', glow: '#ffc94a', band: '#3a2a1a', straw: '#d9a441', pants: '#6a4a26', boot: '#3a2a1a', tend: '#fff0b0', sting: '#ff6a2a' },
+    look: { body: '#f1e6c8', trim: '#e9a21f', skin: '#edc9a4', hair: '#4a2f1c', hat: 'veil', weapon: 'skep', cape: '#8a5a1c', glow: '#ffc94a', band: '#3a2a1a', straw: '#d9a441', pants: '#6a4a26', boot: '#3a2a1a', tend: '#fff0b0', sting: '#ff6a2a', bee: ['#ffc233', '#2a1a0e'] },       // (bee: the colours of her bees, body and bands)
     skills: [
       { name: 'Stinger Flight', ic: 'sting', c: '#ffb52e', max: 6, cd: [7.5, 5.5], cost: [65, 90], range: 880, cast: 'dir',
         ind: { t: 'line', w: 100 }, ai: { t: 'line', speed: 1500, wave: true },
@@ -796,13 +832,26 @@ const HEROES = {
         } },
       { name: "Queen's Flight", ic: 'crown', c: '#ff9a2e', max: 3, cd: [50, 40], cost: [140, 180], cast: 'self', ult: true,
         ind: { t: 'self', r: HIVE_R }, ai: { t: 'self', r: HIVE_R, ult: true, mend: true },
-        desc: lv => `The whole hive takes wing around you for ${HIVE_T}s and you move 20% faster. Every 0.5s enemies within reach take ${L(lv, 50, 26)} (+15% Magic) damage and are slowed 20%, and allied heroes within reach, you among them, regain ${L(lv, 32, 15)} (+8% Magic) health.`,
+        desc: lv => `The queen leads the whole hive out around you for ${HIVE_T2}s and you move 25% faster. As it bursts out, enemies within reach take ${L(lv, 100, 55)} (+30% Magic) damage, are slowed 40% for 1.5s and keep a sting, and allied heroes within reach, you among them, regain ${L(lv, 50, 30)} (+12% Magic) health. Then every 0.5s enemies within reach take ${L(lv, 50, 26)} (+15% Magic) damage and are slowed 25%, and allies regain ${L(lv, 32, 15)} (+8% Magic) health.`,
         fn(h, lv) {
-          addBuff(h, { k: 'hive', t: HIVE_T, msMul: 1.2 });
-          skfx(h, 'miel2', h.x, h.y, { r: HIVE_R, dur: HIVE_T });
-          zone(h, h.x, h.y, { dur: HIVE_T, r: HIVE_R, tick: 0.5, follow: h, look: 'hive', c: '#ff9a2e', ci: 2,
-            hit(e) { dmg(h, e, L(lv, 50, 26) + 0.15 * h.ap, 'magic', { skill: true }); slow(e, 0.2, 0.7); },
-            each(a) { for (const p of alliesIn(h.team, a.x, a.y, a.r)) heal(h, p, L(lv, 32, 15) + 0.08 * h.ap); } });
+          if (G.kit < 22) {       // as it was: five seconds of the hive about her, and no more
+            addBuff(h, { k: 'hive', t: HIVE_T, msMul: 1.2 });
+            skfx(h, 'miel2', h.x, h.y, { r: HIVE_R, dur: HIVE_T });
+            zone(h, h.x, h.y, { dur: HIVE_T, r: HIVE_R, tick: 0.5, follow: h, look: 'hive', c: '#ff9a2e', ci: 2,
+              hit(e) { dmg(h, e, L(lv, 50, 26) + 0.15 * h.ap, 'magic', { skill: true }); slow(e, 0.2, 0.7); },
+              each(a) { for (const p of alliesIn(h.team, a.x, a.y, a.r)) heal(h, p, L(lv, 32, 15) + 0.08 * h.ap); } });
+            return;
+          }
+          addBuff(h, { k: 'hive', t: HIVE_T2, msMul: 1.25 });
+          skfx(h, 'miel2', h.x, h.y, { r: HIVE_R, dur: HIVE_T2, q: 1 });
+          for (const e of enemiesIn(h.team, h.x, h.y, HIVE_R)) {       // the burst: a blow, a slow and a sting for everyone in reach
+            dmg(h, e, L(lv, 100, 55) + 0.3 * h.ap, 'magic', { skill: true });
+            if (!e.dead) { slow(e, 0.4, 1.5); sting(h, e, Math.max(1, h.sk[0])); skfx(h, 'miel2h', e.x, e.y, { tid: e.id }); }
+          }
+          for (const p of alliesIn(h.team, h.x, h.y, HIVE_R)) { heal(h, p, L(lv, 50, 30) + 0.12 * h.ap); if (p !== h) skfx(h, 'miel0a', p.x, p.y, { tid: p.id }); }
+          zone(h, h.x, h.y, { dur: HIVE_T2, r: HIVE_R, tick: 0.5, follow: h, look: 'hive', c: '#ff9a2e', ci: 2,
+            hit(e) { dmg(h, e, L(lv, 50, 26) + 0.15 * h.ap, 'magic', { skill: true }); slow(e, 0.25, 0.7); },
+            each(a) { for (const p of alliesIn(h.team, a.x, a.y, a.r)) heal(h, p, L(lv, 32, 15) + 0.08 * h.ap); } }).q = 1;       // (q: the queen is out, for the eye)
         } },
     ],
   },
@@ -827,7 +876,7 @@ const HEROES = {
           addBuff(h, { k: 'brazen', t: 3, armor: L(lv, 24, 6), mr: L(lv, 24, 6) });
           for (const e of enemiesIn(h.team, h.x, h.y, CALL_R)) {
             dmg(h, e, L(lv, 100, 28) + 0.4 * h.ad, 'magic', { skill: true });
-            if (!e.dead && taunt(e, h, callT(lv)) && e.kind === 'hero') { ringAdd(h); if (pts.length < 16) pts.push(e.x, e.y); }
+            if (!e.dead && taunt(e, h, callT(lv, G.kit)) && e.kind === 'hero') { ringAdd(h); if (pts.length < 16) pts.push(e.x, e.y); }
           }
           skfx(h, 'hesta1', h.x, h.y, { r: CALL_R, pts });
         } },
@@ -898,8 +947,8 @@ const PASSIVES = {
     desc: 'Her heals are 25% stronger on allies below 40% HP, and allies she heals gain 15% Move Speed for 2s.',
     healMul(h, t) { return t.hp < t.maxHp * 0.4 ? 1.25 : 1; },
     healed(h, t) { if (t !== h) addBuff(t, { k: 'grace', t: 2, msMul: 1.15 }); } },
-  miel: { name: 'Tend and Sting', ic: 'bee', c: '#ffc94a',
-    desc: 'The hive has two tempers. With an allied hero within reach of her she tends: her heals and shields are 20% stronger. With none near she stings: her skills deal 20% more damage.',
+  miel: { name: 'Tend and Sting', ic: 'bee', c: '#ffc94a', toggle: true,       // (toggle: the temper is changed by a press of its own, see toggleMood)
+    desc: 'The hive has two tempers, and which it is in is yours to choose. Tending: her heals and shields are 20% stronger. Stinging: her skills deal 20% more damage. Change it with the temper button at any time; it then keeps for a second before it can change again.',
     moods: [{ name: 'Tending', ic: 'heart', look: 'tend' }, { name: 'Stinging', ic: 'sting', look: 'sting' }], mood(h) { return tending(h) ? 0 : 1; },       // (which of the two she is in: for the view to show)
     healMul(h) { return tending(h) ? TEND_K : 1; },
     dmgMul(h, t, f) { return f.skill && !tending(h) ? STING_K : 1; } },
@@ -1037,9 +1086,9 @@ const SKINS = {
   ],
   miel: [
     { name: 'Amber Hivekeeper' },
-    { name: 'Royal Jelly', look: { body: '#3a2456', trim: '#ffd76a', hair: '#f1e4ff', hat: 'tiara', cape: '#241238', glow: '#d59bff', band: '#ffd76a', straw: '#8a5fd0', veil: '#d9c2f5', glove: '#5a3f86', wood: '#4a3470', pants: '#2a1a40', boot: '#1c1030', tend: '#f1e4ff', sting: '#ff6ad0' },
+    { name: 'Royal Jelly', look: { body: '#3a2456', trim: '#ffd76a', hair: '#f1e4ff', hat: 'tiara', cape: '#241238', glow: '#d59bff', band: '#ffd76a', straw: '#8a5fd0', veil: '#d9c2f5', glove: '#5a3f86', wood: '#4a3470', pants: '#2a1a40', boot: '#1c1030', tend: '#f1e4ff', sting: '#ff6ad0', bee: ['#ffd76a', '#4a2a7a'] },
       sk: ['#c98cff', '#ffd76a', '#ff8fe0'], aura: '#d59bff' },
-    { name: 'Frost Apiary', look: { body: '#e6f3fa', trim: '#6fc3e8', hair: '#dfeaf2', cape: '#2f6f96', glow: '#aee9ff', band: '#2f6f96', straw: '#cfe9f5', veil: '#f4fbff', glove: '#7fa9c0', wood: '#5c7f96', pants: '#5c8298', boot: '#35586c', tend: '#e8fbff', sting: '#4fa8ff' },
+    { name: 'Frost Apiary', look: { body: '#e6f3fa', trim: '#6fc3e8', hair: '#dfeaf2', cape: '#2f6f96', glow: '#aee9ff', band: '#2f6f96', straw: '#cfe9f5', veil: '#f4fbff', glove: '#7fa9c0', wood: '#5c7f96', pants: '#5c8298', boot: '#35586c', tend: '#e8fbff', sting: '#4fa8ff', bee: ['#e6f6ff', '#2f6f96'] },
       sk: ['#8fe0ff', '#dff6ff', '#6fb8ff'], aura: '#aee9ff' },
   ],
   hesta: [
@@ -1054,7 +1103,7 @@ const _looks = {};
 function heroLook(key, skin) { const k = key + (skin | 0); return _looks[k] || (_looks[k] = Object.assign({}, HEROES[key].look, (SKINS[key][skin | 0] || {}).look)); }
 function skinColor(key, skin, i) { const s = SKINS[key][skin | 0]; return (s && s.sk && s.sk[i]) || HEROES[key].skills[i].c; }
 /* distinct cast sounds per skill (0 = default) */
-const SKILL_SND = { bram: ['whoosh', 'guard', 0], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
+const SKILL_SND = { bram: ['whoosh', 'guard', 0, 'slam'], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
   lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'] };
 for (const k of HERO_KEYS) HEROES[k].passive = PASSIVES[k];
 for (const k of HERO_KEYS) {
@@ -1063,12 +1112,16 @@ for (const k of HERO_KEYS) {
   d.skills.forEach((s, i) => { s.snd = SKILL_SND[k][i] || null; if (s.three) s.three = Object.assign({}, s, s.three, { two: null, three: null, stage: 3, snd: SKILL_SND[k][i + 9] || s.snd }); if (s.two) s.two = Object.assign({}, s, s.two, { two: null, three: null, stage: 2, snd: SKILL_SND[k][i + 3] || s.snd }); if (s.alt) s.alt = Object.assign({}, s, s.alt, { alt: null, two: null, form: 1, snd: SKILL_SND[k][i + 6] || s.snd }); });
 }
 
+/* These two numbers as they stood for every hero up to KIT_V 21. They are read off the skills as written, so rewriting a skill moves
+   them; a match of an older kit is played by the numbers its bots went by then (defMagic, defCc). */
+const DEF_21 = { bram: [0.2222222222222222, 2], thorn: [0.6666666666666666, 2], kaela: [0, 3], rook: [0, 0], vex: [0, 0], tavi: [0, 0], kiri: [1, 1], lyra: [1, 2], zephyr: [1, 1], orin: [0, 2], mira: [0, 1], sera: [1, 1], miel: [1, 0], hesta: [0.2857142857142857, 1] };
 /* What each hero is to play against, worked out from its own skills: magic is the share of its damage that is magic (0..1), ccN how
    many of its skills stun, root, pull or throw. The bots read these when they choose what to buy. */
 for (const k of HERO_KEYS) {
   const d = HEROES[k], caster = d.cls === 'Mage' || d.cls === 'Support'; let m = 0, p = caster ? 0 : 1.5, cc = 0;
   for (const s of d.skills) for (const q of [s, s.two, s.three, s.alt]) { if (!q) continue; const src = String(q.fn); m += (src.match(/'magic'/g) || []).length; p += (src.match(/'phys'/g) || []).length; if (/stun|root|pull|into the air|knock|taunt/i.test(q.desc(1))) cc++; }
   d.magic = m + p > 0 ? m / (m + p) : caster ? 1 : 0; if (caster && d.magic < 0.6) d.magic = 0.6; d.ccN = cc;
+  { const q = DEF_21[k]; d.magic21 = q ? q[0] : d.magic; d.ccN21 = q ? q[1] : d.ccN; }
 }
 /* difficulty presets for bots */
 const DIFFS = [

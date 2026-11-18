@@ -322,17 +322,18 @@ function aiDanger(h) {
    magic, armour against one that does not, the boots to match; a piece of safety for a carry once someone over there is fed; armour
    or resist piercing moved up when they have two or more heroes who are hard to bring down; and the Ironwill Totem only when they have
    the crowd control to make it worth pressing. What is already in the bag (or begun) is never thrown over. */
+const defMagic = d => G.kit >= 22 ? d.magic : d.magic21, defCc = d => G.kit >= 22 ? d.ccN : d.ccN21;       // what a hero is to play against, by the kit of the match
 function aiBuild(h) {
   const base = (h.bld || h.def.build).slice(), cls = h.cls || h.def.cls, foes = G.heroes.filter(e => e.team !== h.team); if (!foes.length) return base;       // (bld, cls: the build and class of the role it is played in)
   let phys = 0, magic = 0, cc = 0, tough = 0, fed = null;
-  for (const e of foes) { const w = 1 + e.goldEarned / 5000 + e.kills * 0.12, m = e.def.magic; magic += w * m; phys += w * (1 - m); cc += e.def.ccN; if (e.def.cls === 'Tank' || (e.def.cls === 'Fighter' && e.items.some(k => ITEMS[k].armor >= 30 || ITEMS[k].hp >= 500))) tough++; if (e.kills >= 4 && e.kills >= e.deaths * 2 && (!fed || e.kills > fed.kills)) fed = e; }
+  for (const e of foes) { const w = 1 + e.goldEarned / 5000 + e.kills * 0.12, m = defMagic(e.def); magic += w * m; phys += w * (1 - m); cc += defCc(e.def); if (e.def.cls === 'Tank' || (e.def.cls === 'Fighter' && e.items.some(k => ITEMS[k].armor >= 30 || ITEMS[k].hp >= 500))) tough++; if (e.kills >= 4 && e.kills >= e.deaths * 2 && (!fed || e.kills > fed.kills)) fed = e; }
   const ms = magic / (magic + phys), swap = (from, to) => { const i = base.indexOf(from); if (i >= 0 && !base.includes(to)) base[i] = to; }, up = (k, to) => { const i = base.indexOf(k); if (i > to) { base.splice(i, 1); base.splice(to, 0, k); } };
   if (cls !== 'Mage') { if (ms >= 0.58 && (cls === 'Tank' || cls === 'Fighter' || cls === 'Support' || ms >= 0.75)) for (const b of ['greaves', 'swift']) swap(b, 'wardboots'); else if (ms <= 0.3 && (cls === 'Tank' || cls === 'Fighter' || cls === 'Support')) swap('wardboots', 'greaves'); }
   if (base.includes('ironbark') && base.includes('spellward')) { if (ms > 0.5) up('spellward', base.indexOf('ironbark')); }
   else if (ms > 0.62) swap('ironbark', 'spellward'); else if (ms < 0.25) swap('spellward', 'ironbark');
   if (base.includes('totem') && cc <= 2) swap('totem', cls === 'Marksman' ? 'quickblade' : cls === 'Assassin' ? 'sunder' : 'titan');
   if (tough >= 2) { if (cls === 'Mage') up('voidcrystal', 2); else if (cls === 'Marksman' || cls === 'Assassin' || cls === 'Fighter') { if (!base.includes('giantslayer') && !base.includes('sunder')) base[5] = 'giantslayer'; up(base.includes('giantslayer') ? 'giantslayer' : 'sunder', 2); } }
-  if (fed && (cls === 'Marksman' || cls === 'Mage' || cls === 'Assassin')) { const k = fed.def.magic > 0.5 ? 'spellward' : 'bastion'; if (!base.includes(k)) base[4] = k; }
+  if (fed && (cls === 'Marksman' || cls === 'Mage' || cls === 'Assassin')) { const k = defMagic(fed.def) > 0.5 ? 'spellward' : 'bastion'; if (!base.includes(k)) base[4] = k; }
   // what is owned keeps its place, and so does the item being saved for if a part of it is already in the bag
   const mine = h.items.filter(k => !ITEMS[k].part), cur = (h.ai.build || h.bld || h.def.build).find(k => !mine.includes(k)), begun = cur && missingParts(h, cur).length < (ITEMS[cur].from || []).length ? [cur] : [];
   const out = mine.slice(); for (const k of begun.concat(base)) if (!out.includes(k) && out.length < 6 && !(ITEMS[k].boots && out.some(q => ITEMS[q].boots))) out.push(k);
@@ -615,6 +616,9 @@ function aiRecast(h, t, foes, only) {
       if (turretThreat(h.team, m.x, m.y, 40, h) && !(h.ai.P.dive && m.kind === 'hero' && m.hp / m.maxHp < 0.3 && hpF > 0.6)) continue;
       if (m.kind === 'hero' && hpF < 0.35) continue;
       if (hyp(m.x - h.x, m.y - h.y) - m.r > h.range + 40 && castSkill(h, i, m.x, m.y)) return true;
+    } else if (A.t === 'heave') {       // whatever the charge swept along is in front of him now: up it goes (at a hero if there is one, at anything as the chance runs out)
+      let best = null, bd = 1e9; for (const e of enemiesIn(h.team, h.x, h.y, A.r)) { const d = hyp(e.x - h.x, e.y - h.y) - (e.kind === 'hero' ? 400 : 0) - (e === t ? 200 : 0); if (d < bd) { bd = d; best = e; } }
+      if (best && (best.kind === 'hero' || re.until - G.t < 1.2) && castSkill(h, i, best.x, best.y)) return true;
     } else if (A.t === 'gap2' && t && t.kind === 'hero') {
       const d = hyp(t.x - h.x, t.y - h.y);
       if (d > h.range + 110 && d <= s.range + h.range && t.hp / t.maxHp < 0.45 && hpF > 0.35 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h) && castSkill(h, i, t.x, t.y)) return true;
@@ -639,7 +643,7 @@ function aiCombat(h, t, foes) {
         if (d <= s.range + A.r * 0.4) { let fr = null, fd = A.r * 1.5; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead) { const q = hyp(p.x - t.x, p.y - t.y); if (q < fd && hyp(p.x - h.x, p.y - h.y) < s.range + A.r) { fd = q; fr = p; } }
           c = fr ? { x: (fr.x + t.x) / 2, y: (fr.y + t.y) / 2 } : aiAim(h, t, 0, 0.25); }
         break;
-      case 'gap': if (A.thru) { if (d > h.range + 40 && d <= s.range + 70 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h) && !turretThreat(h.team, h.x + (t.x - h.x) / d * s.range, h.y + (t.y - h.y) / d * s.range, 40, h)) c = { x: t.x, y: t.y }; break; }       // (thru: a run that goes through its target and on: from where it still reaches him, and not if it ends under a turret)
+      case 'gap': if (A.thru || (A.thru22 && G.kit >= 22)) { if (d > h.range + 40 && d <= s.range + 70 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h) && !turretThreat(h.team, h.x + (t.x - h.x) / d * s.range, h.y + (t.y - h.y) / d * s.range, 40, h)) c = { x: t.x, y: t.y }; break; }       // (thru: a run that goes through its target and on: from where it still reaches him, and not if it ends under a turret)
         if (d > h.range + 70 && d <= s.range + h.range + 60 && h.rootT <= 0 && !turretThreat(h.team, t.x, t.y, 40, h)) c = { x: t.x, y: t.y }; break;
       case 'kite': if (d <= h.range + 120 && h.rootT <= 0) { const an = fatan2(h.y - t.y, h.x - t.x) + (rnd() < .5 ? 1 : -1) * (d < 300 ? 0.4 : 1.2); const x = h.x + fcos(an) * 280, y = h.y + fsin(an) * 280; if (walkable(x, y)) c = { x, y }; } break;
       case 'buff': if (d <= h.range + 260) c = { x: h.x, y: h.y }; break;
@@ -743,6 +747,7 @@ function aiSpell(h, t, ctx, ax, ay) {
     case 'flicker': if (ctx === 'flee' && hpF < 0.3 && t && t._d < 450 && h.rootT <= 0) castSkill(h, 3, h.x + ax * 420, h.y + ay * 420); break;
     case 'sprint': if ((ctx === 'flee' && hpF < 0.4) || (ctx === 'fight' && t && t.hp / t.maxHp < 0.3 && hyp(t.x - h.x, t.y - h.y) > h.range + 80)) castSkill(h, 3, h.x, h.y); break;
     case 'aegis': if (hpF < 0.42 && G.t - h.lastDmgT < 1.2) castSkill(h, 3, h.x, h.y); break;
+    case 'inspire': if (ctx === 'fight' && t && t.kind === 'hero' && hpF > 0.2 && hyp(t.x - h.x, t.y - h.y) - t.r <= h.range + 60) castSkill(h, 3, h.x, h.y); break;
     case 'execute': if (ctx === 'fight' && t && hyp(t.x - h.x, t.y - h.y) < 560 && t.hp + shieldOf(t) <= executeDmg(h, t) * 0.95) castSkill(h, 3, t.x, t.y); break;
   }
 }
