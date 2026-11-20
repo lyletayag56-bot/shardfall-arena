@@ -256,7 +256,7 @@ function shareXp(team, x, y, amt, rad, bonusFor) {
 function enemiesIn(team, x, y, r) {
   const out = [];
   for (const u of G.units) {
-    if (u.dead || u.team === team || u.kind === 'turret' || u.kind === 'crystal') continue;
+    if (u.dead || u.team === team || u.kind === 'turret' || u.kind === 'crystal' || u.away === true) continue;       // (away: Odile, in the glass)
     const dx = u.x - x, dy = u.y - y, rr = r + u.r * 0.6;
     if (dx * dx + dy * dy <= rr * rr) out.push(u);
   }
@@ -352,8 +352,8 @@ function steadyOf(u) { if (u.kind !== 'hero') return null; for (const b of u.buf
 function steadyFor(u, pierce) { if (!pierce) return steadyOf(u); if (u.kind !== 'hero') return null; let sb = null, im = null; for (const b of u.buffs) { if (b.immune) im = b; else if (b.steady) sb = b; } if (!sb && im) fx('pierce', u.x, u.y, { id: u.id, c: im.shell || '#ffffff' }); return sb; }
 function immuneOf(u) { if (u.kind !== 'hero') return null; for (const b of u.buffs) if (b.immune) return b; return null; }
 function blocked(u, b) { if (G.t - (u.blockT || -9) > 0.45) { u.blockT = G.t; fx('block', u.x, u.y, { id: u.id, c: b.shell || b.aura || '#ffffff', ci: b.ci, all: !!b.immune }); } }
-function slow(u, pct, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const im = immuneOf(u); if (im) { blocked(u, im); return; } if (!(u.kind === 'hero' && hasBuff(u, 'sprint') && hasBuff(u, 'sprint').noSlow)) logHold(u, 'slow', dur, pct); addBuff(u, { k: 'slow' + Math.round(pct * 100), t: dur, msMul: 1 - (u.epic ? pct * 0.4 : pct) }); }
-function stun(u, dur, pierce) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const sb = steadyFor(u, pierce); if (sb) { blocked(u, sb); return; } if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75; logHold(u, 'stun', dur); u.stunT = Math.max(u.stunT, dur); u.windT = 0; if (u.kind === 'hero') { u.recallT = 0; } }
+function slow(u, pct, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead || u.away === true) return; const im = immuneOf(u); if (im) { blocked(u, im); return; } if (!(u.kind === 'hero' && hasBuff(u, 'sprint') && hasBuff(u, 'sprint').noSlow)) logHold(u, 'slow', dur, pct); addBuff(u, { k: 'slow' + Math.round(pct * 100), t: dur, msMul: 1 - (u.epic ? pct * 0.4 : pct) }); }
+function stun(u, dur, pierce) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead || u.away === true) return; const sb = steadyFor(u, pierce); if (sb) { blocked(u, sb); return; } if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75; logHold(u, 'stun', dur); u.stunT = Math.max(u.stunT, dur); u.windT = 0; if (u.kind === 'hero') { u.recallT = 0; } }
 /* Thrown into the air: helpless until it comes down. It holds like a stun, and the same things shrug it off or shorten it; the height
    (u.z) is for the eye. A hero in the middle of a leap of his own is only stunned: he is in the air already. */
 function knockUp(u, dur, ht) {
@@ -364,7 +364,7 @@ function knockUp(u, dur, ht) {
   if (!u.leap) u.air = { t: 0, dur, h: (ht || 150) * (u.epic ? 0.25 : 1), z0: u.z || 0 };
   fx('air', u.x, u.y, { id: u.id, dur, big: u.r > 45 ? 1 : 0 }); sfx('whoosh', u.x, u.y); return true;
 }
-function root(u, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead) return; const sb = steadyOf(u); if (sb) { blocked(u, sb); return; } if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75; logHold(u, 'root', dur); u.rootT = Math.max(u.rootT, dur); if (u.kind === 'hero') { u.dash = null; u.recallT = 0; } }
+function root(u, dur) { if (u.kind === 'turret' || u.kind === 'crystal' || u.dead || u.away === true) return; const sb = steadyOf(u); if (sb) { blocked(u, sb); return; } if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75; logHold(u, 'root', dur); u.rootT = Math.max(u.rootT, dur); if (u.kind === 'hero') { u.dash = null; u.recallT = 0; } }
 /* Taunted: for a moment a unit can do nothing but come at whoever called it out and hit him with its basic attack. No skill, no
    spell, no item, no recall, no step of its own choosing. Whatever shrugs off a stun shrugs this off and whatever shortens one
    shortens this. It ends early if whoever called it out falls or cannot be touched. Returns whether it took hold. */
@@ -417,6 +417,7 @@ function dmg(src, tgt, amt, type, f) {
     }
   }
   if (G.duel && structure) a *= duelRush();
+  if (tgt.med && type !== 'true') a *= 1 - (src && (src.kind === 'turret' || src.kind === 'crystal') ? AN_DR_T : AN_DR);       // Odile on her knees (Anneal)
   let left = a;
   if (tgt.shields.length) { for (const s of tgt.shields) { const use = Math.min(s.v, left); s.v -= use; left -= use; if (left <= 0) break; } }
   if (tgt.kind === 'hero' && left >= tgt.hp && tgt.has.bastion && tgt.reviveCd <= G.t) {
@@ -510,7 +511,7 @@ function heroDeath(u, kh, src) {
   u.respawnT = G.practice ? 3 : 4 + u.level * 1.6 + Math.min(G.t / 60, 20) * 0.7;
   const hadBuffs = ['azure', 'crimson'].filter(k => hasBuff(u, k));
   if (u.snipe) snipeEnd(u, true); if (u.camo) u.camo = false;
-  if (u.tp) tpStop(u, false); if (u.form && u.def.forms.beast) beastOff(u, true);
+  if (u.tp) tpStop(u, false); if (u.form && u.def.forms.beast) beastOff(u, true); if (u.med) anEnd(u, true); u.twin = null; if (u.gw) { u.gw = null; u.away = false; }
   u.buffs = []; u.shields = []; u.stunT = u.rootT = 0; u.tauntT = 0; u.tauntBy = null; u.dash = u.leap = u.disp = u.air = null; u.recallT = 0; u.windT = 0; u.atkTarget = null; u.mvx = u.mvy = 0; u.z = 0;
   for (const r of u.re) if (r && r.pts) for (const q of r.pts) if (q.prop) q.prop.t = 0;
   u.re = [null, null, null]; u.mend = null; u.om = null; endFlurry(u); if (u.form) { u.form = 0; u.cds[0] = u.cds[1] = 0; recalc(u); }
@@ -650,7 +651,7 @@ function blink(h, x, y) { if (h.leap) { h.leap = null; h.z = 0; } h.dash = null;
 function startDash(h, ang, d, speed, o) { h.dash = { ang, left: d, speed, hit: {}, o: o || {}, cx: G.cx }; h.windT = 0; h.face = ang; }
 function leapTo(h, x, y, dur, onLand) { const p = clampWalk(h.x, h.y, x, y); h.leap = { x0: h.x, y0: h.y, x1: p.x, y1: p.y, t: 0, dur, onLand, cx: G.cx }; h.windT = 0; if (h.ai) h.ai.path = null; }
 function pullTo(u, x, y, dur) {
-  if (u.dead || u.leap || u.kind === 'turret' || u.kind === 'crystal') return;
+  if (u.dead || u.leap || u.kind === 'turret' || u.kind === 'crystal' || u.away === true) return;
   const sb = steadyOf(u); if (sb) { blocked(u, sb); return; }
   const p = clampWalk(u.x, u.y, x, y); u.disp = { x0: u.x, y0: u.y, x1: p.x, y1: p.y, t: 0, dur }; u.dash = null; u.windT = 0; u.recallT = 0; logHold(u, 'pull', dur);
   if (u.ai) u.ai.path = null;
@@ -810,6 +811,8 @@ function fireBasic(u, t) {
   const apply = tgt => {
     if (tgt.dead) return;
     dmg(u, tgt, amt, type, fl); if (inspH > 0 && !u.dead) heal(u, u, inspH); if (ctx && ctx.focus && !u.dead) u.mp = Math.min(u.maxMp, u.mp + ctx.focus);
+    if (ctx && ctx.tru > 0 && !tgt.dead) dmg(u, tgt, ctx.tru, 'true', { noVamp: true, n: 'Anneal', ic: 'kneel' });       // a keen edge (Odile)
+    if (ctx && ctx.twin && !u.dead && !tgt.dead) u.twin = { at: G.t + TWIN_GAP, tgt, amt: amt * TWIN_K, tru: ctx.tru || 0, magic: ctx.magic, crit: fl.crit };       // Second Image: her reflection's blow follows
     if (ctx && ctx.after) ctx.after(tgt, amt);
     if (ctx && ctx.squall && !u.dead) squall(u, tgt);
     if (ctx) { if (ctx.magic > 0 && !tgt.dead) dmg(u, tgt, ctx.magic, 'magic', { noVamp: true }); if (ctx.heal > 0 && !u.dead) heal(u, u, ctx.heal); if (ctx.slow && !tgt.dead) slow(tgt, ctx.slow[0], ctx.slow[1]); if (ctx.mark && !tgt.dead) useMark(u, tgt); }
@@ -826,6 +829,109 @@ function fireBasic(u, t) {
     sfx(u.kind === 'hero' ? (u.look.weapon === 'rifle' ? (ls ? 'shot' : 'rifle') : 'shoot') : u.kind === 'minion' ? 'tick' : 'zap', u.x, u.y);
   }
   G.cx = pc;
+}
+
+/* ---------------- Odile: Glasswalk, Anneal, Quicksilver, Second Image ----------------
+   Glasswalk. h.gw = { lv, n: cuts made, t: time to the next, first, last, got: who has been cut, x0 y0: where she went in, lx ly:
+   where the last cut fell, out: time left after the last cut }. From the cast until she steps out she is locked (nothing can be
+   done to her: dmg, canTarget) and away (she is not seen, and nothing that sweeps an area finds her: enemiesIn, tickVision, and
+   stun, slow, root and taunt pass her by). She is moved to each one she cuts, so that whoever watches her follows the cuts. */
+function gwPick(h, tx, ty, slack) {       // whom a cast at this point goes for: the enemy nearest it, a hero before anything else that is about as near, within her reach and in sight; and with nobody near the point, whoever is nearest her
+  let best = null, bs = 1e9, own = null, os = 1e9; const reach = GW_RANGE + 40 + (slack || 0);
+  for (const u of G.units) {
+    if (u.dead || u.team === h.team || u.kind === 'turret' || u.kind === 'crystal' || !canTarget(h, u)) continue;
+    const dh = hyp(u.x - h.x, u.y - h.y) - u.r; if (dh > reach) continue;
+    const k = u.kind === 'hero' ? 140 : 0, so = dh - k; if (so < os) { os = so; own = u; }
+    const d = hyp(u.x - tx, u.y - ty) - u.r * 0.6; if (d > GW_PICK) continue;
+    const s = d - k; if (s < bs) { bs = s; best = u; }
+  }
+  return best || own;
+}
+function gwStart(h, t, lv) {
+  if (h.med) anEnd(h);
+  h.gw = { lv, n: 0, t: GW_FIRST, first: t, last: null, got: {}, x0: h.x, y0: h.y, lx: h.x, ly: h.y, out: GW_OUT, c: G.cx };
+  h.locked = true; h.away = true; h.atkTarget = null; h.chase = false; h.windT = 0; h.dash = null; h.mvx = h.mvy = 0; h.recallT = 0;
+  h.vis[1 - h.team] = false;
+  skfx(h, 'odile0', h.x, h.y, { tx: t.x, ty: t.y, tid: t.id });
+}
+function gwNext(h, S) {       // who is cut next: the nearest not yet cut within a step of the last one; failing that the first of them again, or the nearest of those already cut
+  let best = null, bd = 1e9, again = null, ad = 1e9;
+  for (const u of G.units) {
+    if (u.dead || u.locked || u.team === h.team || u.kind === 'turret' || u.kind === 'crystal') continue;
+    const got = S.got[u.id] === 1; if (!got && u.team !== NEUTRAL && !u.vis[h.team]) continue;       // (somebody she cannot see is not found by it)
+    const d = hyp(u.x - S.lx, u.y - S.ly) - u.r * 0.6; if (d > GW_HOP) continue;
+    if (got) { if (d < ad) { ad = d; again = u; } } else if (d < bd) { bd = d; best = u; }
+  }
+  if (best) return best;
+  const f = S.first; if (S.got[f.id] === 1 && !f.dead && !f.locked && hyp(f.x - S.lx, f.y - S.ly) - f.r * 0.6 <= GW_HOP * 1.5) return f;
+  return again;
+}
+function gwTick(h, dt) {
+  const S = h.gw; h.mvx = h.mvy = 0; h.moving = false; h.atkTarget = null; S.t -= dt;
+  while (S.t <= 0 && S.n < GW_N) {
+    const e = S.n === 0 && !S.first.dead && !S.first.locked ? S.first : gwNext(h, S);
+    if (!e) { S.n = GW_N; break; }
+    const again = S.got[e.id] === 1, pve = e.kind === 'minion' || e.kind === 'monster';
+    const ang = fatan2(S.ly - e.y, S.lx - e.x) + (S.n === 0 ? 0 : S.n % 2 ? 2.3 : -2.3);       // each cut from another side of them
+    const p = clampWalk(e.x, e.y, e.x + fcos(ang) * (e.r + 46), e.y + fsin(ang) * (e.r + 46)); h.x = p.x; h.y = p.y; h.face = fatan2(e.y - h.y, e.x - h.x);
+    skfx(h, 'odile0h', e.x, e.y, { ix: S.n, ang: h.face, again: again ? 1 : 0, x0: S.lx, y0: S.ly, tid: e.id });
+    S.got[e.id] = 1; S.last = e; S.lx = e.x; S.ly = e.y; S.n++; S.t += GW_GAP;
+    const pc = G.cx; G.cx = S.c; dmg(h, e, gwDmg(h, S.lv) * (again ? GW_SAME : 1) * (pve ? GW_PVE : 1), 'phys', { skill: true }); G.cx = pc;
+  }
+  if (S.n >= GW_N) { S.out -= dt; if (S.out <= 0) gwEnd(h); }
+}
+function gwEnd(h) {       // out of the glass: beside the first of them if they still stand, else beside the last one cut, else where she went in
+  const S = h.gw; if (!S) return; h.gw = null; h.locked = false; h.away = false;
+  const t = !S.first.dead && !S.first.locked ? S.first : S.last && !S.last.dead && !S.last.locked ? S.last : null;
+  if (t) { const a = fatan2(S.y0 - t.y, S.x0 - t.x), p = clampWalk(t.x, t.y, t.x + fcos(a) * (t.r + 52), t.y + fsin(a) * (t.r + 52)); h.x = p.x; h.y = p.y; h.face = fatan2(t.y - h.y, t.x - h.x); }
+  else { h.x = S.x0; h.y = S.y0; }
+  { const w = nearestWalkable(h.x, h.y); h.x = w.x; h.y = w.y; }
+  h.revealT = Math.max(h.revealT, G.t + 1.2);
+  if (t && canTarget(h, t)) { h.atkTarget = t; h.chase = true; }       // and she goes on at them
+  if (h.ai) h.ai.path = null;
+  skfx(h, 'odile0x', h.x, h.y, { cuts: S.n });
+}
+/* Anneal. h.med = { t: time left, acc, lv, k: half seconds knelt }. She kneels where she is: no step, no blow. It ends when its time
+   is up, when she moves or is told to attack, when she casts anything (the second press of the skill itself is Rise), or when she
+   is seized (a stun, a taunt, a throw); and however it ends her edge is keen (the buff 'keen', which her passive reads). */
+function anStart(h, lv) {
+  h.med = { t: AN_T, acc: 0, lv, k: 0 }; h.re[1] = { until: G.t + AN_T + 0.3, ready: G.t + AN_READY };
+  h.atkTarget = null; h.chase = false; h.windT = 0; h.mvx = h.mvy = 0;
+  skfx(h, 'odile1', h.x, h.y, { dur: AN_T });
+}
+function anEnd(h, dead) {
+  const M = h.med; if (!M) return; h.med = null; h.re[1] = null; if (dead) return;
+  addBuff(h, { k: 'keen', t: KEEN_T, lv: M.lv }); h.atkCd = 0;
+  skfx(h, 'odile1x', h.x, h.y, { dur: KEEN_T });
+}
+function anTick(h, dt) {       // (true: she is still on her knees, and does nothing else this step)
+  const M = h.med;
+  if (h.mvx || h.mvy || (h.atkTarget && h.chase)) { anEnd(h); return false; }
+  h.atkTarget = null; h.windT = 0; h.moving = false;
+  for (const b of h.buffs) if (b.k === 'quick' || b.k === 'keen') b.t += dt;       // they wait for her
+  if (h.pv.n) h.pv.tu = G.t + TWIN_HOLD;
+  M.t -= dt; M.acc += dt;
+  while (M.acc >= AN_TICK) {
+    M.acc -= AN_TICK; M.k++; heal(h, h, anHeal(M.lv) * AN_TICK * (2 - h.hp / h.maxHp));
+    if (M.k % 2 === 0 && (h.pv.n || 0) < TWIN_N - 1) { h.pv.n = (h.pv.n || 0) + 1; h.pv.tu = G.t + TWIN_HOLD; }
+  }
+  if (M.t <= 0) { anEnd(h); return false; }
+  return true;
+}
+function qsStart(h, lv) {       // Quicksilver: whatever is slowing her is shaken off, and nothing slows her while it lasts (noSlow)
+  h.buffs = h.buffs.filter(b => !(b.msMul && b.msMul < 1));
+  addBuff(h, { k: 'quick', t: QS_T, msMul: 1 + qsMs(lv), as: qsAs(lv), noSlow: true });
+  skfx(h, 'odile2', h.x, h.y, { dur: QS_T });
+}
+/* Second Image: the fourth blow's second, a moment after the first (h.twin = { at, tgt, amt, tru, magic, crit }, set where the blow
+   lands: fireBasic). It carries what rode on the blow itself: a keen edge's true damage, a Gale Bow's magic. */
+function twinStrike(h) {
+  const W = h.twin; h.twin = null; const t = W.tgt; if (h.dead || !t || t.dead || t.locked) return;
+  const pc = G.cx; G.cx = { h, n: 'Second Image', ic: 'twin', c: h.def.passive.c };
+  dmg(h, t, W.amt, 'phys', { basic: true, crit: W.crit });
+  if (W.tru > 0 && !t.dead) dmg(h, t, W.tru, 'true', { noVamp: true, n: 'Anneal', ic: 'kneel' });
+  if (W.magic > 0 && !t.dead) dmg(h, t, W.magic, 'magic', { noVamp: true });
+  G.cx = pc; fx('twin', t.x, t.y, { id: h.id, tid: t.id, ax: h.x, ay: h.y, c: h.look.glow }); sfx('hit', t.x, t.y);
 }
 
 /* ---------------- Halvar: his echoes, and the Stormhorn ----------------
@@ -1011,7 +1117,7 @@ function tickMonster(m, dt) {
 const MOOD_GAP = 1;
 function canMood(h) { const ps = h.def.passive; return !!(ps && ps.toggle) && G.kit >= 22 && !h.dead && !(h.reviveT > 0) && !G.over && !(G.t < (h.moodT || 0)); }
 function toggleMood(h) { if (!canMood(h)) return false; h.sting = !h.sting; h.moodT = G.t + MOOD_GAP; fx('mood', h.x, h.y, { id: h.id, m: h.sting ? 1 : 0 }); return true; }
-function startRecall(h) { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap) return false; h.recallT = 6; h.atkTarget = null; h.windT = 0; fx('recall', h.x, h.y, { id: h.id }); return true; }
+function startRecall(h) { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap || h.gw) return false; if (h.med) anEnd(h); h.recallT = 6; h.atkTarget = null; h.windT = 0; fx('recall', h.x, h.y, { id: h.id }); return true; }
 /* the second cast skill i is waiting for, if any: within its window, after whatever had to land first, and not while a refreshed
    skill is to be thrown again before its follow-up (more) */
 function recastOf(h, i) { const r = h.re[i]; return r && r.until > G.t && !(r.ready > G.t) && !(r.more && h.cds[i] <= 0 && h.mp >= skillCost(skDef(h, i), h.sk[i])) ? r : null; }
@@ -1020,20 +1126,20 @@ function recastOf(h, i) { const r = h.re[i]; return r && r.until > G.t && !(r.re
 function chainHold(h, i) { const r = h.re[i]; return !!(r && r.hold && r.until > G.t); }
 function stageDef(s0, re) { return re ? (re.n === 3 && s0.three) || s0.two || s0 : s0; }
 function castMend(h) {       // the built-in heal
-  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.healCd > 0 || G.over || (h.hp >= h.maxHp - 1 && h.mp >= h.maxMp - 1)) return false;       // nothing to restore: it is not spent
+  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.gw || h.healCd > 0 || G.over || (h.hp >= h.maxHp - 1 && h.mp >= h.maxMp - 1)) return false;       // nothing to restore: it is not spent
   h.healCd = MEND.cd; h.mend = { n: MEND.n, acc: 0 }; addBuff(h, { k: 'mend', t: MEND.dur, aura: MEND.c });
   skfx(h, 'mend', h.x, h.y, { c: MEND.c }); sfx('holy', h.x, h.y); return true;
 }
 /* The item a hero can press (one at most is of any use: the first in the bag), whether it can be pressed now, and pressing it. */
 function activeItem(h) { for (const k of h.items) if (ITEMS[k].act) return k; return null; }
-function itemReady(h) { return !!activeItem(h) && !h.dead && !(h.reviveT > 0) && !(h.stunT > 0) && !(h.tauntT > 0) && !(h.actCd > 0) && !G.over; }
+function itemReady(h) { return !!activeItem(h) && !h.dead && !(h.reviveT > 0) && !(h.stunT > 0) && !(h.tauntT > 0) && !h.gw && !(h.actCd > 0) && !G.over; }
 function useItem(h) {
   if (!itemReady(h)) return false;
   const A = ITEMS[activeItem(h)].act, dur = A.dur[Math.min(h.actN, A.dur.length - 1)];
   A.fn(h, A, dur); h.actCd = A.cd; h.actN++; h.revealT = G.t + 1.2; if (h.camo) camoOff(h); return true;
 }
 function castSkill(h, i, tx, ty) {
-  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || (h.castLock > 0 && !(h.snipe && i !== 2)) || G.over) return false;       // (in the middle of Four Rounds her other two skills are hers to break it off with, and her battle spell is hers to use)
+  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || h.gw || (h.castLock > 0 && !(h.snipe && i !== 2)) || G.over) return false;       // (in the middle of Four Rounds her other two skills are hers to break it off with, and her battle spell is hers to use)
   const f0 = h.form;
   if ((h.dash || h.leap) && !(h.def.fluid && i < 3)) return false;       // a fluid hero throws and flashes in the middle of his own dash
   const sp = i === 3, s0 = sp ? SPELLS[h.spell] : skDef(h, i);
@@ -1049,6 +1155,7 @@ function castSkill(h, i, tx, ty) {
   if (s.cast === 'point' && s.range && d > s.range) { tx = h.x + dx / d * s.range; ty = h.y + dy / d * s.range; }
   { const pc = G.cx; G.cx = { h, n: s.name, ic: s.ic, c: s.c }; const went = s.fn(h, lv, tx, ty, ang, re); G.cx = pc; if (went === false) return false; }
   if (h.tp && !sp) tpStop(h, true);
+  if (h.med && !(i === 1 && (re || !sp))) anEnd(h);       // (anything but Anneal itself, which is how she got there, and Rise, which is how she gets up)
   h.mp -= cost; if (h.camo && !s.hush) camoOff(h);       // (whatever she casts from under her cape, but the cape itself, brings her out from under it)
   if (re) { if (h.re[i] === re) h.re[i] = null; } else if (sp) h.spellCd = s.cd; else h.cds[i] = s0.cdNow != null ? s0.cdNow : skillCd(s0, lv) * (1 - h.cdr);
   if (s.cast !== 'self') h.face = ang;
@@ -1170,6 +1277,7 @@ function tickHero(h, dt) {
   { const pv = h.def.passive; if (pv && pv.tick) pv.tick(h, dt); }
   if (h.has.wellspring && !h.def.energy) { if (h.wsT == null) h.wsT = G.t + WELL_T; else if (G.t >= h.wsT) { h.wsT = G.t + WELL_T; const mp = Math.min(h.maxMp - h.mp, h.maxMp * WELL_MP); if (mp > 0.5) { h.mp += mp; fx('mana', h.x, h.y, { v: mp, tgt: h.id }); } } }       // Wellspring Charm
   if (h.tp && (h.stunT > 0 || h.tauntT > 0 || h.disp || h.air || h.reviveT > 0)) tpStop(h, true);
+  if (h.med && (h.stunT > 0 || h.tauntT > 0 || h.disp || h.air || h.reviveT > 0)) anEnd(h);
   if (h.def.lethal) { if (h.camo && !hasBuff(h, 'camo')) camoOff(h); h.pv.n = lethalReady(h) ? 1 : 0; if (h.snipe) snipeTick(h, dt); }       // Sorrel: the cloak's time is up; a Long Shot is ready (shown as a passive that is full); her four rounds
   if (h.reviveT > 0) {
     h.reviveT -= dt; h.mvx = h.mvy = 0; h.atkTarget = null;
@@ -1186,6 +1294,7 @@ function tickHero(h, dt) {
   const es = MAP.spawn[1 - h.team];
   if (hyp(h.x - es.x, h.y - es.y) < 520) { h.fountT = (h.fountT || 0) + dt; if (h.fountT > 0.25) { h.fountT = 0; dmg(G.crystals[1 - h.team], h, h.maxHp * 0.06, 'true', {}); if (h.dead) return; } }
   // forced movement
+  if (h.gw) { gwTick(h, dt); return; }       // Odile in the glass
   if (h.leap) {
     const l = h.leap; l.t += dt; const k = Math.min(1, l.t / l.dur);
     h.x = lerp(l.x0, l.x1, k); h.y = lerp(l.y0, l.y1, k); h.z = fsin(k * Math.PI) * (l.h || 130); h.moving = true;
@@ -1200,6 +1309,7 @@ function tickHero(h, dt) {
   if (h.dead) return;
   if (h.castLock > 0) return;
   if (h.tp && tpTick(h, dt)) return;       // on his way by Teleport: he stands where he is
+  if (h.med && anTick(h, dt)) return;       // Odile on her knees
   // recall
   const wantMove = (h.mvx || h.mvy) && h.rootT <= 0;
   if (h.recallT > 0) {
@@ -1301,7 +1411,7 @@ function tickVision() {
         if (d2 > sr * sr) continue;
         if (e.camo ? d2 < CAMO_SEE * CAMO_SEE || e.revealT > G.t : e.bush < 0 || v.bush === e.bush || d2 < 190 * 190 || e.revealT > G.t) { seen = true; break; }
       }
-      e.vis[T] = seen;
+      e.vis[T] = seen && e.away !== true;
     }
   }
 }
@@ -1324,7 +1434,7 @@ function separate() {
   const U = G.units, n = U.length;
   if (n > _sepN) { _sepN = n + 64; _sepX = new Float64Array(_sepN); _sepY = new Float64Array(_sepN); _sepR = new Float64Array(_sepN); _sepC = new Uint8Array(_sepN); }
   const X = _sepX, Y = _sepY, R = _sepR, C = _sepC;
-  for (let i = 0; i < n; i++) { const u = U[i]; X[i] = u.x; Y[i] = u.y; R[i] = u.r; C[i] = u.dead ? 0 : u.kind === 'turret' || u.kind === 'crystal' ? 1 : u.kind === 'hero' ? (u.leap || u.dash ? 3 : 2) : 4; }
+  for (let i = 0; i < n; i++) { const u = U[i]; X[i] = u.x; Y[i] = u.y; R[i] = u.r; C[i] = u.dead ? 0 : u.kind === 'turret' || u.kind === 'crystal' ? 1 : u.kind === 'hero' ? (u.leap || u.dash || u.away === true ? 3 : 2) : 4; }
   for (let i = 0; i < n; i++) {
     const ca = C[i]; if (ca === 0 || ca === 3) continue;
     const sa = ca === 1, ra = R[i];
@@ -1393,11 +1503,11 @@ function step(dt) {
    A finished recording: { v, sim, opts: { seed, diff, player }, steps, t, dt, ev, chk, marks, over, winner }.
    pb (while playing one): rec, i: the step to run next, e: read position in ev, next: the step the next event belongs to. */
 const DT_Q = 7200, DU_MAX = 240, MOVE_NONE = 65535, REC_V = 1, ROSTER_0 = 12;
-const KIT_V = 24, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 24: Halvar, four more items and the Teleport spell (nothing an older match has is changed by them). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
+const KIT_V = 25, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 25: Odile (nothing an older match has is changed by her). 24: Halvar, four more items and the Teleport spell (nothing an older match has is changed by them); an item already held can be bought again. 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
 const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8, A_MOOD = 9;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1, '2b64e130': 1, 'ed914bb2': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1, '2b64e130': 1, 'ed914bb2': 1, 'f6b288f8': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }
@@ -1467,13 +1577,13 @@ function actFor(h, k, a, b, c) {
    (the next turn to play), out (presses waiting for the next frame), hold (kinds of press not taken again until the last has been
    done: buying twice because the first has not shown yet). */
 const NET_DU = 240, NET_STEPS = 2, NET_HOLD = { [A_BUY]: 1, [A_SELL]: 1, [A_LEVEL]: 1 };
-function actCan(h, k, a) {       // would this go through if it were done now? (so that a press is answered at once: it is done a moment later)
+function actCan(h, k, a, b, c) {       // would this go through if it were done now? (so that a press is answered at once: it is done a moment later)
   switch (k) {
-    case A_CAST: { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || G.over) return false; const sp = a === 3; if (sp) return !(h.spellCd > 0); if (!(h.sk[a] >= 1)) return false; if (recastOf(h, a)) return true; if (chainHold(h, a) || h.cds[a] > 0) return false; return h.mp >= skillCost(skDef(h, a), h.sk[a]); }
-    case A_MEND: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.healCd > 0 || G.over || (h.hp >= h.maxHp - 1 && h.mp >= h.maxMp - 1));
+    case A_CAST: { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || h.gw || G.over) return false; const sp = a === 3; if (sp) return !(h.spellCd > 0); if (!(h.sk[a] >= 1)) return false; if (recastOf(h, a)) return true; if (chainHold(h, a) || h.cds[a] > 0) return false; const s = skDef(h, a); if (h.mp < skillCost(s, h.sk[a])) return false; return !(s.needs && b != null && !s.needs(h, b, c)); }       // (needs: a skill that is nothing without somebody to go for)
+    case A_MEND: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.gw || h.healCd > 0 || G.over || (h.hp >= h.maxHp - 1 && h.mp >= h.maxMp - 1));
     case A_ITEM: return itemReady(h);
     case A_LEVEL: return canLevel(h, a);
-    case A_RECALL: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap);
+    case A_RECALL: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.dash || h.leap || h.gw);
     case A_BUY: return canBuy(h, a);
     case A_SELL: return !!h.items[a];
     case A_MOOD: return canMood(h);
@@ -1481,7 +1591,7 @@ function actCan(h, k, a) {       // would this go through if it were done now? (
   return false;
 }
 function netAct(me, k, a, b, c) {
-  const N = G.net; if (N.gone || G.over || !me.isPlayer || N.out.length >= 12 || !actCan(me, k, a) || (NET_HOLD[k] && N.hold[k])) return false;
+  const N = G.net; if (N.gone || G.over || !me.isPlayer || N.out.length >= 12 || !actCan(me, k, a, b, c) || (NET_HOLD[k] && N.hold[k])) return false;
   if (NET_HOLD[k]) N.hold[k] = true; N.out.push(k === A_CAST ? [k, a, b, c] : [k, a]); return true;
 }
 /* the frames of one turn, done to the match: frames[seat], or null for a seat with nothing new (a hero whose player has gone is a bot by then) */

@@ -419,6 +419,20 @@ function retriDmg(h) { return 600 + 70 * h.level; }
         its own; anything it does not name is taken from the skill itself.
    three: the same for a third cast (h.re[i].n === 3). A follow-up marked hold keeps the skill's cooldown from running until the
         chain is over: finished, or left to lapse. */
+/* ---- Odile (KIT_V 25) ----
+   GW: Glasswalk. She is out of the world (locked: nothing touches her; away: nor is she seen) from the cast until she steps out:
+   GW_FIRST to the first cut, GW_GAP between cuts, GW_OUT after the last. A cut finds somebody not cut yet within GW_HOP of the last
+   one cut; with nobody new in reach, the first of them again (or whoever of those cut is nearest, if the first is gone), for GW_SAME of it. Minions and monsters take GW_PVE times as much.
+   AN: Anneal, the kneel. KEEN: the edge it leaves. QS: Quicksilver. TWIN: Second Image, the passive. */
+const GW_RANGE = 560, GW_PICK = 300, GW_HOP = 470, GW_N = 4, GW_FIRST = 0.14, GW_GAP = 0.19, GW_OUT = 0.14, GW_SAME = 0.25, GW_PVE = 1.5,
+  AN_T = 4, AN_TICK = 0.5, AN_DR = 0.55, AN_DR_T = 0.28, AN_READY = 0.35, KEEN_T = 5,
+  QS_T = 7, QS_MORE = 7, QS_CUT = 0.7, TWIN_N = 4, TWIN_K = 0.5, TWIN_GAP = 0.13, TWIN_HOLD = 4;
+const gwBase = lv => L(lv, 150, 34), GW_AD = 0.85;
+const gwDmg = (h, lv) => gwBase(lv) + GW_AD * h.ad;
+const anHeal = lv => L(lv, 62, 24);       // a second, before what her wounds add (as much again at death's door)
+const KEEN_AD = 0.22, keenBase = lv => L(lv, 22, 9);
+const keenDmg = (h, lv) => keenBase(lv) + KEEN_AD * Math.max(0, h.ad - (h.def.base.ad + h.def.base.adG * (h.level - 1)));       // (+22% of the Attack she has beyond her own)
+const qsMs = lv => L(lv, 0.3, 0.08), qsAs = lv => L(lv, 35, 20);
 const HEROES = {
   bram: {
     name: 'Bram', title: 'Oathbound Warden', cls: 'Tank', spell: 'aegis', melee: true, rate: [9, 4, 7, 5],
@@ -1079,6 +1093,36 @@ const HEROES = {
           } } },
     ],
   },
+  odile: {
+    /* a duellist out of the glassworks, with a blade of rose glass and a looking glass slung on her back. Glasswalk takes her into
+       the glass (h.gw: gwStart, gwTick, gwEnd), where nothing can reach her while she cuts whoever stands near the one she went
+       for. Anneal is a kneel (h.med: anStart, anTick, anEnd) that mends her and turns blows, and whenever it ends her edge is keen
+       for a while (the buff 'keen': true damage on her basic attacks). Quicksilver (the buff 'quick') is speed of foot and of
+       hand that a takedown lengthens. Her passive counts her basic attacks: every fourth, her reflection strikes with her
+       (h.twin: twinStrike), and each one takes a second off Glasswalk. */
+    name: 'Odile', title: 'Silverglass Duelist', cls: 'Assassin', spell: 'retribution', melee: true, rate: [4, 9, 2, 8], kneel: true,
+    build: ['swift', 'quickblade', 'galebow', 'totem', 'reaver', 'fang'],
+    base: Object.assign({}, CLASS_BASE.Assassin, { as: 1.0, asG: 2.2 }),
+    look: { body: '#4a5a7c', trim: '#dbe3f0', skin: '#e3b99a', hair: '#4b2654', hat: 'none', weapon: 'glassblade', cape: null, glow: '#ff8fc0', blade: '#ffd9ea', mirror: '#dfe8f5', pants: '#2c3548', boot: '#1f2533', acc: '#ff8fc0', sash: '#e0679c' },
+    skills: [
+      { name: 'Glasswalk', ic: 'facets', c: '#ff8fc0', max: 6, cd: [14, 11], cost: [55, 80], range: GW_RANGE, cast: 'point', noRoot: true,
+        ind: { t: 'circle', r: 130 }, ai: { t: 'target', any: true, wave: true },
+        desc: lv => `Step into the glass at an enemy (the one nearest where it is aimed, or nearest her). For most of a second nothing can touch her while she cuts up to ${GW_N} enemies standing near one another, one after the other, for ${gwBase(lv)} (+${Math.round(GW_AD * 100)}% Attack) each, half as much again to minions and monsters. With nobody new in reach the cut goes to the first of them again, for a quarter of that. She steps out beside the first. Each of her basic attacks takes 1s off its cooldown.`,
+        needs(h, tx, ty) { return !!gwPick(h, tx, ty, 80); },       // (asked before a press is sent, in a networked match: a little more reach than the cast will have, for the steps she takes meanwhile)
+        fn(h, lv, tx, ty) { const t = gwPick(h, tx, ty); if (!t) return false; gwStart(h, t, lv); } },
+      { name: 'Anneal', ic: 'kneel', c: '#e9f0ff', max: 6, cd: [20, 15], cost: [60, 85], range: 0, cast: 'self',
+        ind: { t: 'self', r: 0 }, ai: { t: 'kneel' },
+        desc: lv => `Kneel for up to ${AN_T}s. She mends ${anHeal(lv)} health a second, more the worse she is hurt (twice that at death's door), and takes ${Math.round(AN_DR * 100)}% less damage (${Math.round(AN_DR_T * 100)}% less from turrets). Moving, attacking, casting or pressing it again ends it. When it ends her edge is keen for ${KEEN_T}s: her basic attacks deal ${keenBase(lv)} (+${Math.round(KEEN_AD * 100)}% of her bonus Attack) true damage on top. While she kneels, Quicksilver and a keen edge do not run down, and each second counts as an attack for Second Image.`,
+        fn(h, lv) { anStart(h, lv); },
+        two: { name: 'Rise', ic: 'rise', cast: 'self', ind: { t: 'self', r: 0 }, ai: { t: 'none' },
+          desc: lv => `Stand up at once, her edge keen for ${KEEN_T}s.`,
+          fn(h) { if (!h.med) { h.re[1] = null; return false; } anEnd(h); } } },
+      { name: 'Quicksilver', ic: 'quick', c: '#ffd0e4', max: 3, cd: [60, 48], cost: [100, 140], range: 0, cast: 'self', ult: true,
+        ind: { t: 'self', r: 0 }, ai: { t: 'buff', ult: true },
+        desc: lv => `For ${QS_T}s she moves ${Math.round(qsMs(lv) * 100)}% faster, attacks ${qsAs(lv)}% faster and cannot be slowed. A kill or an assist while it lasts adds ${QS_MORE}s. Once it is learned, every kill or assist also takes ${Math.round(QS_CUT * 100)}% off what is left of Glasswalk's and Anneal's cooldowns.`,
+        fn(h, lv) { qsStart(h, lv); } },
+    ],
+  },
 };
 /* passives: small hooks the sim calls (basic, cast, hit, hurt, dmgMul, takedown, healMul, healed; tick: every step he is alive) */
 const PASSIVES = {
@@ -1141,6 +1185,20 @@ const PASSIVES = {
     desc: `Every second he mends ${RAM_REGEN * 100}% of the health he is missing, twice that as the Stormhorn. As the Stormhorn his basic attacks also strike everyone else in front of him, for ${Math.round(BEAST_CLEAVE * 100)}% of the blow.`,
     tick(h, dt) { if (h.form && G.t >= h.pv.bt) beastOff(h); h.hp = Math.min(h.maxHp, h.hp + (h.maxHp - h.hp) * RAM_REGEN * (h.form ? 2 : 1) * dt); },
     basic(h, t, ctx) { if (h.form) ctx.after = (tgt, amt) => { for (const e of enemiesInCone(h.team, h.x, h.y, h.range + 110, h.face, BEAST_ARC)) if (e !== tgt) dmg(h, e, amt * BEAST_CLEAVE, 'phys', { n: 'Stormhorn', ic: 'ram' }); fx('cleave', h.x, h.y, { id: h.id, ang: h.face }); }; } },
+  odile: { name: 'Second Image', ic: 'twin', c: '#ff8fc0', stacks: 3,
+    desc: `Every fourth basic attack her reflection strikes with her: a second blow a moment later for ${Math.round(TWIN_K * 100)}% of the damage, with whatever rides on her blows. The count is lost ${TWIN_HOLD}s after her last attack. Each basic attack also takes 1s off Glasswalk's cooldown.`,
+    basic(h, t, ctx) {
+      if (h.cds[0] > 0) h.cds[0] = Math.max(0, h.cds[0] - 1);
+      const n = G.t > (h.pv.tu || 0) ? 0 : (h.pv.n || 0); h.pv.tu = G.t + TWIN_HOLD;
+      const kb = hasBuff(h, 'keen'); if (kb) ctx.tru = keenDmg(h, kb.lv);
+      if (n >= TWIN_N - 1) { h.pv.n = 0; ctx.twin = true; } else h.pv.n = n + 1;
+    },
+    tick(h, dt) { if (h.pv.n && G.t > h.pv.tu) h.pv.n = 0; if (h.twin && G.t >= h.twin.at) twinStrike(h); },
+    takedown(h) {
+      if (h.sk[2] < 1) return;
+      for (let i = 0; i < 2; i++) h.cds[i] *= 1 - QS_CUT;
+      const b = hasBuff(h, 'quick'); if (b) { b.t += QS_MORE; fx('quickMore', h.x, h.y, { id: h.id, v: QS_MORE }); }
+    } },
 };
 /* a sprung ward (or an arrow that carried one): it clings to its catch for a second, then bursts around them */
 function wardBurst(h, lv, e) {
@@ -1302,16 +1360,23 @@ const SKINS = {
     { name: 'Starherd Drover', epic: true, look: { body: '#1b2150', trim: '#f2d27a', hair: '#e9eeff', glow: '#ffe9a8', wglow: '#fff3c4', fur: '#2b3478', fleece: '#232c6c', horn: '#f2d27a', hide: '#11163c', pants: '#12163a', boot: '#0b0e26', acc: '#9fb4ff', stars: 1 },
       sk: ['#ffe9a8', '#fff6d8', '#9fb4ff'], parts: ['starherd'], aura: '#ffe9a8', fx: 'S' },
   ],
+  odile: [
+    { name: 'Silverglass Duelist' },
+    { name: 'Smokeglass Duelist', look: { body: '#4a3a32', trim: '#d9a55a', hair: '#e8e0d0', glow: '#ffb45a', blade: '#ffe2b8', mirror: '#8a7a6c', pants: '#2e2522', boot: '#1c1614', acc: '#ffb45a', sash: '#c9782e' },
+      sk: ['#ffb45a', '#ffe8c8', '#ffd08a'], parts: ['scarf'], aura: '#ffb45a' },
+    { name: 'Seaglass Duelist', look: { body: '#2a6068', trim: '#e6f4ef', hair: '#f0f4f2', glow: '#7ff0d0', blade: '#d9fff2', mirror: '#bfe8de', pants: '#1c4046', boot: '#102528', acc: '#7ff0d0', sash: '#3fb89c' },
+      sk: ['#7ff0d0', '#effff9', '#b8ffe8'], parts: ['gem'], aura: '#7ff0d0' },
+  ],
 };
 const _looks = {};
 function heroLook(key, skin) { const k = key + (skin | 0); return _looks[k] || (_looks[k] = Object.assign({}, HEROES[key].look, (SKINS[key][skin | 0] || {}).look)); }
 function skinColor(key, skin, i) { const s = SKINS[key][skin | 0]; return (s && s.sk && s.sk[i]) || HEROES[key].skills[i].c; }
 /* distinct cast sounds per skill (0 = default) */
 const SKILL_SND = { bram: ['whoosh', 'guard', 0, 'slam'], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
-  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'], sorrel: ['wind', 'boom', 'cock'], halvar: ['holy', 'slam', 'roar', 0, 0, 0, 'whoosh', 'roar', 'slam'] };
+  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'], sorrel: ['wind', 'boom', 'cock'], halvar: ['holy', 'slam', 'roar', 0, 0, 0, 'whoosh', 'roar', 'slam'], odile: ['slash', 'holy', 'wind'] };
 for (const k of HERO_KEYS) HEROES[k].passive = PASSIVES[k];
 for (const k of HERO_KEYS) {
-  const d = HEROES[k]; d.key = k; d.base = d.base || CLASS_BASE[d.cls]; d.build = BUILDS[d.cls]; d.pos = POS_OF[d.cls];
+  const d = HEROES[k]; d.key = k; d.base = d.base || CLASS_BASE[d.cls]; d.build = d.build || BUILDS[d.cls]; d.pos = POS_OF[d.cls];       // (build: a hero's own, where the class's would not suit: Odile's is all speed of hand)
   if (d.roles) for (const r of d.roles) r.build = BUILDS[r.cls];       // (the first role is the hero's own class: its lane and build are the hero's)
   d.skills.forEach((s, i) => { s.snd = SKILL_SND[k][i] || null; if (s.three) s.three = Object.assign({}, s, s.three, { two: null, three: null, stage: 3, snd: SKILL_SND[k][i + 9] || s.snd }); if (s.two) s.two = Object.assign({}, s, s.two, { two: null, three: null, stage: 2, snd: SKILL_SND[k][i + 3] || s.snd }); if (s.alt) s.alt = Object.assign({}, s, s.alt, { alt: null, two: null, form: 1, snd: SKILL_SND[k][i + 6] || s.snd }); });
 }

@@ -17,7 +17,7 @@
    NET.ok: 0 not asked yet, 1 connected, -1 this view cannot connect. chan: the table (null: not at one). P: the pages at the table,
    as read. hs: this page hosts. go: what the host started. M: the match in progress, as the turn exchange holds it (ncNew).
    ============================================================ */
-const NETV = 9;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
+const NETV = 10;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
 const NET_AWAY = 6000;        // ms the page of a seat may be missing from the table during a match before the seat counts as gone (connections are refreshed now and then, and that is no leaving)
 const NET_GO_MS = 15000;      // ms the host keeps saying how a match started
 const NET_BYTES = 3900;       // the most a page may keep in a room is 4 KiB
@@ -218,7 +218,7 @@ function netEndSay() { const s = NET.M && NET.say; return !s ? '' : s.duel ? (s.
 const AH = { on: false, x: 0, y: 0, face: 0, moving: false, u: { x: 0, y: 0, r: 0, id: 0 }, sampT: 0, hi: -1 };
 function netAhead() {
   const M = NET.M, me = G.player; AH.on = false; AH.moving = false;
-  if (!M || !me || !me.isPlayer || M.out || G.over || me.dead || me.leap || me.disp || me.dash || me.air || me.reviveT > 0 || me.tauntT > 0) return AH;       // (taunted: the stick does nothing, so there is nothing to forecast)
+  if (!M || !me || !me.isPlayer || M.out || G.over || me.dead || me.leap || me.disp || me.dash || me.air || me.gw || me.reviveT > 0 || me.tauntT > 0) return AH;       // (taunted: the stick does nothing, so there is nothing to forecast; nor in the glass, where she is taken from cut to cut)
   const now = performance.now(); if (M.hi !== AH.hi) { AH.hi = M.hi; AH.sampT = now; }       // (when this machine last put a frame of its own on the way)
   const w0 = _wx, w1 = _wy, g0 = _sgx, g1 = _sgy, U = AH.u, sp = me.ms * NC_STEP;       // the sim's own scratch values are put back as they were
   U.x = me.x; U.y = me.y; U.r = me.r; U.id = me.id;

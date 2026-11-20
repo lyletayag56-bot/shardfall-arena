@@ -9,7 +9,7 @@ const PORT = {}, PORT_CV = {}, AIM = {}, MK = {}, SHOW = { key: null, v: null, t
 const COL = { ally: '#46b4ff', enemy: '#ff5d5d', self: '#5fe08a', gold: '#f2c14e' };
 const tcol = (team, viewer) => viewer < 0 ? (team === BLUE ? COL.ally : team === NEUTRAL ? '#e8b55a' : COL.enemy) : team === viewer ? COL.ally : team === NEUTRAL ? '#e8b55a' : COL.enemy;
 let _v3, _sp = { x: 0, y: 0 }, _sp2 = { x: 0, y: 0 };
-const _st = { moving: false, speed: 2, atk: -1, cast: 0, dash: false, leap: false, spin: false, stun: false, air: 0, recall: false, dead: 0 }, _ss = { kind: '', dead: false, windT: 0, ghost: false };
+const _st = { moving: false, speed: 2, atk: -1, cast: 0, dash: false, leap: false, spin: false, stun: false, air: 0, recall: false, dead: 0, kneel: 0 }, _ss = { kind: '', dead: false, windT: 0, ghost: false };
 
 function viewInit(cv) {
   if (!gfxInit(cv)) return false;
@@ -256,6 +256,7 @@ function heroExtras(v, u, t, dt) {
   else if (ps && ps.stacks && (u.pv.n || 0) >= ps.stacks) { aura = ps.c; if (Math.random() < dt * 18) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.35, 0.9 + Math.random() * 0.5, uz + Math.sin(a) * 0.35, Math.cos(a) * 0.5, 0.9, Math.sin(a) * 0.5, 0.5, 0.14, 0.03, Math.random() < 0.4 ? '#ffffff' : ps.c, 0.95, 0, 1); } }       // a passive that is charged shows
   if (skn.fx === 'E') eclipseExtras(v, u, t, dt, ux, uz, skn.sk[0]); else if (skn.fx === 'C') cometExtras(v, u, t, dt, ux, uz, skn.sk[0]); else if (skn.fx === 'S') starherdExtras(v, u, t, dt, ux, uz, skn.sk[0]);
   { const rg = hasBuff(u, 'rage'); if (rg || v.wg) rageWings(v, u, rg, t, dt, ux, uz); }
+  if (u.def.kneel) { const a2 = odileExtras(v, u, t, dt, ux, uz); if (a2) aura = a2; }
   for (const b of u.buffs) if (b.aura) { aura = b.ci != null ? skinColor(u.key, u.skin, b.ci) : b.aura; if (Math.random() < dt * 14) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.5, 0.1, uz + Math.sin(a) * 0.5, 0, 1.7, 0, 0.7, 0.15, 0.03, aura, 0.9, 0, 0); } }
   const sa = SKINS[u.key][u.skin].aura; if (sa && Math.random() < dt * (u.moving ? 7 : 3)) FX.add.emit(ux + (Math.random() - .5) * 0.5, 0.2 + Math.random() * 1.3, uz + (Math.random() - .5) * 0.5, 0, 0.5, 0, 0.8, 0.12, 0.02, sa, 0.75, -0.1, 0);
   if (hasBuff(u, 'sprint') && u.moving && Math.random() < dt * 30) FX.add.emit(ux + (Math.random() - .5) * 0.5, 0.1 + Math.random() * 1.2, uz + (Math.random() - .5) * 0.5, -u.vx * S3 * 0.5, 0, -u.vy * S3 * 0.5, 0.3, 0.13, 0.02, '#c8fff0', 0.8, 0, 0);
@@ -280,6 +281,28 @@ function heroExtras(v, u, t, dt) {
   const rt = u.rootT > 0;
   if (rt || v.rt) { const m = lazyFx(v, 'rt', () => { const q = new THREE.Mesh(FG.ring, fxMat('#a0ebff', 0.85)); q.position.y = 0.06; q.scale.set(0.5, 1, 0.5); return q; }); m.visible = rt; if (rt) m.rotation.y = -t * 3; }
 }
+/* Odile. On her knees (Anneal): slow rings close on her and light rises round her. A keen edge: her blade is alight, and sheds sparks.
+   Quicksilver: an afterimage behind her every few paces, bright flecks off her, and the swirl under her feet in its colour (returned). */
+function odileExtras(v, u, t, dt, ux, uz) {
+  const c1 = skinColor(u.key, u.skin, 1), c2 = skinColor(u.key, u.skin, 2), c0 = skinColor(u.key, u.skin, 0); let aura = null;
+  if (u.med) {
+    v.anT = (v.anT || 0) - dt; if (v.anT <= 0) { v.anT = 0.5; ring3(ux, uz, 1.5, 0.35, 0.5, c1, 0.5, true); }
+    if (Math.random() < dt * 22) { const a = Math.random() * TAU, d = 0.25 + Math.random() * 0.75; FX.add.emit(ux + Math.cos(a) * d, 0.05, uz + Math.sin(a) * d, 0, 1.3 + Math.random() * 0.9, 0, 0.9, 0.13, 0.02, Math.random() < 0.4 ? '#ffffff' : c1, 0.9, 0, 0); }
+    aura = c1;
+  }
+  const ke = hasBuff(u, 'keen');
+  if (ke || v.keenH) { let h = v.keenH; if (!h) { h = v.keenH = new THREE.Group(); for (const y of [0.3, 0.65, 1.0]) { const q = halo(c0, 0.5, 0.85); q.position.set(0, y, 0); h.add(q); } v.b.wpnR.add(h); }
+    h.visible = !!ke; if (ke) { const s = (0.8 + 0.2 * Math.sin(t * 11)) * Math.min(1, ke.t / 0.4); for (const q of h.children) { q.scale.setScalar(0.5 * s); q.material.color.copy(lin(c0)); }
+      if (Math.random() < dt * 16) { v.b.wpnR.getWorldPosition(_ov); FX.add.emit(_ov.x + (Math.random() - .5) * 0.3, _ov.y + 0.2 + Math.random() * 0.8, _ov.z + (Math.random() - .5) * 0.3, (Math.random() - .5) * 0.8, 0.6, (Math.random() - .5) * 0.8, 0.4, 0.11, 0.02, Math.random() < 0.5 ? '#ffffff' : c0, 0.95, 1.5, 0.8); } } }
+  const qk = hasBuff(u, 'quick');
+  if (qk) {
+    aura = c2; v.qkT = (v.qkT || 0) - dt;
+    if (u.moving && v.qkT <= 0) { v.qkT = 0.085; ghost3(v, c2, 0.3, 0.3); }
+    if (Math.random() < dt * (u.moving ? 34 : 12)) FX.add.emit(ux + (Math.random() - .5) * 0.6, 0.15 + Math.random() * 1.5, uz + (Math.random() - .5) * 0.6, -(u.vx || 0) * S3 * 0.35, 0.2, -(u.vy || 0) * S3 * 0.35, 0.4, 0.12, 0.02, Math.random() < 0.45 ? '#ffffff' : c2, 0.9, 0, 0.4);
+  }
+  return aura;
+}
+const _ov = new THREE.Vector3();
 /* How large a hero stands. The Ironwill Totem makes its bearer a third again as tall for as long as it works (he swells with a
    little bounce and settles back when it ends), so nobody can miss that it is on. Looks only: reach and hit size stay as they were. */
 const TOTEM_BIG = 1.34;
@@ -298,7 +321,7 @@ function syncViews(t, dt) {
     v.tick = tick; v.u = u;
     const hero = u.kind === 'hero' || u.kind === 'clone';
     if (hero) { if (u.dead) v.deadT += dt; else if (v.deadT > 0) { v.deadT = 0; v.mat.opacity = 1; v.mat.transparent = false; v.b.body.rotation.x = 0; v.b.body.position.y = 0; v.face = null; } }
-    const show = seen(u) && nearCam(u.x, u.y, 500) && !(hero && u.dead && v.deadT > 2.3);
+    const show = seen(u) && u.away !== true && nearCam(u.x, u.y, 500) && !(hero && u.dead && v.deadT > 2.3);       // (away: Odile in the glass, where only her cuts are seen)
     v.root.visible = show; if (!show) { v.lastAtk = u.atkAnim; if (hero && u.camo && !u.dead && !seen(u) && nearCam(u.x, u.y, 200)) camoHint(v, u, dt); continue; }
     let px = u.x, py = u.y; const mine = AH.on && u === V.me && !V.replay;       // this player's own hero in a networked match: drawn where it is about to be (see netAhead)
     if (mine) { px = AH.x; py = AH.y; }
@@ -317,6 +340,7 @@ function syncViews(t, dt) {
       heroSize(v, u, dt, cut);
       if (v.castN !== u.castN) { v.castN = u.castN; if (u.castI !== 3) startClip(v, u.castI > 3 ? u.castI - 1 : u.castI); if (v.rb && u.form && u.castI === 8) v.rClip = 1; }       // 4..6 are second casts: clips 3..5
       if ((u.dash || u.leap) && !u.dead) { v.gT -= dt; if (v.gT <= 0) { v.gT = 0.07; const gc = skinColor(u.key, u.skin, v.clipI || 0); ghost3(v, gc, 0.32, 0.28); trail3(v.lx * S3, v.ly * S3, u.x * S3, u.y * S3, 0.75, 0.45, gc, 0.1 + (u.z || 0) * S3, 0.55); v.lx = u.x; v.ly = u.y; } } else { v.gT = 0; v.lx = u.x; v.ly = u.y; }
+      v.kn = (v.kn || 0) + ((u.med ? 1 : 0) - (v.kn || 0)) * Math.min(1, dt * 9); st.kneel = v.kn > 0.003 ? v.kn : 0;
       st.cast = u.castAnim > 0 ? Math.min(1, u.castAnim / 0.3) : 0; st.dash = !!u.dash; st.leap = !!u.leap; st.spin = !!hasBuff(u, 'whirl'); st.stun = u.stunT > 0 || u.reviveT > 0; st.air = u.air && !u.dead ? clamp(u.air.t / u.air.dur, 0.001, 1) : 0; st.recall = u.recallT > 0 ? Math.max(0.001, 1 - u.recallT / 6) : 0; st.dead = u.dead ? v.deadT : 0;
       if (v.rcK > 0.9 && !st.recall && !u.dead && hyp(u.x - v.rcX, u.y - v.rcY) > 400) v.arrT = 0.001;       // the recall went through: play the setting-down at the fountain
       v.rcK = st.recall; if (st.recall) { v.rcX = u.x; v.rcY = u.y; } if (v.arrT > 0) { v.arrT += dt / 0.6; if (v.arrT >= 1) v.arrT = 0; } st.arrive = v.arrT || 0;
@@ -467,6 +491,8 @@ function drawOverlay(dt) {
       if (u === V.focus) { const ty = y - 17 * us, s = 5.5 * us; g.fillStyle = '#fff'; g.strokeStyle = 'rgba(0,0,0,0.7)'; g.lineWidth = 2; g.beginPath(); g.moveTo(px + 3 * us - s, ty - s); g.lineTo(px + 3 * us + s, ty - s); g.lineTo(px + 3 * us, ty); g.closePath(); g.stroke(); g.fill(); }       // watching: the one the view is on
       if (V.replay && u.id === V.slayer && w2s(u.x * S3, 0, u.y * S3, _sp2)) { const gx = _sp2.x, gy = _sp2.y + 15 * us; g.fillStyle = '#ff5d5d'; g.beginPath(); g.moveTo(gx - 5 * us, gy + 6 * us); g.lineTo(gx + 5 * us, gy + 6 * us); g.lineTo(gx, gy); g.closePath(); g.fill(); label('SLAYER', gx, gy + 19 * us, 12 * us, '#ffb3b3'); }       // under his feet, where neither the bars nor the dark bands hide it
       if (u.tp) { const k = 1 - u.tp.t / TP_T; g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 4 * us); g.fillStyle = SPELLS.teleport.c; g.fillRect(x, y + h + 7 * us, w * k, 4 * us); }       // on his way by Teleport
+      else if (u.med) { const k = clamp(1 - u.med.t / AN_T, 0, 1); g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 4 * us); g.fillStyle = skinColor(u.key, u.skin, 1); g.fillRect(x, y + h + 7 * us, w * k, 4 * us); }       // Odile on her knees: how much of it is done
+      else if (u.def.kneel && hasBuff(u, 'quick')) { const k = clamp(hasBuff(u, 'quick').t / QS_T, 0, 1); g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 3.5 * us); g.fillStyle = skinColor(u.key, u.skin, 2); g.fillRect(x, y + h + 7 * us, w * k, 3.5 * us); }       // how much longer Quicksilver lasts
       else if (u.form && u.def.forms && u.def.forms.beast && u.pv.bt) { const k = clamp((u.pv.bt - G.t) / BEAST_T, 0, 1); g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 3.5 * us); g.fillStyle = skinColor(u.key, u.skin, 2); g.fillRect(x, y + h + 7 * us, w * k, 3.5 * us); }       // how much longer he is the Stormhorn
       if (u.recallT > 0) { const k = 1 - u.recallT / 6; g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 4 * us); g.fillStyle = '#9fd8ff'; g.fillRect(x, y + h + 7 * us, w * k, 4 * us); }
     } else if (u.kind === 'minion') {
@@ -689,7 +715,7 @@ function showcaseRender(dt) {
   const ph = Math.floor((t % 7.2) / 1.2);      // attack, the three skill moves, then a short walk
   if (ph !== SHOW.ph) { SHOW.ph = ph; SHOW.sub = 0; if (ph === 0) { v.clipT = 0; v.clipDur = 0.62; v.alt ^= 1; } else if (ph <= 3) startClip(v, ph - 1); }
   if (ph === 1 && HEROES[v.key].skills[0].chain) { const sub = Math.min(2, Math.floor((t % 1.2) / 0.4)); if (sub !== SHOW.sub) { SHOW.sub = sub; startClip(v, sub === 1 ? 3 : 9); } }       // a chain of three: all three, one after the other
-  v.clipT += dt; _st.moving = ph >= 4; _st.speed = 2.5; _st.atk = v.clipT < v.clipDur ? v.clipT / v.clipDur : -1; _st.cast = 0; _st.dash = _st.leap = _st.spin = _st.stun = _st.recall = false; _st.air = 0; _st.dead = 0; _st.spin = ph === 3 && !v.clip && (t % 1.2) < 0.9 && HERO_CLIPS[v.key][2] === null;
+  v.clipT += dt; _st.moving = ph >= 4; _st.speed = 2.5; _st.atk = v.clipT < v.clipDur ? v.clipT / v.clipDur : -1; _st.cast = 0; _st.dash = _st.leap = _st.spin = _st.stun = _st.recall = false; _st.air = 0; _st.dead = 0; _st.kneel = 0; _st.spin = ph === 3 && !v.clip && (t % 1.2) < 0.9 && HERO_CLIPS[v.key][2] === null;
   animHero(v, _st, t, dt); v.o.rotation.y = -0.35 + Math.sin(t * 0.55) * 0.55;
   if (HEROES[v.key].wings) {       // an ultimate that gives wings: they open for its turn and a little beyond
     const q = (t % 7.2) - 3.6, on = q >= 0 && q < 2.1;

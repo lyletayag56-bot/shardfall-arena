@@ -92,6 +92,11 @@ const ICONS = {
   comet: `<path ${F} d="M13.500 3.500l7 .1.100 7-9.300 9.300-4.700 1.500 1.500-4.700z"/><path d="M3 8.500l3.500-3.500M2.500 13.500l2.500-2.500"/>`,
   ruin: `<path ${F} d="M4.500 19.500L15.800 3l4.700 4.700L9 19.500z"/><path d="M3.500 20.500l3-3M5.800 15.200l3 3"/><path stroke="#0d1b21" stroke-width="1.2" d="M14 8l-1.500 3 2 .5-1.800 3"/>`,
   charm: `<circle cx="12" cy="12.500" r="8.500"/><path ${F} d="M12 6.500c2.600 3.100 4.100 5.100 4.100 7.100a4.100 4.100 0 0 1-8.200 0c0-2 1.500-4 4.100-7.100z"/><path d="M12 2v2"/>`,
+  facets: `<path d="M12 2.5l7 6.5-7 12.5L5 9z"/><path d="M5 9h14M9.5 9L12 21.5M14.5 9L12 21.5M9.5 9L12 2.5l2.5 6.5"/>`,
+  kneel: `<path ${F} d="M11 2.5h2v11l-1 2.6-1-2.6z"/><path d="M8.2 5.2h7.6"/><path d="M5.5 21c1.4-3.2 3.500-4.800 6.500-4.800s5.100 1.600 6.500 4.800"/><path d="M3.6 14.2c.5-1.700 1.300-3 2.400-3.900M20.4 14.2c-.5-1.700-1.300-3-2.400-3.900"/>`,
+  rise: `<path ${F} d="M12 3l5.2 6.6h-3.400V16h-3.600V9.600H6.800z"/><path d="M6 20.500h12"/>`,
+  quick: `<path ${F} d="M13 3.5l6.500 8.500-6.500 8.500-2.100-1.900 4.700-6.600-4.700-6.600z"/><path d="M3 8.500h5.500M2 12h7M3 15.500h5.500"/>`,
+  twin: `<path ${F} d="M7.500 3l1.800 2-.500 11.600-1.300 2.400-1.300-2.400L5.700 5z"/><path d="M16.500 3l1.800 2-.500 11.600-1.300 2.400-1.300-2.400L14.700 5z"/><path d="M12 2.500v19" stroke-dasharray="2 2.4"/><path d="M5 21h5M14 21h5"/>`,
   gate: `<path d="M5.500 21V10.500a6.500 6.500 0 0 1 13 0V21"/><path ${F} d="M12 8.200l3.700 4.800h-2.400v5.200h-2.600V13H8.300z"/>`,
   scope: `<circle cx="12" cy="12" r="7.500"/><path d="M12 2v5.500M12 16.500V22M2 12h5.500M16.500 12H22"/><circle ${F} cx="12" cy="12" r="1.700"/>`,
   gong: `<path d="M3 3h18M7.5 3l1.6 3.4M16.5 3l-1.6 3.4"/><circle ${F} cx="12" cy="13.6" r="7.9"/><circle cx="12" cy="13.6" r="3.5" stroke="#0d1b21" stroke-width="1.7"/>`,
@@ -469,8 +474,10 @@ function updateHud(dt) {
     const b = $(i < 3 ? 'bS' + i : 'bSp'), sp = i === 3, s = sp ? SPELLS[me.spell] : skDef(me, i), lv = sp ? 1 : me.sk[i];
     const re = sp || me.dead ? null : recastOf(me, i) || (chainHold(me, i) ? me.re[i] : null);       // its next cast is waiting (or, in a chain, about to be): the button is lit, shows what it will do and how long is left
     const ram = !sp && i === 2 && me.form && me.def.forms.beast && me.pv.sky ? { t: Math.max(0, me.pv.bt - G.t) } : null;       // the Stormhorn with its leap spent: the button shows how long he is the ram yet
-    const hold = ram || (!sp && i === 0 && me.camo ? hasBuff(me, 'camo') : null);       // under her cape: the button shows how long of that is left, and only then its cooldown
-    const cd = hold ? hold.t : re ? 0 : sp ? me.spellCd : me.cds[i], full = ram ? BEAST_T : hold ? CAMO_T : sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
+    const qs = !sp && i === 2 && me.def.kneel ? hasBuff(me, 'quick') : null;       // Quicksilver running: the button shows how long of it is left, and only then its cooldown
+    const hold = ram || qs || (!sp && i === 0 && me.camo ? hasBuff(me, 'camo') : null);       // under her cape: the button shows how long of that is left, and only then its cooldown
+    const cd = hold ? hold.t : re ? 0 : sp ? me.spellCd : me.cds[i], full = ram ? BEAST_T : qs ? Math.max(QS_T, qs.t) : hold ? CAMO_T : sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
+    if (!sp && i === 2 && me.def.kneel) setCls(b, 'on', !!qs, 'on' + i);
     if (!sp && me.def.lethal) setCls(b, 'on', i === 0 ? !!hold : i === 2 && !!me.snipe, 'on' + i);
     if (!sp && i === 2 && me.def.forms && me.def.forms.beast) setCls(b, 'on', !!ram, 'on' + i);
     const p = cd > 0 ? clamp(cd / full, 0, 1) : 0, pk = Math.round(p * 100);
@@ -876,8 +883,8 @@ function autoTarget(i) {
 function doCast(i, x, y) {
   if (UI.paused || UI.ended) return; const me = G.player;
   if (act(A_CAST, i, x, y)) { $('tip').hidden = true; UI.q = null; }
-  else if (!me.dead && (me.dash || me.leap || me.castLock > 0) && skillReady(i)) UI.q = { i, x, y, until: G.t + 0.45 };       // busy for a moment: it goes off as soon as he can
-  else snd('deny');
+  else if (!me.dead && (me.dash || me.leap || me.gw || me.castLock > 0) && skillReady(i)) UI.q = { i, x, y, until: G.t + (me.gw ? 1 : 0.45) };       // busy for a moment (or in the glass): it goes off as soon as he can
+  else { snd('deny'); if (i < 3 && !me.dead && skillReady(i)) { const s = skillOf(i); if (s.needs && !s.needs(me, x, y) && $('hint').hidden) hint('No enemy in reach', 1.2); } }
 }
 /* A press that comes a moment early is kept and cast the instant it can be, so a combo never drops an input: the second cast of a
    skill pressed while its first is still on the way (the mark has not landed yet), or anything pressed in the middle of a dash.

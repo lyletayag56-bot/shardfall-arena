@@ -285,8 +285,8 @@ function spikes3(x, z, r, n, hex, h, dur, o) {
   const e = fxAdd(g, dur, k => { const up = k < 0.1 ? easeOut(k / 0.1) : k > 0.7 ? 1 - (k - 0.7) / 0.3 : 1; for (const m of g.children) m.scale.set(m.userData.w, Math.max(0.001, m.userData.h * up), m.userData.w); });
   e.mat = mat;
 }
-function ghost3(v, hex, dur, op, px, pz) {      // afterimage of a hero in its current pose
-  if (!v || !v.o || !v.root.visible || FX.list.length > 140) return;
+function ghost3(v, hex, dur, op, px, pz, hidden) {      // afterimage of a hero in its current pose (hidden: of one who is not being drawn just now)
+  if (!v || !v.o || (!v.root.visible && !hidden) || FX.list.length > 140) return;
   const g = v.o.clone(true), mat = fxMat(hex, op || 0.5, { side: THREE.FrontSide }), kill = [];
   g.traverse(x => { if (x.isSprite || x.userData.dz || (x.isMesh && x.material.map)) kill.push(x); else if (x.isMesh) { x.material = mat; x.castShadow = false; x.userData.own = 0; x.userData.ownGeo = 0; } });       // glows and textured planes are not part of the silhouette
   for (const s of kill) s.parent.remove(s);
@@ -761,6 +761,23 @@ const SKFX = {
     flash3(mx, 0.8, mz, 4.2, 0.26, '#ffe2b0'); flash3(mx, 0.8, mz, 2.4, 0.18, '#ffffff'); ring3(mx, mz, 0.3, r * 0.55, 0.35, c, 0.9); scorch3(mx, mz, r * 0.42, 2.4);
     smoke(mx, 0.3, mz, 10, '#8a8f96', 0.9, 0.9, 0.9); sparks(mx, 0.6, mz, 18, c, 5, 0.18, 0.5, 1.2, 5); debris(mx, 0.3, mz, 10, '#7a5c3a', 3.2, 0.2, 0.7); streak3(x, z, mx, mz, 0.12, 0.14, '#ffe9b0', 0.9, 0.9); FX.shake = Math.max(FX.shake, 0.16); },
   sorrel1h(e, x, z, c) { flash3(x, 1.0, z, 1.6, 0.18, c); sparks(x, 1.0, z, 7, '#ffe2b0', 3.4, 0.13, 0.35, 1); smoke(x, 0.2, z, 3, '#d8cfb4', 0.4, 0.4, 0.3); },
+  /* ---- Odile ---- */
+  odile0(e, x, z, c) {       // into the glass: she breaks up where she stood, and a line of light runs to the one she goes for
+    const tx = e.tx * S3, tz = e.ty * S3; flash3(x, 1.0, z, 2.4, 0.16, '#ffffff'); shards3(x, 1.0, z, 12, c, 4.2, 0.5); ring3(x, z, 0.9, 0.15, 0.22, c, 0.8, true); glint3(x, 1.25, z, 1.7, 0.25, '#ffffff'); trail3(x, z, tx, tz, 0.5, 0.24, c, 0.9, 0.7); trail3(x, z, tx, tz, 0.16, 0.3, '#ffffff', 0.92, 0.8); },
+  odile0h(e, x, z, c) {       // a cut: a stroke of light through them, a streak from where the last one fell, splinters off it, and for an instant her shape beside them
+    const x0 = e.x0 * S3, z0 = e.y0 * S3, a = e.ang, k = e.again ? 0.62 : 1, ca = Math.cos(a), sa = Math.sin(a), rot = (e.ix % 2 ? 0.75 : -0.75) + (Math.random() - .5) * 0.4, v = V.views.get(e.id);
+    if (e.ix > 0) trail3(x0, z0, x, z, 0.26 * k, 0.22, c, 1.0, 0.55);
+    cut3(x, 1.05, z, 3.2 * k, rot, c, 0.26, 0.36 * k); cut3(x, 1.05, z, 2.7 * k, rot, '#ffffff', 0.2, 0.16 * k);
+    flash3(x, 1.0, z, 1.9 * k, 0.14, c); shards3(x, 1.0, z, e.again ? 3 : 7, c, 3.6, 0.4); glint3(x - ca * 0.8, 1.25, z - sa * 0.8, 1.1 * k, 0.2, '#ffffff');
+    if (v) ghost3(v, c, 0.24, 0.5, x - ca * 0.95, z - sa * 0.95, true);
+    FX.shake = Math.max(FX.shake, 0.08 * k); },
+  odile0x(e, x, z, c) { ring3(x, z, 0.2, 1.3, 0.26, c, 0.8, true); flash3(x, 1.0, z, 1.8, 0.14, '#ffffff'); shards3(x, 0.9, z, 6, c, 2.6, 0.35); glint3(x, 1.3, z, 1.3, 0.22, '#ffffff'); },       // out of it again
+  odile1(e, x, z, c) { ring3(x, z, 1.7, 0.5, 0.5, c, 0.6, true); later(0.12, () => ring3(x, z, 0.3, 1.2, 0.4, '#ffffff', 0.45, true)); glint3(x, 0.4, z, 1.0, 0.3, '#ffffff'); },       // Anneal: down on one knee (what rises round her while she kneels is drawn with her: annealExtras)
+  odile1x(e, x, z, c) { flash3(x, 1.2, z, 2.0, 0.18, '#ffffff'); ring3(x, z, 0.3, 1.5, 0.3, c, 0.8); glint3(x, 1.7, z, 1.9, 0.3, '#ffffff'); sparks(x, 1.2, z, 9, c, 3, 0.12, 0.35, 1); },       // up, with a keen edge
+  odile2(e, x, z, c) {       // Quicksilver: a ring bursts from her and bright lines run out along the ground
+    ring3(x, z, 0.4, 2.6, 0.4, c, 0.9); ring3(x, z, 0.3, 1.8, 0.3, '#ffffff', 0.7, true); flash3(x, 1.2, z, 3.4, 0.24, '#ffffff'); pillar3(x, z, 0.9, 3.2, 0.45, c, 0.45);
+    for (let i = 0; i < 7; i++) { const a = i * TAU / 7 + 0.3; streak3(x + Math.cos(a) * 0.5, z + Math.sin(a) * 0.5, x + Math.cos(a) * 2.7, z + Math.sin(a) * 2.7, 0.22, 0.32, i % 2 ? '#ffffff' : c, 0.3, 0.6); }
+    shards3(x, 1.2, z, 8, '#ffffff', 4, 0.45); FX.shake = Math.max(FX.shake, 0.16); },
   halvar0(e, x, z, c) {       // Echoes: the air beside him tears, and there are three of him
     ring3(x, z, 0.3, 2.0, 0.34, c, 0.8, true); flash3(x, 1.0, z, 2.2, 0.18, c);
     for (let i = 0; i < 4; i++) { const a = Math.random() * TAU, r = 0.6 + Math.random() * 0.8; bolt3(x, 1.0, z, x + Math.cos(a) * r, 0.2 + Math.random() * 1.4, z + Math.sin(a) * r, c, 0.05, 0.16, 0.25, 4); } },
@@ -965,6 +982,10 @@ function ingestFx() {
       case 'echoEnd': smoke(x, 0.6, z, 7, '#e6e0f4', 0.8, 0.5, 0.6); sparks(x, 1.0, z, e.hit ? 12 : 6, c, 3.2, 0.13, 0.4, 1); ring3(x, z, 0.3, 1.1, 0.26, c, 0.6, true); if (e.hit) shards3(x, 1.1, z, 6, c, 3.4, 0.5); break;
       case 'echoHit': flash3(x, 1.0, z, 1.5, 0.16, c); sparks(x, 1.0, z, 6, c, 3.6, 0.13, 0.3, 1); cut3(x, 1.0, z, 1.5, (Math.random() - .5) * 1.4, c, 0.18); break;
       case 'beastOff': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#b9a8ff'; ring3(x, z, 2.2, 0.4, 0.4, hc, 0.7, true); smoke(x, 0.5, z, 10, '#cfc8e0', 1.0, 0.7, 0.9); flash3(x, 1.2, z, 2.6, 0.22, '#ffffff'); break; }
+      case 'twin': {       // Second Image: her reflection's blow, from the other side of whoever she is at
+        const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 0) : '#ff8fc0', ax = e.ax * S3, az = e.ay * S3, v = V.views.get(e.id), rot = (Math.random() - .5) * 1.6;
+        if (v) ghost3(v, '#ffffff', 0.3, 0.6, 2 * x - ax, 2 * z - az); cut3(x, 1.1, z, 2.6, rot, '#ffffff', 0.2, 0.22); cut3(x, 1.1, z, 3.0, rot, hc, 0.26, 0.36); flash3(x, 1.0, z, 1.5, 0.14, hc); shards3(x, 1.0, z, 4, hc, 3, 0.35); glint3(2 * x - ax, 1.3, 2 * z - az, 1.2, 0.24, '#ffffff'); break; }
+      case 'quickMore': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#ffd0e4'; ring3(x, z, 0.4, 2.0, 0.35, hc, 0.8); flash3(x, 1.2, z, 2.2, 0.2, '#ffffff'); if (h && h === V.me) text3(x, 3.0, z, '+' + e.v + 's', hc, false, 1.0); break; }
       case 'cleave': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#b9a8ff'; slash3(x, z, e.ang, BEAST_ARC, (BEAST_RANGE + 110) * S3, 0.18, hc, 0.9, { op: 0.4 }); break; }
       case 'squall': { const sc = ITEMS.squallsong.c; ring3(x, z, 0.2, 1.3, 0.28, sc, 0.8, true);       // Squallsong: the squall leaps from its target to whoever else it takes in
         for (const id of e.ids) { const q = V.views.get(id), u = q && q.u; if (!u) continue; const ux = u.x * S3, uz = u.y * S3; if (Math.hypot(ux - x, uz - z) > 0.05) bolt3(x, 1.1, z, ux, 1.0, uz, sc, 0.05, 0.2, 0.18, 5); flash3(ux, 1.0, uz, e.crit ? 1.9 : 1.2, 0.16, sc); sparks(ux, 1.0, uz, 5, '#e8fff8', 3, 0.12, 0.3, 1); } break; }

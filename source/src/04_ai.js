@@ -350,9 +350,10 @@ function aiSnipe(h) {
 }
 function aiTick(h, dt) {
   const a = h.ai; h.mvx = h.mvy = 0; h.atkTarget = null; h.chase = false;
+  if (h.med && h.hp < h.maxHp * 0.94 && !aiRise(h)) return;       // Odile on her knees: there she stays until she is nearly whole or its time is up (a step would end it), unless it is time to be up and away
   if (h.snipe) { aiSnipe(h); return; }
   a.think -= dt;
-  if (a.think <= 0) { a.think = a.P.think * (0.75 + rnd() * 0.5); aiDecide(h); if (h.dead) return; }
+  if (a.think <= 0) { a.think = a.P.think * (0.75 + rnd() * 0.5); aiDecide(h); if (h.dead) return; if (h.med) return; }       // (she has just knelt: no step)
   if (h.recallT > 0 || h.dash || h.leap) return;
   a.repT -= dt; a.stuckT += dt;
   if (a.stuckT > 0.8) {
@@ -417,6 +418,7 @@ function aiDecide(h) {
   const foes = aiFoes(h, 1100), nf = foes[0] || null;
   if (h.recallT > 0) { a.plan = 'Recalling'; if (nf && nf._d < 650) h.recallT = 0; else return; }
   if (h.healCd <= 0 && dHome > 500 && (hpF < 0.45 || (hpF < 0.62 && G.t - h.lastDmgT < 4))) castMend(h);       // the built-in heal, once it is worth most of its worth
+  if (h.def.kneel && aiKneel(h, nf, hpF)) { a.plan = 'Mending'; return; }
   aiItem(h, foes);
   aiSupport(h);
   if (aiRecast(h, null, foes, true)) return;
@@ -678,6 +680,20 @@ function aiCombat(h, t, foes) {
 }
 /* The totem: pressed once a fight is on and there is something to shrug off. Caught by a slow or a root with an enemy hero near;
    or hurt by a hero while outnumbered or already worn down; or going into two or more of them. Never on creeps or minions. */
+/* Odile's Anneal. A bot kneels when it is hurt and nobody of theirs is near enough to make a target of it (what the kneel turns of
+   a blow is not worth standing still under several of them), and not under one of their turrets. And it gets up again, by Rise,
+   while there is still time: two of theirs coming, and neither upon her yet. (Under one alone, or with them already at her, the
+   kneel is worth more than her legs.) */
+function aiRise(h) {
+  const r = h.re[1]; if (!r || G.t < r.ready) return false;
+  let n = 0, nd = 1e9; for (const q of G.heroes) if (q.team !== h.team && !q.dead && q.vis[h.team]) { const d = hyp(q.x - h.x, q.y - h.y); if (d < 700) n++; if (d < nd) nd = d; }
+  if (!(n >= 2 && nd > 260)) return false;
+  h.ai.think = 0; return castSkill(h, 1, h.x, h.y) !== false;       // (and thinks again at once: where to, now)
+}
+function aiKneel(h, nf, hpF) {
+  const s = h.def.skills[1], lv = h.sk[1]; if (!lv || h.med || h.gw || h.cds[1] > 0 || h.mp < skillCost(s, lv) || h.recallT > 0) return false;
+  return hpF < 0.55 && (!nf || nf._d > 650) && !turretThreat(h.team, h.x, h.y, 40, h) && castSkill(h, 1, h.x, h.y);
+}
 function aiItem(h, foes) {
   if (!itemReady(h) || rnd() > h.ai.P.skill) return;
   const nf = foes[0]; if (!nf || nf._d > 760) return;
@@ -755,6 +771,7 @@ function aiPve(h, m) {
     else if (A.t === 'camo') ok = !h.camo && !lethalReady(h) && d <= h.range + 120;
     else if (A.t === 'buff' && !A.ult) ok = d <= h.range + 60;
     else if (A.t === 'buff' && m.epic) ok = d <= h.range + 60;
+    else if (A.t === 'target' && A.any) ok = d <= (s.range || 300) * 0.8;       // (any: a skill aimed at one of them that a creep will do for: Glasswalk)
     if (ok && castSkill(h, i, m.x, m.y)) return;
   }
 }

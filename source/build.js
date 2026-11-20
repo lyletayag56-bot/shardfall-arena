@@ -21,7 +21,7 @@ fs.writeFileSync(path.join(__dirname, 'dist', 'index.html'), SKEL + '\n' + out +
 // the page as it stands on the open web: a whole document of its own, with what a link to it shows elsewhere (a name, a line, a
 // picture) and what a phone needs to keep it on its home screen. The pictures are made by test/site_assets.js.
 if (SITE) {
-  const DESC = 'A 5v5 arena battle that runs in your browser: sixteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link.';
+  const DESC = 'A 5v5 arena battle that runs in your browser: seventeen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link.';
   const HEAD = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
     + '<title>Shardfall Arena 3D</title><meta name="description" content="' + DESC + '">'
     + '<meta property="og:type" content="website"><meta property="og:title" content="Shardfall Arena 3D"><meta property="og:description" content="' + DESC + '"><meta property="og:url" content="' + SITE + '"><meta property="og:image" content="' + SITE + 'cover.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'

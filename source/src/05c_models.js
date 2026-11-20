@@ -439,6 +439,31 @@ const HERO_BUILD = {
     glowPart(R, 'wpnR', new THREE.CylinderGeometry(0.031, 0.031, 0.012, 10), glow, 0, 0.125, 0.345, 0).rotation.x = HP2;
     return { style: 'rifle' };
   },
+  odile(R, L) {       // a duellist out of the glassworks: a high-collared coat with tails, her hair pinned up with a sliver of glass, one polished pauldron, a round looking glass slung on her back, and a long thin blade of rose glass
+    baseBody(R, { body: L.body, trim: L.trim, skin: L.skin, sleeve: L.body, fore: shade(L.body, -0.22), glove: '#20242c', pants: L.pants, boot: L.boot });
+    const T = R.P('spine'), H = R.P('head'), Hp = R.P('hips'), b = R.b, glow = L.glow, mir = L.mirror || '#dfe8f5', zf = 0.158 * b, zb = -0.17 * b;
+    T.tor(0.118, 0.034, shade(L.body, 0.1), { y: 0.535, rx: HP2 }, 5, 12);                                    // the collar, standing
+    for (const k of [-1, 1]) T.box(0.028, 0.4, 0.02, L.trim, { x: k * 0.062 * b, y: 0.27, z: zf + 0.004, rz: -k * 0.13 });      // a silver edge down each lapel
+    for (const k of [-1, 1]) Hp.box(0.17 * b, 0.4, 0.03, L.body, { x: k * 0.095 * b, y: -0.2, z: -0.15 * b, rx: -0.2, rz: k * 0.1, c2: shade(L.body, 0.16) }).box(0.172 * b, 0.03, 0.034, L.trim, { x: k * 0.11 * b, y: -0.385, z: -0.19 * b, rx: -0.2, rz: k * 0.1 });      // the coat's two tails, silver at the hem
+    Hp.cyl(0.184 * b, 0.194 * b, 0.1, L.sash || glow, { y: 0.035, sz: 0.82, c2: shade(L.sash || glow, 0.2) }, 10).box(0.07, 0.07, 0.03, L.trim, { y: 0.035, z: 0.152 * b }).box(0.09, 0.3, 0.02, L.sash || glow, { x: -0.13 * b, y: -0.15, z: 0.11 * b, rz: 0.1, c2: shade(L.sash || glow, -0.2) });      // a sash at her waist, its end hanging at her hip, and a silver buckle
+    T.box(0.05, 0.6, 0.018, shade(L.trim, -0.4), { y: 0.29, z: zf + 0.012, rz: 0.72 });                      // the strap of the looking glass, across her chest
+    T.cyl(0.245, 0.245, 0.028, shade(mir, -0.3), { y: 0.3, z: zb - 0.02, rx: HP2 }, 18);                      // the looking glass on her back: its frame,
+    T.cyl(0.208, 0.208, 0.034, mir, { y: 0.3, z: zb - 0.026, rx: HP2, c2: '#ffffff', sh: 1 }, 18);          // its face,
+    T.box(0.05, 0.3, 0.012, '#ffffff', { x: -0.05, y: 0.32, z: zb - 0.046, rz: 0.6, sh: 1 });                 // and the light across it
+    glowPart(R, 'spine', new THREE.TorusGeometry(0.228, 0.011, 4, 22), glow, 0, 0.3, zb - 0.04, 0);
+    T.sph(0.112, shade(mir, -0.5), { x: 0.29 * b, y: 0.5, sx: 1.05, sy: 0.46, c2: shade(mir, -0.2) }).sph(0.085, shade(mir, -0.58), { x: 0.335 * b, y: 0.43, sx: 1.0, sy: 0.46, c2: shade(mir, -0.3) }).tor(0.1, 0.013, L.sash || glow, { x: 0.29 * b, y: 0.468, rx: HP2 }, 4, 12);      // one pauldron of two polished plates, on the arm that does not hold the blade
+    for (const s of ['L', 'R']) { R.P('fore' + s).cyl(0.075 * b, 0.066 * b, 0.09, L.trim, { y: -0.2 }, 8); R.P('shin' + s).cyl(0.108 * b, 0.1 * b, 0.05, L.trim, { y: -0.02 }, 8); }
+    hairCap(H, L.hair, Math.PI * 0.56, -0.3);
+    H.sph(0.13, L.hair, { x: -0.06, y: 0.47, z: 0.17, sx: 1.85, sy: 0.5, sz: 0.6, rz: -0.16 });               // her fringe, swept to the one side
+    H.sph(0.06, L.hair, { x: -0.24, y: 0.25, z: 0.07, sy: 1.9, sz: 0.8 });                                    // and a lock down by her cheek on that side
+    H.sph(0.125, L.hair, { y: 0.57, z: -0.19 }).tor(0.1, 0.02, L.trim, { y: 0.52, z: -0.16, rx: 0.9 }, 4, 10);      // the knot high at the back, bound in silver
+    glowPart(R, 'head', new THREE.CylinderGeometry(0.011, 0.004, 0.42, 5), glow, 0, 0.58, -0.19, 0).rotation.z = 1.15;      // the sliver of glass through it
+    const W = R.P('wpnR');
+    W.cyl(0.021, 0.021, 0.17, '#20242c', {}, 6).sph(0.036, L.trim, { y: -0.1 }, 6, 5).tor(0.075, 0.013, L.trim, { y: 0.09, rx: HP2 }, 5, 14).box(0.022, 0.2, 0.012, L.trim, { x: 0.07, y: 0.0, rz: 0.2 });      // hilt, pommel, a ring for a guard and a bar to cover the knuckles
+    W.box(0.046, 1.0, 0.012, L.blade || '#ffd9ea', { y: 0.6, c2: '#ffffff', sh: 1 }).cone(0.033, 0.17, L.blade || '#ffd9ea', { y: 1.185, sz: 0.28, ry: Math.PI / 4 }, 4);      // the blade: long, thin, of glass
+    glowPart(R, 'wpnR', new THREE.BoxGeometry(0.01, 1.02, 0.018), glow, 0, 0.61, 0, 0);                       // the light held in it
+    return { style: 'fence' };
+  },
   halvar(R, L) {       // a drover of the high passes: a sheepskin over a wool tunic belted with copper, a roll of fleece at the neck, bare arms, forearms wrapped to the knuckles in hide with a band of horn across each fist, a kilt of hide over his breeches, fleece at the tops of his boots; russet hair cropped at the sides with a ridge of it over the top; and in his breastbone the shard the ram sleeps in
     const b = R.b, zf = 0.158 * b, wool = L.body, fur = L.fur || '#e9e2d0', hide = L.hide || '#3a4256', cop = L.trim, horn = L.horn || '#d8cfe8', glow = L.wglow || L.glow || '#b9a8ff', leather = '#4a3528';
     baseBody(R, { body: wool, body2: shade(wool, 0.16), trim: cop, skin: L.skin, sleeve: L.skin, fore: leather, glove: leather, pants: L.pants, boot: L.boot });
@@ -631,7 +656,7 @@ function wglow(R, key, c) {      // a glowing edge on the hero's weapon
   else if (key === 'mira') { const hf = 0.6; glowPart(R, 'wpnL', new THREE.BoxGeometry(0.016, hf * 2.04, 0.016), c, 0, 0, -0.21, 0); for (const k of [-1, 1]) aura('wpnL', k * hf * 1.02, 0.45, -0.21); }
 }
 function buildHeroTemplate(key, skin) {
-  const L = heroLook(key, skin), sk = SKINS[key][skin | 0] || {}, bulk = { bram: 1.28, thorn: 1.26, kaela: 0.95, rook: 1.34, vex: 0.9, kiri: 0.86, tavi: 1.02, lyra: 0.9, zephyr: 0.92, orin: 1.0, mira: 0.92, sera: 0.9, miel: 0.92, hesta: 1.2, sorrel: 0.93, halvar: 1.14 }[key] || 1;
+  const L = heroLook(key, skin), sk = SKINS[key][skin | 0] || {}, bulk = { bram: 1.28, thorn: 1.26, kaela: 0.95, rook: 1.34, vex: 0.9, kiri: 0.86, tavi: 1.02, lyra: 0.9, zephyr: 0.92, orin: 1.0, mira: 0.92, sera: 0.9, miel: 0.92, hesta: 1.2, sorrel: 0.93, halvar: 1.14, odile: 0.88 }[key] || 1;
   const R = mkRig(bulk); R.look = L; const info = HERO_BUILD[key](R, L);
   for (const n of sk.parts || []) SKIN_PARTS[n](R, L);
   if (L.wglow) wglow(R, key, L.wglow);
@@ -819,6 +844,7 @@ const STANCE = {   // idle arm pose: [armL.x, foreL.x, armL.z, armR.x, foreR.x, 
   bow: [-0.4, -0.55, 0.12, 0.06, -0.35, -0.12],
   hurl: [0.1, -0.5, 0.18, -0.3, -0.85, -0.16],
   brawl: [-0.5, -1.55, 0.2, -0.5, -1.55, -0.2],       // fists up before his chin
+  fence: [0.55, -1.35, 0.32, -0.95, -0.55, -0.1],       // a fencer's guard: the blade out before her, the other hand behind her back
   rifle: [-1.02, -0.36, -0.6, -0.5, -0.83, -0.05],       // the long gun at the low ready: in the right hand, the left under its fore-end
 };
 function tri(u, a, b, c) {       // stance -> wind-up -> strike (lands at 0.6) -> recover
@@ -880,7 +906,8 @@ const HERO_CLIPS = { bram: ['rush', 'guard', 'leap', null, 'heave'], thorn: ['th
   tavi: ['throw', 'fanout', 'vault', 'lunge', 'pull', 'vault'],
   kiri: ['toss', 'bolt', 'roar', null, null, null, 'vault', 'lunge', 'roar'],       // 6..8: the Tiger's leap, rush and the turn back
   lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'queen'], hesta: ['rush', 'gong', 'raise'], sorrel: ['fade', 'lobL', 'aim', null, null, 'recoil'],
-  halvar: ['raise', 'lunge', 'roar', null, null, null, null, null, null] };       // (6..8 are the ram's: it has motions of its own, see animRam)       // (sorrel 5: each round of the four)
+  halvar: ['raise', 'lunge', 'roar', null, null, null, null, null, null],
+  odile: ['lunge', null, 'raise', null, 'lunge'] };       // (1: Anneal is a pose she holds, not a motion: s.kneel; 4: Rise)       // (6..8 are the ram's: it has motions of its own, see animRam)       // (sorrel 5: each round of the four)
 function KF(u, a) { if (u <= a[0]) return a[1]; for (let i = 2; i < a.length; i += 2) if (u <= a[i]) return lerp(a[i - 1], a[i + 1], smooth((u - a[i - 2]) / (a[i] - a[i - 2]))); return a[a.length - 1]; }
 /* which mask is over the face: the worn one sits on the face, the other is slung behind the head */
 function kiriMasks(B, f) {
@@ -1018,6 +1045,10 @@ function animHero(v, s, t, dt) {
         if (v.alt) { p.aLx = tri(A, p.aLx, 0.35, -1.45); p.fLx = tri(A, p.fLx, -1.7, -0.1); p.spRy = tri(A, p.spRy, 0.45, -0.5); }
         else { p.aRx = tri(A, p.aRx, 0.35, -1.45); p.fRx = tri(A, p.fRx, -1.7, -0.1); p.spRy = tri(A, p.spRy, -0.45, 0.5); }
         p.hipRx += tri(A, 0, 0, 0.18); break;
+      case 'fence':       // by turns a thrust, the arm shot straight out behind the point, and a cut back across
+        if (v.alt) { p.aRx = tri(A, p.aRx, -0.75, -1.55); p.fRx = tri(A, p.fRx, -1.5, -0.03); p.aRz = tri(A, p.aRz, -0.1, 0.06); p.spRy = tri(A, p.spRy, -0.4, 0.55); p.hipRx += tri(A, 0, -0.04, 0.4); p.lLx = tri(A, p.lLx, 0, -0.7); p.lRx = tri(A, p.lRx, 0, 0.45); }
+        else { p.aRx = tri(A, p.aRx, -2.2, -0.6); p.fRx = tri(A, p.fRx, -1.0, -0.15); p.aRz = tri(A, p.aRz, 0.75, -0.65); p.spRy = tri(A, p.spRy, 0.55, -0.6); p.hipRx += tri(A, 0, -0.05, 0.2); }
+        break;
       case 'claw':       // a swipe of one set of claws, then the other
       case 'fans':       // a wide flick of one fan, then the other
         if (v.alt) { p.aLx = tri(A, p.aLx, -1.9, -0.55); p.fLx = tri(A, p.fLx, -1.55, -0.12); p.aLz = tri(A, p.aLz, 0.95, -0.45); p.spRy = tri(A, p.spRy, 0.6, -0.65); }
@@ -1062,6 +1093,11 @@ function animHero(v, s, t, dt) {
     flare = Math.max(flare, 0.55 * w);
   }
   if (A >= 0) flare = Math.max(flare, 0.3 * Math.sin(Math.min(1, A) * Math.PI));
+  if (s.kneel > 0) {       // on one knee (Odile's Anneal): the blade set point down before her, her head bowed over it
+    const k = smooth(s.kneel); p.hipY = lerp(p.hipY, 0.47, k) + Math.sin(t * 2.4) * 0.008 * k; p.hipRx = lerp(p.hipRx, 0.12, k); p.spRy = lerp(p.spRy, 0, k);
+    p.lLx = lerp(p.lLx, -1.5, k); p.sLx = lerp(p.sLx, 1.5, k); p.lRx = lerp(p.lRx, 0.12, k); p.sRx = lerp(p.sRx, 1.6, k);
+    p.aRx = lerp(p.aRx, -1.05, k); p.fRx = lerp(p.fRx, -0.75, k); p.aRz = lerp(p.aRz, 0.12, k); p.aLx = lerp(p.aLx, -0.55, k); p.fLx = lerp(p.fLx, -1.25, k); p.aLz = lerp(p.aLz, -0.2, k); p.headRx = lerp(p.headRx, 0.32, k);
+  }
   if (s.stun) { p.hipRx = 0.14 + Math.sin(t * 9) * 0.04; p.headRx = 0.35; headRz = Math.sin(t * 6) * 0.3; p.aLx = p.aRx = 0.1; p.fLx = p.fRx = -0.2; }
   let rYaw = null, rSpin = 0, lift = 0, wpT = 0, airRx = 0;
   if (s.air > 0) {       // thrown into the air: flung back, arms and legs trailing; gathered in again on the way down
@@ -1072,7 +1108,7 @@ function animHero(v, s, t, dt) {
   if (s.recall > 0) {       // each hero's own way of waiting; at the very end they are drawn up and away
     const R = _rq, fn = RECALL[v.key]; R.y = R.rx = R.hz = R.spin = R.wp = 0; R.yaw = null; p.hov = !!v.hover;
     if (fn) fn(p, R, s.recall * 6, s.recall); else { p.aLz += 0.25; p.aRz -= 0.25; p.headRx = -0.2; R.y = 0.04 + Math.sin(t * 4) * 0.02; }
-    bodyY += R.y; bodyRx += R.rx; headRz += R.hz; rYaw = R.yaw; rSpin = R.spin; wpT = R.wp; flare = Math.max(flare, 0.12);
+    bodyY += R.y; bodyRx += R.rx; headRz += R.hz; rYaw = R.yaw; rSpin = R.spin; wpT = R.wp; flare = Math.max(flare, 0.12);       // (wpT: the weapon turned in the hand)
     const q = seg01(s.recall, 0.93, 1); lift = q * q;
   }
   if (s.arrive > 0) lift = Math.max(lift, (1 - smooth(Math.min(1, s.arrive / 0.7))) * 1.1);       // and set down again at the fountain, with a bend of the knees
