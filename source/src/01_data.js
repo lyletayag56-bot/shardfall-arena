@@ -127,7 +127,22 @@ const ITEMS = {
   wardboots:   { name: 'Warded Boots',    cat: 'Boots',   cost: 900, ms: 40, mr: 25, boots: true, ic: 'boot', c: '#7ad0c4', from: ['wornboots', 'wovencloak'] },
   // added since: each new item goes at the end of this list, whatever its kind, because a recorded match knows the items by their place in it
   victorglass: { name: "Victor's Hourglass", cat: 'Magic', cost: 2050, ap: 65, mp: 300, cdr: 15, ic: 'hourturn', c: '#ffd76a', from: ['wand', 'hourglass', 'hourglass'] },
+  squallsong:  { name: 'Squallsong',       cat: 'Attack', cost: 1900, as: 40, ms: 20, crit: 10, ic: 'fan', c: '#8fe6d8', from: ['lightdagger', 'lightdagger', 'hawkcharm'] },
+  dawnshard:   { name: 'Dawnshard Blade',  cat: 'Attack', cost: 1950, ad: 40, as: 20, ls: 10, ic: 'comet', c: '#ff9ab0', from: ['greatblade', 'bloodvial', 'lightdagger'] },
+  ruinblade:   { name: 'Blade of Ruin',    cat: 'Attack', cost: 2950, ad: 120, ms: 12, ic: 'ruin', c: '#d0425a', from: ['greatblade', 'greatblade', 'edge'] },
+  wellspring:  { name: 'Wellspring Charm', cat: 'Magic',  cost: 1850, ap: 50, hp: 250, cdr: 20, ic: 'charm', c: '#7fe0d0', from: ['wand', 'vitalstone', 'hourglass'] },
 };
+/* The four items of KIT_V 24. Squallsong: between SQUALL_CD0 and SQUALL_CD1 seconds from one squall to the next (STEP sooner for
+   each basic attack), what a squall deals, how far from its target it reaches and how many it strikes. Dawnshard Blade (Last Stand):
+   left under LAST_AT of his health, a shield, LAST_DEF armour and magic resist and some speed for LAST_T, once every LAST_CD. Blade of
+   Ruin: RUIN_K more Attack for RUIN_T after hurting somebody under RUIN_AT of their health. Wellspring Charm: WELL_MP of his mana
+   back every WELL_T, and a higher ceiling on cooldown reduction (WELL_CAP against CDR_CAP). */
+const SQUALL_CD0 = 5, SQUALL_CD1 = 2, SQUALL_STEP = 0.2, SQUALL_R = 330, SQUALL_N = 3, SQUALL_MS = 1.05;
+function squallDmg(h) { return 110 + 14 * h.level; }
+const LAST_AT = 0.3, LAST_T = 3, LAST_CD = 60, LAST_DEF = 25, LAST_MS = 1.15;
+function lastShield(h) { return 380 + 60 * h.level; }
+const RUIN_AT = 0.5, RUIN_K = 0.25, RUIN_T = 2;
+const WELL_T = 10, WELL_MP = 0.15, WELL_CAP = 0.45, CDR_CAP = 0.4;
 const GLASS_K = 0.3;       // Victor's Hourglass: the share of what is left of the ultimate's cooldown that a kill or an assist takes off
 for (const k in ITEMS) { const it = ITEMS[k]; if (it.from) { it.fee = it.cost - it.from.reduce((s, c) => s + ITEMS[c].cost, 0); for (const c of it.from) (ITEMS[c].into || (ITEMS[c].into = [])).includes(k) || ITEMS[c].into.push(k); } }
 const ITEM_PASSIVE = {
@@ -145,6 +160,10 @@ const ITEM_PASSIVE = {
   bastion: 'Second Wind: lethal damage instead makes you untouchable for 2s, then you return with 18% HP. 150s cooldown.',
   wardboots: 'Stuns, roots and taunts on you end 25% sooner.',
   victorglass: `Turn of the Glass: a kill or an assist takes ${Math.round(GLASS_K * 100)}% off what is left of your ultimate's cooldown.`,
+  squallsong: `Squall: every ${SQUALL_CD0}s, and ${SQUALL_STEP}s sooner for each basic attack you make (${SQUALL_CD1}s at the least), your next basic attack lets a squall loose: its target and up to ${SQUALL_N - 1} more enemies near it take 110 (+14 per level) magic damage, which can strike critically. Minions take double. Each squall quickens you by ${Math.round((SQUALL_MS - 1) * 100)}% for 2s.`,
+  dawnshard: `Last Stand: when a blow leaves you under ${Math.round(LAST_AT * 100)}% of your health you gain a shield of 380 (+60 per level), ${LAST_DEF} Armor and Magic Resist and ${Math.round((LAST_MS - 1) * 100)}% Move Speed for ${LAST_T}s. ${LAST_CD}s cooldown.`,
+  ruinblade: `Ruin: damaging an enemy who is under ${Math.round(RUIN_AT * 100)}% of their health gives you ${Math.round(RUIN_K * 100)}% more Attack for ${RUIN_T}s. A basic attack that sets it off already strikes with it.`,
+  wellspring: `Wellspring: every ${WELL_T}s you regain ${Math.round(WELL_MP * 100)}% of your max mana, and your Cooldown Reduction can reach ${Math.round(WELL_CAP * 100)}% instead of ${Math.round(CDR_CAP * 100)}%.`,
 };
 for (const k in ITEM_PASSIVE) ITEMS[k].p = ITEM_PASSIVE[k];
 /* An item with `act` is pressed, not just carried: it gets a button of its own beside the skills, and a cooldown that no stat
@@ -303,6 +322,39 @@ function lethalReady(h) { return !!h.pv.arm || G.t - Math.max(h.lastDmgT, h.pv.s
    any blow that lands on her; her skill's cooldown only runs once it has ended (tickHero). */
 function camoOn(h, lv) { addBuff(h, { k: 'camo', t: CAMO_T, msMul: 1.3, ad: L(lv, 30, 12) }); h.camo = true; h.revealT = 0; h.vis[1 - h.team] = false; fx('camo', h.x, h.y, { id: h.id, on: 1 }); }
 function camoOff(h) { if (!h.camo) return; h.camo = false; h.buffs = h.buffs.filter(b => b.k !== 'camo'); fx('camo', h.x, h.y, { id: h.id, on: 0 }); }
+/* Teleport (KIT_V 24): TP_T standing still, then he is beside the turret, crystal or minion of his own side that he chose (the one
+   nearest the spot he pointed at, within TP_PICK of it). Until he arrives what he is coming to cannot be hurt (tpG). Broken off (by
+   his own feet, or by a stun, a taunt or a throw) it gives TP_BACK of its cooldown back. */
+const TP_T = 3, TP_CD = 75, TP_BACK = 30, TP_PICK = 520;
+function tpAnchor(h, tx, ty) {
+  let best = null, bd = TP_PICK;
+  const see = u => { if (u.dead || u.team !== h.team) return; const d = hyp(u.x - tx, u.y - ty); if (d < bd) { bd = d; best = u; } };
+  for (const u of G.turrets) see(u); for (const u of G.crystals) see(u); for (const u of G.units) if (u.kind === 'minion') see(u);
+  return best;
+}
+function tpStart(h, a) { h.tp = { t: TP_T, a }; a.tpG = G.t + TP_T + 0.1; h.atkTarget = null; h.chase = false; h.windT = 0; h.recallT = 0; h.mvx = h.mvy = 0; fx('tp', h.x, h.y, { id: h.id, aid: a.id, x1: a.x, y1: a.y, dur: TP_T }); fx('tpAt', a.x, a.y, { id: h.id, aid: a.id, dur: TP_T }); sfx('holy', h.x, h.y); sfx('holy', a.x, a.y); }
+function tpStop(h, back) { const T = h.tp; if (!T) return; h.tp = null; if (T.a.tpG) T.a.tpG = 0; if (back) { h.spellCd = Math.max(0, h.spellCd - TP_BACK); fx('tpx', h.x, h.y, { id: h.id }); } }
+function tpTick(h, dt) {       // true while he stands there on his way
+  const T = h.tp, a = T.a;
+  if (a.dead || h.mvx || h.mvy || (h.atkTarget && h.chase)) { tpStop(h, true); return false; }
+  T.t -= dt; if (T.t > 0) return true;
+  const sp = MAP.spawn[h.team], d = hyp(sp.x - a.x, sp.y - a.y) || 1, off = a.r + h.r + 30, p = nearestWalkable(a.x + (sp.x - a.x) / d * off, a.y + (sp.y - a.y) / d * off), x0 = h.x, y0 = h.y;
+  tpStop(h, false); h.x = p.x; h.y = p.y; h.face = fatan2(a.y - sp.y, a.x - sp.x); if (h.ai) h.ai.path = null;
+  for (let i = 1; i <= 3; i++) addBuff(h, { k: 'tp' + i, t: i, msMul: 1.2 });       // (three that end one after another: 60% more speed, fading over three seconds)
+  fx('tpin', h.x, h.y, { id: h.id, x0, y0 }); sfx('skill', h.x, h.y); return false;
+}
+/* Halvar (KIT_V 24). ECHO_*: his echoes: how many, how long, how far to either side of him they appear, how far from him they may
+   go and how far they look for somebody to hit, what they have of his health, how near one must be to follow his Stormknuckle;
+   echoAd: what a blow of theirs is of his Attack. FIST_*: Stormknuckle's run, its reach to either side, how far it throws, and
+   what an echo's following blow is of his own. BEAST_*: the Stormhorn: how long, how big, how far its blows reach, the armour and
+   magic resist and the speed it adds, the share of a blow that reaches the others in front of him and how wide "in front" is;
+   beastHp: the health it adds. Then the ram's three skills, and what his blood mends of the health he is missing every second. */
+const ECHO_N = 2, ECHO_T = 8, ECHO_GAP = 95, ECHO_LEASH = 760, ECHO_SEEK = 560, ECHO_HP = 0.35, ECHO_FIST_R = 640;
+function echoAd(lv) { return L(lv, 0.3, 0.04); }
+const FIST_D = 330, FIST_W = 75, FIST_PUSH = 210, FIST_ECHO = 0.4;
+const BEAST_T = 12, BEAST_R = 52, BEAST_RANGE = 190, BEAST_TOUGH = 18, BEAST_MS = 1.12, BEAST_CLEAVE = 0.6, BEAST_ARC = 1.0;
+function beastHp(lv) { return L(lv, 500, 350); }
+const CHARGE_D = 540, CHARGE_W = 95, CHARGE_UP = 0.7, BELLOW_R = 430, BELLOW_A = 0.62, SKY_R = 620, SKY_AOE = 270, SKY_STUN = 1, RAM_REGEN = 0.016;
 const SPELLS = {
   flicker: {
     name: 'Flicker', ic: 'blink', c: '#ffd76a', cd: 90, range: 420, cast: 'point', ind: { t: 'circle', r: 60 }, noRoot: true,
@@ -348,6 +400,11 @@ const SPELLS = {
       skfx(h, 'spR', best.x, best.y, { c: '#f2c14e' });
       dmg(h, best, retriDmg(h), 'true', { skill: true, noVamp: true });
     },
+  },
+  teleport: {
+    name: 'Teleport', ic: 'gate', c: '#b9a8ff', cd: TP_CD, cast: 'map', ind: { t: 'self', r: 0 },
+    desc: `Choose one of your side's turrets, your crystal or one of your minions on the map. Stand still for ${TP_T}s and you arrive beside it, running 60% faster for a moment (it fades over 3s). What you are coming to cannot be hurt until you are there. Moving, or being stunned, taunted or thrown, breaks it off and gives back ${TP_BACK}s of the cooldown.`,
+    fn(h, lv, tx, ty) { const a = tpAnchor(h, tx, ty); if (!a) return false; tpStart(h, a); },
   },
 };
 /* the heal every hero carries beside Recall, whatever battle spell was picked */
@@ -959,8 +1016,71 @@ const HEROES = {
         } },
     ],
   },
+  halvar: {
+    /* a drover of the high passes with a storm-ram's spirit in the shard on his breastbone. As a man (0) he calls up echoes of
+       himself, who fight beside him as units of their own (kind 'clone': echoSpawn, tickEcho), and drives a fist of thunder into
+       whoever he reaches. As the Stormhorn (1) he is the ram itself for a while: bigger, harder to kill, with three skills of its
+       own (alt) and blows that take in whoever else stands in front of him. Unlike Kiri's masks the second form is on a clock
+       (forms.beast): beastOn and beastOff, not setForm. His own two skills go on cooling in the meantime, and the ultimate's
+       cooldown only starts once he is a man again (cdNow: what a cast leaves on the button instead of the skill's cooldown). */
+    name: 'Halvar', title: 'Stormhorn Drover', cls: 'Fighter', spell: 'sprint', melee: true, rate: [7, 7, 6, 6],
+    forms: { names: ['Man', 'Stormhorn'], range: BEAST_RANGE, as: 0, tough: BEAST_TOUGH, beast: true, hp: h => beastHp(h.sk[2]) },
+    base: Object.assign({}, CLASS_BASE.Fighter, { hp: 2600, ms: 262 }),
+    look: { body: '#4a5a72', trim: '#c98a4a', skin: '#d9a47c', hair: '#6e2f22', hat: 'none', weapon: 'fists', cape: null, glow: '#b9a8ff', fur: '#e9e2d0', fleece: '#a9a4bc', horn: '#d8cfe8', hide: '#3a4256', pants: '#3b3440', boot: '#2a2228' },
+    skills: [
+      { name: 'Echoes', ic: 'echo', c: '#b9a8ff', max: 6, cd: [15, 12], cost: [60, 85], cast: 'self',
+        ind: { t: 'self', r: 0 }, ai: { t: 'buff' },
+        desc: lv => `Call up ${ECHO_N} echoes of yourself for ${ECHO_T}s. Each has ${Math.round(ECHO_HP * 100)}% of your health, is as hurt as you are, and strikes whatever you are fighting for ${Math.round(echoAd(lv) * 100)}% of your Attack. As they appear the three of you change places, so nobody can be sure which is you. They can be hit and killed, and they go when their time is up, when you fall or when you become the Stormhorn.`,
+        fn(h, lv) {
+          for (const u of echoesOf(h)) echoEnd(u);
+          const a = h.face + Math.PI / 2, x0 = h.x, y0 = h.y, spots = [1, 0, -1].map(k => nearestWalkable(x0 + fcos(a) * ECHO_GAP * k, y0 + fsin(a) * ECHO_GAP * k));
+          const me = (rnd() * 3) | 0; let n = 0;
+          for (let i = 0; i < 3; i++) if (i !== me) echoSpawn(h, spots[i].x, spots[i].y, lv, n++);
+          if (me !== 1) { h.x = spots[me].x; h.y = spots[me].y; if (h.ai) h.ai.path = null; }       // (he is one of the three, and which of them is drawn afresh every time)
+          skfx(h, 'halvar0', x0, y0, { ang: h.face });
+        },
+        alt: { name: 'Headlong', ic: 'ramcharge', c: '#d8cfe8', cd: [6.5, 5], cost: [30, 40], cast: 'dir', range: CHARGE_D, noRoot: true,
+          ind: { t: 'line', w: CHARGE_W + 10 }, ai: { t: 'line', speed: 1300, esc: true, wave: true },
+          desc: lv => `Stormhorn: charge ${CHARGE_D} with your head down. Everyone in the way takes ${L(lv, 170, 38)} (+70% Attack) damage and is thrown into the air for ${CHARGE_UP}s.`,
+          fn(h, lv, tx, ty, ang) {
+            skfx(h, 'halvar0b', h.x, h.y, { ang });
+            startDash(h, ang, CHARGE_D, 1300, { w: CHARGE_W, hit(e) { dmg(h, e, L(lv, 170, 38) + 0.7 * h.ad, 'phys', { skill: true }); if (!e.dead) knockUp(e, CHARGE_UP, 120); skfx(h, 'halvar0h', e.x, e.y, { ang }); } });
+          } } },
+      { name: 'Stormknuckle', ic: 'fist', c: '#e6dcff', max: 6, cd: [9, 6.5], cost: [50, 75], range: FIST_D, cast: 'dir', noRoot: true,
+        ind: { t: 'line', w: FIST_W + 10 }, ai: { t: 'line', speed: 1500, r: FIST_D + 90 },
+        desc: lv => `Lunge ${FIST_D} with a fist full of thunder. The first enemy you meet takes ${L(lv, 200, 46)} (+90% Attack) damage and is knocked back. Each of your echoes that is near enough follows with a blow of its own at the same enemy, for ${Math.round(FIST_ECHO * 100)}% of that.`,
+        fn(h, lv, tx, ty, ang) {
+          skfx(h, 'halvar1', h.x, h.y, { ang });
+          startDash(h, ang, FIST_D, 1500, { w: FIST_W, stopOn: () => true, hit(e) {
+            const a = L(lv, 200, 46) + 0.9 * h.ad; dmg(h, e, a, 'phys', { skill: true });
+            if (!e.dead && !e.epic) pullTo(e, e.x + fcos(ang) * FIST_PUSH, e.y + fsin(ang) * FIST_PUSH, 0.22);
+            skfx(h, 'halvar1h', e.x, e.y, { ang, tid: e.id });
+            for (const u of echoesOf(h)) echoFist(u, e, a * FIST_ECHO);
+          } });
+        },
+        alt: { name: 'Thunderbleat', ic: 'bellow', c: '#b9a8ff', cd: [7, 5.5], cost: [35, 45], cast: 'dir', range: BELLOW_R, noRoot: false,
+          ind: { t: 'cone', a: BELLOW_A }, ai: { t: 'near', r: BELLOW_R - 110, wave: true },
+          desc: lv => `Stormhorn: a bellow with the storm in it. Everyone in front of you takes ${L(lv, 190, 42)} (+60% Attack) damage and is slowed 45% for 2s.`,
+          fn(h, lv, tx, ty, ang) {
+            skfx(h, 'halvar1b', h.x, h.y, { ang, r: BELLOW_R, a: BELLOW_A });
+            for (const e of enemiesInCone(h.team, h.x, h.y, BELLOW_R, ang, BELLOW_A)) { dmg(h, e, L(lv, 190, 42) + 0.6 * h.ad, 'phys', { skill: true }); slow(e, 0.45, 2); }
+          } } },
+      { name: 'Stormhorn', ic: 'ram', c: '#b9a8ff', max: 3, cd: [60, 48], cdNow: 0.6, cost: [100, 140], cast: 'self', ult: true,
+        ind: { t: 'self', r: 0 }, ai: { t: 'beast', ult: true },
+        desc: lv => `Let the ram out: for ${BEAST_T}s you are the Stormhorn. You gain ${beastHp(lv)} health, ${BEAST_TOUGH} Armor and Magic Resist and ${Math.round((BEAST_MS - 1) * 100)}% Move Speed, your blows reach further and strike everyone in front of you (the others for ${Math.round(BEAST_CLEAVE * 100)}%), and your three skills become the ram's own, ready at once. Your echoes go. The cooldown starts when you are a man again.`,
+        fn(h, lv) { beastOn(h, lv); skfx(h, 'halvar2', h.x, h.y, { dur: BEAST_T }); },
+        alt: { name: 'Skybreaker', ic: 'skyfall', c: '#e6dcff', cd: [30, 30], cdNow: null, cost: [0, 0], cast: 'point', range: SKY_R, noRoot: true,
+          ind: { t: 'circle', r: SKY_AOE }, ai: { t: 'point', r: SKY_AOE, delay: 0.5, ult: true },
+          desc: lv => `Stormhorn, once each time you take the form: leap up to ${SKY_R} away and come down horns first. Everyone within ${SKY_AOE} takes ${L(lv, 320, 130)} (+100% Attack) damage and is stunned for ${SKY_STUN}s.`,
+          fn(h, lv, tx, ty) {
+            if (h.pv.sky) return false; h.pv.sky = true; const x0 = h.x, y0 = h.y;
+            leapTo(h, tx, ty, 0.55, () => { skfx(h, 'halvar2l', h.x, h.y, { r: SKY_AOE }); for (const e of enemiesIn(h.team, h.x, h.y, SKY_AOE)) { dmg(h, e, L(lv, 320, 130) + 1.0 * h.ad, 'phys', { skill: true }); stun(e, SKY_STUN); } });
+            h.leap.h = 240; skfx(h, 'halvar2j', x0, y0, { x1: h.leap.x1, y1: h.leap.y1 });
+          } } },
+    ],
+  },
 };
-/* passives: small hooks the sim calls (basic, cast, hit, hurt, dmgMul, takedown, healMul, healed) */
+/* passives: small hooks the sim calls (basic, cast, hit, hurt, dmgMul, takedown, healMul, healed; tick: every step he is alive) */
 const PASSIVES = {
   bram: { name: 'Oathguard', ic: 'shield', c: '#e0b04a',
     desc: 'After casting a skill, his next basic attack within 5s deals bonus magic damage equal to 4% of his max HP and heals him for the same amount.',
@@ -1017,6 +1137,10 @@ const PASSIVES = {
     desc: `She has Focus where others have mana: ${ENERGY_MAX} at most, quick to come back, and a basic attack that hits returns ${ENERGY_HIT}. When she has gone ${LETHAL_T}s without being hurt, her next basic attack is a Long Shot: it reaches ${LETHAL_RANGE} further, is ${Math.round(LETHAL_CRIT * 100)}% likelier to strike critically, deals ${Math.round(LETHAL_K * 100)}% of an attack's damage as true damage (${Math.round((LETHAL_PVE - 1) * 100)}% more again to minions and creeps) and returns twice the Focus. Casting any skill readies a Long Shot at once.`,
     cast(h) { h.pv.arm = true; },
     basic(h, t, ctx) { if (h.camo) camoOff(h); if (ctx.ls) { h.pv.arm = false; h.pv.shot = G.t; ctx.type = 'true'; ctx.amt *= LETHAL_K; if (t.kind !== 'hero') ctx.amt *= LETHAL_PVE; ctx.big = true; ctx.focus = ENERGY_HIT * 2; } else ctx.focus = ENERGY_HIT; } },
+  halvar: { name: 'Ramsblood', ic: 'ram', c: '#b9a8ff',
+    desc: `Every second he mends ${RAM_REGEN * 100}% of the health he is missing, twice that as the Stormhorn. As the Stormhorn his basic attacks also strike everyone else in front of him, for ${Math.round(BEAST_CLEAVE * 100)}% of the blow.`,
+    tick(h, dt) { if (h.form && G.t >= h.pv.bt) beastOff(h); h.hp = Math.min(h.maxHp, h.hp + (h.maxHp - h.hp) * RAM_REGEN * (h.form ? 2 : 1) * dt); },
+    basic(h, t, ctx) { if (h.form) ctx.after = (tgt, amt) => { for (const e of enemiesInCone(h.team, h.x, h.y, h.range + 110, h.face, BEAST_ARC)) if (e !== tgt) dmg(h, e, amt * BEAST_CLEAVE, 'phys', { n: 'Stormhorn', ic: 'ram' }); fx('cleave', h.x, h.y, { id: h.id, ang: h.face }); }; } },
 };
 /* a sprung ward (or an arrow that carried one): it clings to its catch for a second, then bursts around them */
 function wardBurst(h, lv, e) {
@@ -1166,13 +1290,20 @@ const SKINS = {
     { name: 'Ember Poacher', look: { body: '#2b2424', trim: '#ff8a3c', hair: '#161212', cape: '#7a1f14', glow: '#ffb35c', metal: '#4a4040', wood: '#2a1c18', pants: '#1c1717', boot: '#141010', wglow: '#ff7a2e' },
       sk: ['#ff9a4a', '#ffc46a', '#ff5a2e'], parts: ['visor'], aura: '#ff7a2e' },
   ],
+  halvar: [
+    { name: 'Stormhorn Drover' },
+    { name: 'Snowpass Drover', look: { body: '#dfe7ee', trim: '#7fb0d8', hair: '#f2f4f6', glow: '#bfeaff', fur: '#ffffff', fleece: '#e6eef5', horn: '#eaf6ff', hide: '#8fa6bb', pants: '#8ea2b4', boot: '#566a7c' },
+      sk: ['#bfeaff', '#e8f8ff', '#8fc8ff'], parts: ['gem'], aura: '#bfeaff' },
+    { name: 'Greenmoor Drover', look: { body: '#3f5a3c', trim: '#d9b45a', hair: '#2a1c14', glow: '#a8f08a', fur: '#cdbf9a', fleece: '#8f9a80', horn: '#e9f5c9', hide: '#2e3a2a', pants: '#2f2a22', boot: '#1f1a14' },
+      sk: ['#a8f08a', '#e3ffc9', '#6fd86a'], parts: ['visor'], aura: '#a8f08a' },
+  ],
 };
 const _looks = {};
 function heroLook(key, skin) { const k = key + (skin | 0); return _looks[k] || (_looks[k] = Object.assign({}, HEROES[key].look, (SKINS[key][skin | 0] || {}).look)); }
 function skinColor(key, skin, i) { const s = SKINS[key][skin | 0]; return (s && s.sk && s.sk[i]) || HEROES[key].skills[i].c; }
 /* distinct cast sounds per skill (0 = default) */
 const SKILL_SND = { bram: ['whoosh', 'guard', 0, 'slam'], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
-  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'], sorrel: ['wind', 'boom', 'cock'] };
+  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'], sorrel: ['wind', 'boom', 'cock'], halvar: ['holy', 'slam', 'roar', 0, 0, 0, 'whoosh', 'roar', 'slam'] };
 for (const k of HERO_KEYS) HEROES[k].passive = PASSIVES[k];
 for (const k of HERO_KEYS) {
   const d = HEROES[k]; d.key = k; d.base = d.base || CLASS_BASE[d.cls]; d.build = BUILDS[d.cls]; d.pos = POS_OF[d.cls];

@@ -215,9 +215,11 @@ function ncBegin(M) {
 function ncEnd(M) {
   M.T++; M.turns++; const t = M.T;
   if (t % M.hashN === 0) { const h = simHash() | 0; M.hashes.push([t, h]); if (M.hashes.length > 8) M.hashes.shift(); M.hh = [t, h]; M.dirty = true; for (let s = 0; s < M.seats; s++) if (s !== M.me) ncHashCheck(M, s); }
-  for (let s = 0; s < M.seats; s++) {       // frames that are done with: all but my own that are not known to have arrived, and a gone seat's last ones while they may be asked for
+  for (let s = 0; s < M.seats; s++) {       // frames that are done with: all but my own that are not known to have arrived, and anybody else's last ones, played or not, for as long as that seat
+    // may yet prove to have gone and they be asked for. (Kept only once a seat was known to have gone, they could already be thrown away: a machine that had played turns with frames another
+    // never got, from a seat that then vanished, had nothing left to hand on, and the two that remained waited for each other for good.)
     let keep = t; if (s === M.me) { for (let q = 0; q < M.seats; q++) if (q !== s && !M.gone[q] && M.ack[q] + 1 < keep) keep = M.ack[q] + 1; if (keep < M.hi + 1 - M.win) keep = M.hi + 1 - M.win; }
-    else if (M.gone[s] && M.dropAt[s] < 0) keep = Math.min(keep, M.have[s] - 48 * M.k + 1);
+    else if (M.dropAt[s] < 0) keep = Math.min(keep, M.have[s] - 48 * M.k + 1);
     const cut = keep - M.lo[s]; if (cut > 0) { M.fr[s].splice(0, cut); M.lo[s] += cut; }
   }
 }

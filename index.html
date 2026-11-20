@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Shardfall Arena 3D</title><meta name="description" content="A 5v5 arena battle that runs in your browser: fifteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link."><meta property="og:type" content="website"><meta property="og:title" content="Shardfall Arena 3D"><meta property="og:description" content="A 5v5 arena battle that runs in your browser: fifteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link."><meta property="og:url" content="https://lyletayag56-bot.github.io/shardfall-arena/"><meta property="og:image" content="https://lyletayag56-bot.github.io/shardfall-arena/cover.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#081216"><link rel="canonical" href="https://lyletayag56-bot.github.io/shardfall-arena/"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Shardfall"><style>:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#081216;color:#e8f0ee}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Shardfall Arena 3D</title><meta name="description" content="A 5v5 arena battle that runs in your browser: sixteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link."><meta property="og:type" content="website"><meta property="og:title" content="Shardfall Arena 3D"><meta property="og:description" content="A 5v5 arena battle that runs in your browser: sixteen heroes, three lanes and a jungle. Play against bots, fight a 1v1, or sit down at a table with friends by sending them a link."><meta property="og:url" content="https://lyletayag56-bot.github.io/shardfall-arena/"><meta property="og:image" content="https://lyletayag56-bot.github.io/shardfall-arena/cover.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#081216"><link rel="canonical" href="https://lyletayag56-bot.github.io/shardfall-arena/"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Shardfall"><style>:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#081216;color:#e8f0ee}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
 <style>
@@ -196,6 +196,14 @@ body:not(.touch) #joy { display: none; }
 #u0 { right: calc(var(--u) * 172); bottom: calc(var(--u) * 62); } #u1 { right: calc(var(--u) * 150); bottom: calc(var(--u) * 142); } #u2 { right: calc(var(--u) * 82); bottom: calc(var(--u) * 186); }
 #cancel { position: absolute; right: var(--gr); top: 30%; padding: 12px 16px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; color: var(--enemy); border-color: var(--enemy); }
 #cancel.hot { background: var(--enemy); color: #fff; }
+#tp { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; pointer-events: none; }
+#tp[hidden] { display: none; }
+#tp .tpBox { pointer-events: auto; display: grid; gap: 6px; justify-items: center; padding: 8px 12px 10px; background: rgba(8,16,20,.94); }
+#tp b { font: 600 19px/1 Teko, 'Arial Narrow', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #d8d0ff; }
+#tpMap { width: min(calc(var(--vh, 1vh) * 68), calc(var(--vw, 1vw) * 60), 460px); aspect-ratio: 1; border: 2px solid var(--brass); touch-action: none; cursor: crosshair; display: block; }
+#tpSay { font-size: 12.5px; color: #cfd9de; min-height: 1.25em; text-align: center; }
+#tpNo { padding: 7px 18px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; color: #cfd9de; cursor: pointer; }
+#app.rp #tp, #app.watch #tp { display: none !important; }
 #tip { position: absolute; right: var(--gr); bottom: calc(var(--u) * 244 + 14px); width: min(300px, calc(var(--vw) * 46)); padding: 10px 12px; font-size: 13px; line-height: 1.35; pointer-events: none; }
 #tip b { display: block; font: 600 20px/1 var(--f-display); letter-spacing: .04em; color: var(--gold); margin-bottom: 4px; }
 #tip small { display: block; color: var(--mute); margin-top: 5px; font-weight: 600; }
@@ -285,7 +293,9 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
 .items p.note { grid-column: 1 / -1; margin: 0; color: var(--mute); font-size: 12.5px; }
 .itw { display: flex; flex-direction: column; min-width: 0; background: var(--panel2); border: 1px solid var(--line); }
 .itw > .it { border: 0; background: none; width: 100%; }
-.itw.own { opacity: .5; } .itw.no > .it .pr { color: var(--mute); }
+.itw.done { opacity: .5; } .itw.no > .it .pr { color: var(--mute); }
+.it .ii { position: relative; } .it .ow { position: absolute; right: -7px; bottom: -7px; min-width: 20px; padding: 1px 4px 0; border-radius: 9px; background: var(--self); color: #06210f; font-size: 12px; line-height: 16px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--panel2); }
+.it .ag { grid-column: 1 / 4; margin-top: 2px; padding: 5px 8px 4px; background: rgba(242,193,78,.16); border: 1px solid rgba(242,193,78,.7); color: #f6d98a; font-size: 12.5px; font-weight: 600; } .itw.again { border-color: var(--gold); }
 .itw.can { border-color: rgba(242,193,78,.7); } .itw.rec { box-shadow: inset 3px 0 0 var(--gold); }
 /* an item put first: the button under every card, the card and the chip under the purse when one is */
 .itw > .pri { align-self: flex-end; display: inline-flex; align-items: center; gap: 5px; min-height: 32px; margin: 0 8px 8px; padding: 3px 11px 1px 8px; border: 1px solid var(--line); background: rgba(0,0,0,.24); color: var(--mute); font: 600 16px/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
@@ -635,6 +645,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
       <button class="up" id="u2" hidden aria-label="Upgrade ultimate">+</button>
     </div>
     <div id="cancel" class="plate" hidden>Drag here to cancel</div>
+    <div id="tp" hidden><div class="tpBox plate"><b>Teleport</b><canvas id="tpMap" width="480" height="480"></canvas><span id="tpSay"></span><button id="tpNo" class="plate" type="button">Cancel</button></div></div>
     <div id="tip" class="plate" hidden></div>
   </div>
 
@@ -677,6 +688,9 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
             <dt>Stings</dt><dd>Miel's first skill, Stinger Flight, leaves a sting in every enemy it goes through, shown as a bright mote circling them. A sting lasts 8 seconds, hurts every second and slows a little. Hit the same enemy again before it runs out and there are two, then three at the most: each flight that lands adds one and starts the time of all of them again, and the damage and the slow are as many times over. Keeping the swarm on one enemy is where her damage is. A sting is not a blow: it does not interrupt a recall. Her ultimate, Queen's Flight, opens with a burst that hurts and slows every enemy in reach, puts a sting in each and heals her allies at once; then the hive stays out around her for 6 seconds.</dd>
             <dt>Sorrel</dt><dd>Sorrel, the Shardlock Sniper, is a marksman for the Gold Lane who fights from as far off as anyone can. She has <b>Focus</b> where others have mana (the amber bar): 100 of it, quick to come back, and every basic attack that hits returns some. When she has gone 5 seconds without being hurt her next basic attack is a <b>Long Shot</b>: it reaches further, is likelier to strike critically and deals true damage; a dot on her attack button and a light in the glass of her gun say one is ready, and casting any skill readies one at once. <b>Fade Out</b> hides her under her cape for 3 seconds: enemies cannot see her or single her out unless they are right beside her (they may notice the air stir where she stands), but anything that covers the ground still hits her, and attacking, casting or being hurt ends it (under it she holds her fire until you press attack). <b>Blast Charge</b> bursts in a fan in front of her, knocks enemies back and throws her back the other way. <b>Four Rounds</b> locks onto one enemy hero she can see, up to a very long way off, and fires four rounds while she kneels; a ring closes on the mark with each one. Another enemy hero can stand in the line and take a round, and stunning her or moving her cuts the count short. Fade Out or Blast Charge breaks it off early and looses one round at once. Each level of Four Rounds also makes all her basic attacks 5% likelier to strike critically.</dd>
             <dt>Starbound</dt><dd>When Lyra's Starfall roots somebody who stayed under it, a star of light is drawn on the ground around them with a thread to each of its points, for as long as the root holds.</dd>
+            <dt>Halvar</dt><dd>Halvar, the Stormhorn Drover, is a fighter with two shapes. As a man he has <b>Echoes</b>: two echoes of himself for 8 seconds, who hit whatever he is fighting, can be hit and killed themselves, and look just like him to the other side (as they appear the three change places, so nobody can be sure which is him; to his own side they are paler and named Echo). <b>Stormknuckle</b> is a lunge that knocks back the first enemy it meets, and every echo near enough follows with a blow of its own. His ultimate, <b>Stormhorn</b>, makes him a great ram for 12 seconds: more health, armour and speed, blows that strike everyone in front of him, and three skills of the ram's own. <b>Headlong</b> is a charge that throws whoever is in the way into the air, <b>Thunderbleat</b> a bellow that hurts and slows everyone in front of him, and <b>Skybreaker</b>, once each time, a leap that stuns where it lands. The bar under his health shows how long he is the ram yet; his own two skills go on cooling meanwhile, and the ultimate's cooldown starts when he is a man again. His blood mends a little of the health he is missing all the time.</dd>
+            <dt>Teleport</dt><dd>A battle spell for getting across the map. Press it and a map opens with every place you can arrive at marked: your side's turrets, your crystal and your minions. Choose one, stand still for 3 seconds, and you are beside it, running 60% faster for a moment. What you are coming to cannot be hurt until you are there, and both sides can see the light where you will arrive. Moving, or being stunned, taunted or thrown, breaks it off and gives back 30 seconds of its 75-second cooldown.</dd>
+            <dt>Four more items</dt><dd><b>Squallsong</b> (Attack): attack speed, speed and crit; every few seconds a basic attack lets a squall loose that strikes its target and two more enemies near it with magic damage. <b>Dawnshard Blade</b> (Attack): Attack, attack speed and lifesteal; when a blow leaves you under 30% of your health you get a shield, armour, magic resist and speed for 3 seconds, once a minute. <b>Blade of Ruin</b> (Attack): the most Attack of any item, and a quarter more of it for 2 seconds whenever you hurt somebody who is under half their health. <b>Wellspring Charm</b> (Magic): Magic Power, health and 20% cooldown reduction; it gives back 15% of your mana every 10 seconds and lets cooldown reduction reach 45%.</dd>
             <dt>Charge and Heave</dt><dd>Bram's Shield Rush no longer stops at the first hero. He runs the whole way, and every enemy in his path is hurt and pushed along in front of the shield to where the charge ends. For 4 seconds after it the skill button is lit: cast again to heave the shield up, and enemies in front of him are hurt and thrown into the air for 1 second. The second cast costs nothing. What cannot be moved (a steady hero, the Shardlord) is hurt but stays where it is.</dd>
             <dt>Chat</dt><dd>In a match with other players the speech bubble under the minimap opens the chat: pick <b>Team</b> or <b>All</b>, then tap a ready-made line or <b>Type…</b> your own (on a keyboard: Enter for the team, Shift+Enter for everyone). <b>Mute</b> hides what the others say.</dd>
             <dt>Friends</dt><dd><b>Friends</b> opens a table that everyone who has this page open can join from their own Friends list. Each player picks a side, a hero and says they are ready; the host starts. All on one side is your team against bots; on both sides is friends against friends; bots fill the empty places. Inside Claude everyone must be signed in and have the page shared with them by name; on the open web anyone with the page can join, and a table has an invite link to send. Your own hero answers the stick at once; skills and attacks land a moment after the press, on every screen at the same time. The match cannot be paused, and if someone looks away for more than a few seconds a bot plays on for them.</dd>
@@ -686,7 +700,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
             <dt>Replays</dt><dd>Every match you play is recorded. When it ends, <b>Watch replay</b> on the result screen plays it again, and the <b>Watch</b> button on the menu lists your last six matches (kept on this device only). A replay is the match itself happening again, so you can watch it from anywhere: the view starts on your own hero, a tap on a portrait or a hero follows someone else, <b>Auto</b> hands it to the director, and both teams are in sight the whole time, with what each of them called under the minimap. The bar at the bottom shows where you are: your kills and deaths are the tall marks, the other kills the short ones, turrets the squares and the great beasts the diamonds. Tap a mark to go to a few seconds before it, drag along the bar to go anywhere, or use the 15 second buttons (pressed several times in a row, the jumps add up); the speed button goes up to 8 times, and the button between the two pauses the match while you look around. Going back half a minute or so is immediate. A long jump, either way, has to run the match to that moment, so it takes a few seconds, with a plate showing how far it has got. On a keyboard: <kbd>Space</kbd> or <kbd>K</kbd> pauses, <kbd>J</kbd> and <kbd>L</kbd> jump back and forward, <kbd>Home</kbd> goes to the start. A new version of the game cannot play recordings made by an older one.</dd>
             <dt>Bot teamwork</dt><dd>Bots play as a team, more of it the higher their skill. Their jungler ganks: it picks a lane where an enemy has come too far forward, goes round by the river to the road behind them where it can, and the laner goes in when it arrives. They answer a gank on one of their own, contest Riverback and the Shardlord when the other side starts on them, and later in the match fall back together when they are two short. From 7:30 they set up for the Shardlord: whoever is hurt goes home first, the rest gather at the pit and take it as it wakes if four of them are there (three will do with more of them standing than of you), then the whole team marches with it, hits the turret it is hitting and breaks the crystal before anything else. Against your Shardlord they gather at the turret it will reach and bring it down there. They step out of blows that mark the ground first, stay off a turret's ground on their way anywhere, never fight on a fountain, buy armour or resistance to match your team's damage, and play carefully when two or more of you are out of sight. Your own team's calls appear at the right of the screen ("Team: ganking bottom"): go along and the call counts you in. Easy bots only take the beasts and defend together; Hard bots do all of it sooner and add their roamer to ganks.</dd>
             <dt>Practice</dt><dd>The Practice button puts your hero on the map alone with three dummies that cannot die. Open the practice tools (<kbd>T</kbd>) to set your level and gold, switch hero, turn cooldowns off, add dummies or a sparring bot, and bring minion waves in. <b>Add a wounded friend</b> puts an ally at your side who stays at half health, to try heals and shields on.</dd>
-            <dt>Gold</dt><dd>Last-hit minions and creeps, then buy from the shop anywhere (<kbd>P</kbd>). Complete items are forged from cheap parts: buy the parts as you can afford them and each comes off the item's price. The gold chip under your purse buys the next recommended part or item in one tap. To have another item first, press <b>Prioritize</b> on it in the shop, or press the item twice: the chip then works towards that item (its parts, then the item itself) before the rest of your build, and while nothing of it can be afforded it shows how much gold is still missing. Buying the item, or marking it again, ends it.</dd>
+            <dt>Gold</dt><dd>Last-hit minions and creeps, then buy from the shop anywhere (<kbd>P</kbd>). Complete items are forged from cheap parts: buy the parts as you can afford them and each comes off the item's price. The gold chip under your purse buys the next recommended part or item in one tap. To have another item first, press <b>Prioritize</b> on it in the shop, or press the item twice: the chip then works towards that item (its parts, then the item itself) before the rest of your build, and while nothing of it can be afforded it shows how much gold is still missing. Buying the item, or marking it again, ends it. An item you already hold can be bought again (it shows how many you have; press it, then once more to confirm): the numbers of every copy add up, but its passive, its Move Speed and its penetration count once. Boots stay at one pair.</dd>
             <dt>Recall</dt><dd><kbd>B</kbd> channels for 6 seconds and returns you to the fountain to heal. Every hero waits it out in their own way.</dd>
             <dt>Heal</dt><dd>Every hero has Heal built in, the green button above Recall (<kbd>G</kbd>): it restores 18% of your health and 18% of your mana over 3 seconds, once a minute, whatever battle spell you picked. At full health you can still use it for the mana.</dd>
             <dt>Pressed item</dt><dd>The Ironwill Totem (Armory, under Defense) is an item you press. Once you carry it a button appears left of your skills (<kbd>Z</kbd>): for 6 seconds nothing can stun, root, slow, pull or mark you, whatever was already slowing or rooting you is cleared, and magic damage is cut by 60%. Two things go through it all the same, and say PIERCED when they do: the stun of Zephyr's Tempest Beam (1 to 1.4 seconds by the skill's level) and the taunt of Hesta's Brazen Call. Your hero stands a third taller while it lasts, so nobody can miss it (the size is for show: it is no easier to hit). Each use is a second shorter, down to 4, and it takes 90 seconds to come back, so save it for the fight that matters. Bots carry it too.</dd>
@@ -748,7 +762,7 @@ kbd { font: 700 11px var(--f-ui); padding: 1px 5px; border: 1px solid var(--line
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-const SIM_ID = '2b64e130';
+const SIM_ID = 'ed914bb2';
 const SITE_URL = "https://lyletayag56-bot.github.io/shardfall-arena/";
 const TURN_URL = "";
 'use strict';
@@ -880,7 +894,22 @@ const ITEMS = {
   wardboots:   { name: 'Warded Boots',    cat: 'Boots',   cost: 900, ms: 40, mr: 25, boots: true, ic: 'boot', c: '#7ad0c4', from: ['wornboots', 'wovencloak'] },
   // added since: each new item goes at the end of this list, whatever its kind, because a recorded match knows the items by their place in it
   victorglass: { name: "Victor's Hourglass", cat: 'Magic', cost: 2050, ap: 65, mp: 300, cdr: 15, ic: 'hourturn', c: '#ffd76a', from: ['wand', 'hourglass', 'hourglass'] },
+  squallsong:  { name: 'Squallsong',       cat: 'Attack', cost: 1900, as: 40, ms: 20, crit: 10, ic: 'fan', c: '#8fe6d8', from: ['lightdagger', 'lightdagger', 'hawkcharm'] },
+  dawnshard:   { name: 'Dawnshard Blade',  cat: 'Attack', cost: 1950, ad: 40, as: 20, ls: 10, ic: 'comet', c: '#ff9ab0', from: ['greatblade', 'bloodvial', 'lightdagger'] },
+  ruinblade:   { name: 'Blade of Ruin',    cat: 'Attack', cost: 2950, ad: 120, ms: 12, ic: 'ruin', c: '#d0425a', from: ['greatblade', 'greatblade', 'edge'] },
+  wellspring:  { name: 'Wellspring Charm', cat: 'Magic',  cost: 1850, ap: 50, hp: 250, cdr: 20, ic: 'charm', c: '#7fe0d0', from: ['wand', 'vitalstone', 'hourglass'] },
 };
+/* The four items of KIT_V 24. Squallsong: between SQUALL_CD0 and SQUALL_CD1 seconds from one squall to the next (STEP sooner for
+   each basic attack), what a squall deals, how far from its target it reaches and how many it strikes. Dawnshard Blade (Last Stand):
+   left under LAST_AT of his health, a shield, LAST_DEF armour and magic resist and some speed for LAST_T, once every LAST_CD. Blade of
+   Ruin: RUIN_K more Attack for RUIN_T after hurting somebody under RUIN_AT of their health. Wellspring Charm: WELL_MP of his mana
+   back every WELL_T, and a higher ceiling on cooldown reduction (WELL_CAP against CDR_CAP). */
+const SQUALL_CD0 = 5, SQUALL_CD1 = 2, SQUALL_STEP = 0.2, SQUALL_R = 330, SQUALL_N = 3, SQUALL_MS = 1.05;
+function squallDmg(h) { return 110 + 14 * h.level; }
+const LAST_AT = 0.3, LAST_T = 3, LAST_CD = 60, LAST_DEF = 25, LAST_MS = 1.15;
+function lastShield(h) { return 380 + 60 * h.level; }
+const RUIN_AT = 0.5, RUIN_K = 0.25, RUIN_T = 2;
+const WELL_T = 10, WELL_MP = 0.15, WELL_CAP = 0.45, CDR_CAP = 0.4;
 const GLASS_K = 0.3;       // Victor's Hourglass: the share of what is left of the ultimate's cooldown that a kill or an assist takes off
 for (const k in ITEMS) { const it = ITEMS[k]; if (it.from) { it.fee = it.cost - it.from.reduce((s, c) => s + ITEMS[c].cost, 0); for (const c of it.from) (ITEMS[c].into || (ITEMS[c].into = [])).includes(k) || ITEMS[c].into.push(k); } }
 const ITEM_PASSIVE = {
@@ -898,6 +927,10 @@ const ITEM_PASSIVE = {
   bastion: 'Second Wind: lethal damage instead makes you untouchable for 2s, then you return with 18% HP. 150s cooldown.',
   wardboots: 'Stuns, roots and taunts on you end 25% sooner.',
   victorglass: `Turn of the Glass: a kill or an assist takes ${Math.round(GLASS_K * 100)}% off what is left of your ultimate's cooldown.`,
+  squallsong: `Squall: every ${SQUALL_CD0}s, and ${SQUALL_STEP}s sooner for each basic attack you make (${SQUALL_CD1}s at the least), your next basic attack lets a squall loose: its target and up to ${SQUALL_N - 1} more enemies near it take 110 (+14 per level) magic damage, which can strike critically. Minions take double. Each squall quickens you by ${Math.round((SQUALL_MS - 1) * 100)}% for 2s.`,
+  dawnshard: `Last Stand: when a blow leaves you under ${Math.round(LAST_AT * 100)}% of your health you gain a shield of 380 (+60 per level), ${LAST_DEF} Armor and Magic Resist and ${Math.round((LAST_MS - 1) * 100)}% Move Speed for ${LAST_T}s. ${LAST_CD}s cooldown.`,
+  ruinblade: `Ruin: damaging an enemy who is under ${Math.round(RUIN_AT * 100)}% of their health gives you ${Math.round(RUIN_K * 100)}% more Attack for ${RUIN_T}s. A basic attack that sets it off already strikes with it.`,
+  wellspring: `Wellspring: every ${WELL_T}s you regain ${Math.round(WELL_MP * 100)}% of your max mana, and your Cooldown Reduction can reach ${Math.round(WELL_CAP * 100)}% instead of ${Math.round(CDR_CAP * 100)}%.`,
 };
 for (const k in ITEM_PASSIVE) ITEMS[k].p = ITEM_PASSIVE[k];
 /* An item with `act` is pressed, not just carried: it gets a button of its own beside the skills, and a cooldown that no stat
@@ -1056,6 +1089,39 @@ function lethalReady(h) { return !!h.pv.arm || G.t - Math.max(h.lastDmgT, h.pv.s
    any blow that lands on her; her skill's cooldown only runs once it has ended (tickHero). */
 function camoOn(h, lv) { addBuff(h, { k: 'camo', t: CAMO_T, msMul: 1.3, ad: L(lv, 30, 12) }); h.camo = true; h.revealT = 0; h.vis[1 - h.team] = false; fx('camo', h.x, h.y, { id: h.id, on: 1 }); }
 function camoOff(h) { if (!h.camo) return; h.camo = false; h.buffs = h.buffs.filter(b => b.k !== 'camo'); fx('camo', h.x, h.y, { id: h.id, on: 0 }); }
+/* Teleport (KIT_V 24): TP_T standing still, then he is beside the turret, crystal or minion of his own side that he chose (the one
+   nearest the spot he pointed at, within TP_PICK of it). Until he arrives what he is coming to cannot be hurt (tpG). Broken off (by
+   his own feet, or by a stun, a taunt or a throw) it gives TP_BACK of its cooldown back. */
+const TP_T = 3, TP_CD = 75, TP_BACK = 30, TP_PICK = 520;
+function tpAnchor(h, tx, ty) {
+  let best = null, bd = TP_PICK;
+  const see = u => { if (u.dead || u.team !== h.team) return; const d = hyp(u.x - tx, u.y - ty); if (d < bd) { bd = d; best = u; } };
+  for (const u of G.turrets) see(u); for (const u of G.crystals) see(u); for (const u of G.units) if (u.kind === 'minion') see(u);
+  return best;
+}
+function tpStart(h, a) { h.tp = { t: TP_T, a }; a.tpG = G.t + TP_T + 0.1; h.atkTarget = null; h.chase = false; h.windT = 0; h.recallT = 0; h.mvx = h.mvy = 0; fx('tp', h.x, h.y, { id: h.id, aid: a.id, x1: a.x, y1: a.y, dur: TP_T }); fx('tpAt', a.x, a.y, { id: h.id, aid: a.id, dur: TP_T }); sfx('holy', h.x, h.y); sfx('holy', a.x, a.y); }
+function tpStop(h, back) { const T = h.tp; if (!T) return; h.tp = null; if (T.a.tpG) T.a.tpG = 0; if (back) { h.spellCd = Math.max(0, h.spellCd - TP_BACK); fx('tpx', h.x, h.y, { id: h.id }); } }
+function tpTick(h, dt) {       // true while he stands there on his way
+  const T = h.tp, a = T.a;
+  if (a.dead || h.mvx || h.mvy || (h.atkTarget && h.chase)) { tpStop(h, true); return false; }
+  T.t -= dt; if (T.t > 0) return true;
+  const sp = MAP.spawn[h.team], d = hyp(sp.x - a.x, sp.y - a.y) || 1, off = a.r + h.r + 30, p = nearestWalkable(a.x + (sp.x - a.x) / d * off, a.y + (sp.y - a.y) / d * off), x0 = h.x, y0 = h.y;
+  tpStop(h, false); h.x = p.x; h.y = p.y; h.face = fatan2(a.y - sp.y, a.x - sp.x); if (h.ai) h.ai.path = null;
+  for (let i = 1; i <= 3; i++) addBuff(h, { k: 'tp' + i, t: i, msMul: 1.2 });       // (three that end one after another: 60% more speed, fading over three seconds)
+  fx('tpin', h.x, h.y, { id: h.id, x0, y0 }); sfx('skill', h.x, h.y); return false;
+}
+/* Halvar (KIT_V 24). ECHO_*: his echoes: how many, how long, how far to either side of him they appear, how far from him they may
+   go and how far they look for somebody to hit, what they have of his health, how near one must be to follow his Stormknuckle;
+   echoAd: what a blow of theirs is of his Attack. FIST_*: Stormknuckle's run, its reach to either side, how far it throws, and
+   what an echo's following blow is of his own. BEAST_*: the Stormhorn: how long, how big, how far its blows reach, the armour and
+   magic resist and the speed it adds, the share of a blow that reaches the others in front of him and how wide "in front" is;
+   beastHp: the health it adds. Then the ram's three skills, and what his blood mends of the health he is missing every second. */
+const ECHO_N = 2, ECHO_T = 8, ECHO_GAP = 95, ECHO_LEASH = 760, ECHO_SEEK = 560, ECHO_HP = 0.35, ECHO_FIST_R = 640;
+function echoAd(lv) { return L(lv, 0.3, 0.04); }
+const FIST_D = 330, FIST_W = 75, FIST_PUSH = 210, FIST_ECHO = 0.4;
+const BEAST_T = 12, BEAST_R = 52, BEAST_RANGE = 190, BEAST_TOUGH = 18, BEAST_MS = 1.12, BEAST_CLEAVE = 0.6, BEAST_ARC = 1.0;
+function beastHp(lv) { return L(lv, 500, 350); }
+const CHARGE_D = 540, CHARGE_W = 95, CHARGE_UP = 0.7, BELLOW_R = 430, BELLOW_A = 0.62, SKY_R = 620, SKY_AOE = 270, SKY_STUN = 1, RAM_REGEN = 0.016;
 const SPELLS = {
   flicker: {
     name: 'Flicker', ic: 'blink', c: '#ffd76a', cd: 90, range: 420, cast: 'point', ind: { t: 'circle', r: 60 }, noRoot: true,
@@ -1101,6 +1167,11 @@ const SPELLS = {
       skfx(h, 'spR', best.x, best.y, { c: '#f2c14e' });
       dmg(h, best, retriDmg(h), 'true', { skill: true, noVamp: true });
     },
+  },
+  teleport: {
+    name: 'Teleport', ic: 'gate', c: '#b9a8ff', cd: TP_CD, cast: 'map', ind: { t: 'self', r: 0 },
+    desc: `Choose one of your side's turrets, your crystal or one of your minions on the map. Stand still for ${TP_T}s and you arrive beside it, running 60% faster for a moment (it fades over 3s). What you are coming to cannot be hurt until you are there. Moving, or being stunned, taunted or thrown, breaks it off and gives back ${TP_BACK}s of the cooldown.`,
+    fn(h, lv, tx, ty) { const a = tpAnchor(h, tx, ty); if (!a) return false; tpStart(h, a); },
   },
 };
 /* the heal every hero carries beside Recall, whatever battle spell was picked */
@@ -1712,8 +1783,71 @@ const HEROES = {
         } },
     ],
   },
+  halvar: {
+    /* a drover of the high passes with a storm-ram's spirit in the shard on his breastbone. As a man (0) he calls up echoes of
+       himself, who fight beside him as units of their own (kind 'clone': echoSpawn, tickEcho), and drives a fist of thunder into
+       whoever he reaches. As the Stormhorn (1) he is the ram itself for a while: bigger, harder to kill, with three skills of its
+       own (alt) and blows that take in whoever else stands in front of him. Unlike Kiri's masks the second form is on a clock
+       (forms.beast): beastOn and beastOff, not setForm. His own two skills go on cooling in the meantime, and the ultimate's
+       cooldown only starts once he is a man again (cdNow: what a cast leaves on the button instead of the skill's cooldown). */
+    name: 'Halvar', title: 'Stormhorn Drover', cls: 'Fighter', spell: 'sprint', melee: true, rate: [7, 7, 6, 6],
+    forms: { names: ['Man', 'Stormhorn'], range: BEAST_RANGE, as: 0, tough: BEAST_TOUGH, beast: true, hp: h => beastHp(h.sk[2]) },
+    base: Object.assign({}, CLASS_BASE.Fighter, { hp: 2600, ms: 262 }),
+    look: { body: '#4a5a72', trim: '#c98a4a', skin: '#d9a47c', hair: '#6e2f22', hat: 'none', weapon: 'fists', cape: null, glow: '#b9a8ff', fur: '#e9e2d0', fleece: '#a9a4bc', horn: '#d8cfe8', hide: '#3a4256', pants: '#3b3440', boot: '#2a2228' },
+    skills: [
+      { name: 'Echoes', ic: 'echo', c: '#b9a8ff', max: 6, cd: [15, 12], cost: [60, 85], cast: 'self',
+        ind: { t: 'self', r: 0 }, ai: { t: 'buff' },
+        desc: lv => `Call up ${ECHO_N} echoes of yourself for ${ECHO_T}s. Each has ${Math.round(ECHO_HP * 100)}% of your health, is as hurt as you are, and strikes whatever you are fighting for ${Math.round(echoAd(lv) * 100)}% of your Attack. As they appear the three of you change places, so nobody can be sure which is you. They can be hit and killed, and they go when their time is up, when you fall or when you become the Stormhorn.`,
+        fn(h, lv) {
+          for (const u of echoesOf(h)) echoEnd(u);
+          const a = h.face + Math.PI / 2, x0 = h.x, y0 = h.y, spots = [1, 0, -1].map(k => nearestWalkable(x0 + fcos(a) * ECHO_GAP * k, y0 + fsin(a) * ECHO_GAP * k));
+          const me = (rnd() * 3) | 0; let n = 0;
+          for (let i = 0; i < 3; i++) if (i !== me) echoSpawn(h, spots[i].x, spots[i].y, lv, n++);
+          if (me !== 1) { h.x = spots[me].x; h.y = spots[me].y; if (h.ai) h.ai.path = null; }       // (he is one of the three, and which of them is drawn afresh every time)
+          skfx(h, 'halvar0', x0, y0, { ang: h.face });
+        },
+        alt: { name: 'Headlong', ic: 'ramcharge', c: '#d8cfe8', cd: [6.5, 5], cost: [30, 40], cast: 'dir', range: CHARGE_D, noRoot: true,
+          ind: { t: 'line', w: CHARGE_W + 10 }, ai: { t: 'line', speed: 1300, esc: true, wave: true },
+          desc: lv => `Stormhorn: charge ${CHARGE_D} with your head down. Everyone in the way takes ${L(lv, 170, 38)} (+70% Attack) damage and is thrown into the air for ${CHARGE_UP}s.`,
+          fn(h, lv, tx, ty, ang) {
+            skfx(h, 'halvar0b', h.x, h.y, { ang });
+            startDash(h, ang, CHARGE_D, 1300, { w: CHARGE_W, hit(e) { dmg(h, e, L(lv, 170, 38) + 0.7 * h.ad, 'phys', { skill: true }); if (!e.dead) knockUp(e, CHARGE_UP, 120); skfx(h, 'halvar0h', e.x, e.y, { ang }); } });
+          } } },
+      { name: 'Stormknuckle', ic: 'fist', c: '#e6dcff', max: 6, cd: [9, 6.5], cost: [50, 75], range: FIST_D, cast: 'dir', noRoot: true,
+        ind: { t: 'line', w: FIST_W + 10 }, ai: { t: 'line', speed: 1500, r: FIST_D + 90 },
+        desc: lv => `Lunge ${FIST_D} with a fist full of thunder. The first enemy you meet takes ${L(lv, 200, 46)} (+90% Attack) damage and is knocked back. Each of your echoes that is near enough follows with a blow of its own at the same enemy, for ${Math.round(FIST_ECHO * 100)}% of that.`,
+        fn(h, lv, tx, ty, ang) {
+          skfx(h, 'halvar1', h.x, h.y, { ang });
+          startDash(h, ang, FIST_D, 1500, { w: FIST_W, stopOn: () => true, hit(e) {
+            const a = L(lv, 200, 46) + 0.9 * h.ad; dmg(h, e, a, 'phys', { skill: true });
+            if (!e.dead && !e.epic) pullTo(e, e.x + fcos(ang) * FIST_PUSH, e.y + fsin(ang) * FIST_PUSH, 0.22);
+            skfx(h, 'halvar1h', e.x, e.y, { ang, tid: e.id });
+            for (const u of echoesOf(h)) echoFist(u, e, a * FIST_ECHO);
+          } });
+        },
+        alt: { name: 'Thunderbleat', ic: 'bellow', c: '#b9a8ff', cd: [7, 5.5], cost: [35, 45], cast: 'dir', range: BELLOW_R, noRoot: false,
+          ind: { t: 'cone', a: BELLOW_A }, ai: { t: 'near', r: BELLOW_R - 110, wave: true },
+          desc: lv => `Stormhorn: a bellow with the storm in it. Everyone in front of you takes ${L(lv, 190, 42)} (+60% Attack) damage and is slowed 45% for 2s.`,
+          fn(h, lv, tx, ty, ang) {
+            skfx(h, 'halvar1b', h.x, h.y, { ang, r: BELLOW_R, a: BELLOW_A });
+            for (const e of enemiesInCone(h.team, h.x, h.y, BELLOW_R, ang, BELLOW_A)) { dmg(h, e, L(lv, 190, 42) + 0.6 * h.ad, 'phys', { skill: true }); slow(e, 0.45, 2); }
+          } } },
+      { name: 'Stormhorn', ic: 'ram', c: '#b9a8ff', max: 3, cd: [60, 48], cdNow: 0.6, cost: [100, 140], cast: 'self', ult: true,
+        ind: { t: 'self', r: 0 }, ai: { t: 'beast', ult: true },
+        desc: lv => `Let the ram out: for ${BEAST_T}s you are the Stormhorn. You gain ${beastHp(lv)} health, ${BEAST_TOUGH} Armor and Magic Resist and ${Math.round((BEAST_MS - 1) * 100)}% Move Speed, your blows reach further and strike everyone in front of you (the others for ${Math.round(BEAST_CLEAVE * 100)}%), and your three skills become the ram's own, ready at once. Your echoes go. The cooldown starts when you are a man again.`,
+        fn(h, lv) { beastOn(h, lv); skfx(h, 'halvar2', h.x, h.y, { dur: BEAST_T }); },
+        alt: { name: 'Skybreaker', ic: 'skyfall', c: '#e6dcff', cd: [30, 30], cdNow: null, cost: [0, 0], cast: 'point', range: SKY_R, noRoot: true,
+          ind: { t: 'circle', r: SKY_AOE }, ai: { t: 'point', r: SKY_AOE, delay: 0.5, ult: true },
+          desc: lv => `Stormhorn, once each time you take the form: leap up to ${SKY_R} away and come down horns first. Everyone within ${SKY_AOE} takes ${L(lv, 320, 130)} (+100% Attack) damage and is stunned for ${SKY_STUN}s.`,
+          fn(h, lv, tx, ty) {
+            if (h.pv.sky) return false; h.pv.sky = true; const x0 = h.x, y0 = h.y;
+            leapTo(h, tx, ty, 0.55, () => { skfx(h, 'halvar2l', h.x, h.y, { r: SKY_AOE }); for (const e of enemiesIn(h.team, h.x, h.y, SKY_AOE)) { dmg(h, e, L(lv, 320, 130) + 1.0 * h.ad, 'phys', { skill: true }); stun(e, SKY_STUN); } });
+            h.leap.h = 240; skfx(h, 'halvar2j', x0, y0, { x1: h.leap.x1, y1: h.leap.y1 });
+          } } },
+    ],
+  },
 };
-/* passives: small hooks the sim calls (basic, cast, hit, hurt, dmgMul, takedown, healMul, healed) */
+/* passives: small hooks the sim calls (basic, cast, hit, hurt, dmgMul, takedown, healMul, healed; tick: every step he is alive) */
 const PASSIVES = {
   bram: { name: 'Oathguard', ic: 'shield', c: '#e0b04a',
     desc: 'After casting a skill, his next basic attack within 5s deals bonus magic damage equal to 4% of his max HP and heals him for the same amount.',
@@ -1770,6 +1904,10 @@ const PASSIVES = {
     desc: `She has Focus where others have mana: ${ENERGY_MAX} at most, quick to come back, and a basic attack that hits returns ${ENERGY_HIT}. When she has gone ${LETHAL_T}s without being hurt, her next basic attack is a Long Shot: it reaches ${LETHAL_RANGE} further, is ${Math.round(LETHAL_CRIT * 100)}% likelier to strike critically, deals ${Math.round(LETHAL_K * 100)}% of an attack's damage as true damage (${Math.round((LETHAL_PVE - 1) * 100)}% more again to minions and creeps) and returns twice the Focus. Casting any skill readies a Long Shot at once.`,
     cast(h) { h.pv.arm = true; },
     basic(h, t, ctx) { if (h.camo) camoOff(h); if (ctx.ls) { h.pv.arm = false; h.pv.shot = G.t; ctx.type = 'true'; ctx.amt *= LETHAL_K; if (t.kind !== 'hero') ctx.amt *= LETHAL_PVE; ctx.big = true; ctx.focus = ENERGY_HIT * 2; } else ctx.focus = ENERGY_HIT; } },
+  halvar: { name: 'Ramsblood', ic: 'ram', c: '#b9a8ff',
+    desc: `Every second he mends ${RAM_REGEN * 100}% of the health he is missing, twice that as the Stormhorn. As the Stormhorn his basic attacks also strike everyone else in front of him, for ${Math.round(BEAST_CLEAVE * 100)}% of the blow.`,
+    tick(h, dt) { if (h.form && G.t >= h.pv.bt) beastOff(h); h.hp = Math.min(h.maxHp, h.hp + (h.maxHp - h.hp) * RAM_REGEN * (h.form ? 2 : 1) * dt); },
+    basic(h, t, ctx) { if (h.form) ctx.after = (tgt, amt) => { for (const e of enemiesInCone(h.team, h.x, h.y, h.range + 110, h.face, BEAST_ARC)) if (e !== tgt) dmg(h, e, amt * BEAST_CLEAVE, 'phys', { n: 'Stormhorn', ic: 'ram' }); fx('cleave', h.x, h.y, { id: h.id, ang: h.face }); }; } },
 };
 /* a sprung ward (or an arrow that carried one): it clings to its catch for a second, then bursts around them */
 function wardBurst(h, lv, e) {
@@ -1919,13 +2057,20 @@ const SKINS = {
     { name: 'Ember Poacher', look: { body: '#2b2424', trim: '#ff8a3c', hair: '#161212', cape: '#7a1f14', glow: '#ffb35c', metal: '#4a4040', wood: '#2a1c18', pants: '#1c1717', boot: '#141010', wglow: '#ff7a2e' },
       sk: ['#ff9a4a', '#ffc46a', '#ff5a2e'], parts: ['visor'], aura: '#ff7a2e' },
   ],
+  halvar: [
+    { name: 'Stormhorn Drover' },
+    { name: 'Snowpass Drover', look: { body: '#dfe7ee', trim: '#7fb0d8', hair: '#f2f4f6', glow: '#bfeaff', fur: '#ffffff', fleece: '#e6eef5', horn: '#eaf6ff', hide: '#8fa6bb', pants: '#8ea2b4', boot: '#566a7c' },
+      sk: ['#bfeaff', '#e8f8ff', '#8fc8ff'], parts: ['gem'], aura: '#bfeaff' },
+    { name: 'Greenmoor Drover', look: { body: '#3f5a3c', trim: '#d9b45a', hair: '#2a1c14', glow: '#a8f08a', fur: '#cdbf9a', fleece: '#8f9a80', horn: '#e9f5c9', hide: '#2e3a2a', pants: '#2f2a22', boot: '#1f1a14' },
+      sk: ['#a8f08a', '#e3ffc9', '#6fd86a'], parts: ['visor'], aura: '#a8f08a' },
+  ],
 };
 const _looks = {};
 function heroLook(key, skin) { const k = key + (skin | 0); return _looks[k] || (_looks[k] = Object.assign({}, HEROES[key].look, (SKINS[key][skin | 0] || {}).look)); }
 function skinColor(key, skin, i) { const s = SKINS[key][skin | 0]; return (s && s.sk && s.sk[i]) || HEROES[key].skills[i].c; }
 /* distinct cast sounds per skill (0 = default) */
 const SKILL_SND = { bram: ['whoosh', 'guard', 0, 'slam'], thorn: ['chain', 'slam', 0], kaela: ['slash', 'whoosh', 'roar', 'slash', 0, 0, 0, 0, 0, 'slash'], rook: ['whoosh', 'roar', 'wind'], vex: ['dark', 'dark', 0], kiri: ['holy', 'arrow', 'wind', 0, 0, 0, 'whoosh', 'slash', 'roar'], tavi: ['arrow', 'slash', 'whoosh', 'whoosh', 'chain', 'whoosh'],
-  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'], sorrel: ['wind', 'boom', 'cock'] };
+  lyra: ['bolt', 'ice', 0], zephyr: ['wind', 'wind', 'thunder'], orin: ['guard', 'slash', 'whoosh'], mira: ['arrow', 0, 'holy'], sera: ['holy', 'chain', 'holy'], miel: ['buzz', 'holy', 'buzz'], hesta: ['whoosh', 'gong', 'gong'], sorrel: ['wind', 'boom', 'cock'], halvar: ['holy', 'slam', 'roar', 0, 0, 0, 'whoosh', 'roar', 'slam'] };
 for (const k of HERO_KEYS) HEROES[k].passive = PASSIVES[k];
 for (const k of HERO_KEYS) {
   const d = HEROES[k]; d.key = k; d.base = d.base || CLASS_BASE[d.cls]; d.build = BUILDS[d.cls]; d.pos = POS_OF[d.cls];
@@ -2423,33 +2568,38 @@ function makeHero(key, team, x, y, skin) {
 }
 
 /* ---------------- stats ---------------- */
+/* What the bag is worth. Each item's numbers are added up, a second copy of the same complete item too (KIT_V 24: canBuy), but not
+   everything of a second copy counts again: its Move Speed and its penetration do not (ITEM_ONCE), and its passive does not either
+   (h.has knows that an item is held, not how many of it). Parts were always free to repeat, and add up in full as they always did. */
+const ITEM_ONCE = { ms: 1, ppen: 1, ppenP: 1, mpen: 1, mpenP: 1 };
 function recalcItems(h) {
-  const s = {}; for (const k of h.items) { const it = ITEMS[k]; for (const p in it) if (typeof it[p] === 'number' && p !== 'cost') s[p] = (s[p] || 0) + it[p]; }
+  const s = {}, n = {};
+  for (const k of h.items) { const it = ITEMS[k], again = !it.part && n[k] === 1; n[k] = 1; for (const p in it) if (typeof it[p] === 'number' && p !== 'cost' && !(again && ITEM_ONCE[p] === 1)) s[p] = (s[p] || 0) + it[p]; }
   h.itemStats = s; h.has = {}; for (const k of h.items) h.has[k] = 1;
 }
 function recalc(h) {
   const b = h.def.base, l = h.level - 1, it = h.itemStats;
-  let ad = 0, ap = 0, as = 0, armor = 0, mr = 0, ls = 0, range = 0, cdr = 0, slowMul = 1, haste = 0, noSlow = false, mpR = 0, asK = 1, asCap = 2.5;       // (asK, asCap: Inspire's)
+  let ad = 0, adP = 0, ap = 0, as = 0, armor = 0, mr = 0, ls = 0, range = 0, cdr = 0, slowMul = 1, haste = 0, noSlow = false, mpR = 0, asK = 1, asCap = 2.5;       // (asK, asCap: Inspire's)
   for (const f of h.buffs) {
     if (f.asMul) { asK *= f.asMul; if (f.asCap > asCap) asCap = f.asCap; }
-    if (f.ad) ad += f.ad; if (f.ap) ap += f.ap; if (f.as) as += f.as; if (f.armor) armor += f.armor; if (f.mr) mr += f.mr;
+    if (f.ad) ad += f.ad; if (f.adP) adP += f.adP; if (f.ap) ap += f.ap; if (f.as) as += f.as; if (f.armor) armor += f.armor; if (f.mr) mr += f.mr;
     if (f.ls) ls += f.ls; if (f.range) range += f.range; if (f.cdr) cdr += f.cdr; if (f.mpR) mpR += f.mpR;
     if (f.msMul) { if (f.msMul < 1) slowMul = Math.min(slowMul, f.msMul); else haste += f.msMul - 1; }
     if (f.noSlow) noSlow = true;
   }
   const oldMax = h.maxHp;
-  h.maxHp = b.hp + b.hpG * l + (it.hp || 0);
-  h.maxMp = h.def.energy ? ENERGY_MAX : b.mp + b.mpG * l + (it.mp || 0);       // (energy: Focus, a bar of one size whatever she carries)
-  h.ad = b.ad + b.adG * l + (it.ad || 0) + ad;
-  h.ap = ((it.ap || 0) + ap) * (h.has.zenith ? 1.2 : 1);
   const fm0 = h.form && h.def.forms ? h.def.forms : null;
+  h.maxHp = b.hp + b.hpG * l + (it.hp || 0) + (fm0 && fm0.hp ? fm0.hp(h) : 0);       // (forms.hp: the Stormhorn's own)
+  h.maxMp = h.def.energy ? ENERGY_MAX : b.mp + b.mpG * l + (it.mp || 0);       // (energy: Focus, a bar of one size whatever she carries)
+  h.ad = (b.ad + b.adG * l + (it.ad || 0) + ad) * (1 + adP);
+  h.ap = ((it.ap || 0) + ap) * (h.has.zenith ? 1.2 : 1);
   h.armor = b.armor + b.armorG * l + (it.armor || 0) + armor + (fm0 ? fm0.tough : 0);
   h.mr = b.mr + b.mrG * l + (it.mr || 0) + mr + (fm0 ? fm0.tough : 0);
   const fm = h.form && h.def.forms ? h.def.forms : null;       // the second form fights hand to hand
   h.asp = Math.min(asCap, b.as * (1 + (b.asG * l + (it.as || 0) + as + (fm ? fm.as : 0)) / 100) * asK);
   h.range = (fm ? fm.range : b.range) + range + (h.def.lethal && lethalReady(h) ? LETHAL_RANGE : 0); h.melee = fm ? true : !!h.def.melee;
   h.crit = (it.crit || 0) / 100 + (h.def.lethal && h.sk ? SNIPE_CRIT * h.sk[2] : 0); h.critDmg = h.has.reaver ? 2.2 : 1.85; h.ls = ((it.ls || 0) + ls) / 100; h.sv = (it.sv || 0) / 100;
-  h.cdr = Math.min(0.4, ((it.cdr || 0) + cdr) / 100);
+  h.cdr = Math.min(h.has.wellspring ? WELL_CAP : CDR_CAP, ((it.cdr || 0) + cdr) / 100);
   h.ppen = it.ppen || 0; h.ppenP = (it.ppenP || 0) / 100; h.mpen = it.mpen || 0; h.mpenP = (it.mpenP || 0) / 100;
   h.hpRegen = b.hpRegen + l * 0.7 + (it.hpRegen || 0);
   h.mpRegen = h.def.energy ? ENERGY_REGEN * (h.camo ? 2 : 1) : b.mpRegen + l * 0.28 + h.maxMp * (mpR + (h.has.scepter ? 0.01 : 0));
@@ -2482,7 +2632,7 @@ function canBuy(h, key) {
   const it = ITEMS[key]; if (!it) return false;
   const u = recipeUse(h, key);
   if (h.gold < u.price || h.items.length - u.used.length >= 6) return false;
-  if (!it.part && h.items.includes(key)) return false;       // one of each complete item; parts may repeat
+  if (!it.part && G.kit < 24 && h.items.includes(key)) return false;       // (before kit 24: one of each complete item. Since then a second of the same may be bought, and a third: what of it counts again is recalcItems's business. Parts could always repeat.)
   if (it.boots && h.items.some((k, i) => ITEMS[k].boots && !u.used.includes(i))) return false;
   return true;
 }
@@ -2575,6 +2725,7 @@ const RECAP_SPAN = 10;
 function whoOf(u) {
   if (!u) return { wk: 'other', who: 'The wilds', key: '', skin: 0, wid: 0, team: NEUTRAL };
   if (u.kind === 'hero') return { wk: 'hero', who: u.name, key: u.key, skin: u.skin, wid: u.id, team: u.team };
+  if (u.kind === 'clone') return { wk: 'hero', who: u.name, key: u.key, skin: u.skin, wid: u.owner.id, team: u.team };
   if (u.kind === 'turret') return { wk: 'turret', who: 'Turret', key: '', skin: 0, wid: 0, team: u.team };
   if (u.kind === 'crystal') return { wk: 'turret', who: 'Enemy fountain', key: '', skin: 0, wid: 0, team: u.team };
   if (u.kind === 'minion') return { wk: 'minion', who: u.mtype === 'lord' ? 'Shardlord' : 'Minions', key: u.mtype, skin: 0, wid: 0, team: u.team };
@@ -2593,6 +2744,7 @@ function hitName(src, f) {
   }
   if (src.kind === 'turret') return ['Turret shot', 'tower'];
   if (src.kind === 'crystal') return ['Fountain beam', 'home'];
+  if (src.kind === 'clone') return ['Echoes', 'echo'];       // (an echo's blows are put down to the skill that made it, as every blow is to its skill)
   if (src.kind === 'minion') return [src.mtype === 'lord' ? (f.basic ? 'Shardlord strike' : 'Shardlord slam') : src.mtype === 'siege' ? 'Siege minion' : src.mtype === 'ranged' ? 'Ranged minion' : 'Melee minion', 'pawn'];
   return [f.basic ? 'Attack' : 'Slam', 'claws'];
 }
@@ -2642,7 +2794,7 @@ function taunt(u, by, dur, pierce) {
   if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75;
   logHold(u, 'taunt', dur); u.tauntT = Math.max(u.tauntT || 0, dur); u.tauntBy = by; if (u.windTgt !== by) u.windT = 0;
   if (u.kind === 'hero') { u.dash = null; u.recallT = 0; u.atkTarget = by; u.chase = true; }
-  else if (u.kind === 'minion') { u.tgt = by; u.thinkT = Math.max(u.thinkT, dur); }
+  else if (u.kind === 'minion' || u.kind === 'clone') { u.tgt = by; u.thinkT = Math.max(u.thinkT, dur); }
   else if (u.kind === 'monster') { u.aggro = by; u.calmT = 0; }
   by.revealT = Math.max(by.revealT, G.t + dur);       // (whoever is called out sees who is calling)
   fx('taunt', u.x, u.y, { id: u.id, by: by.id, dur: u.tauntT }); return true;
@@ -2663,6 +2815,7 @@ function heal(src, u, amt) {
 /* ---------------- damage & death ---------------- */
 function dmg(src, tgt, amt, type, f) {
   if (!tgt || tgt.dead || tgt.locked || G.over) return 0;
+  if (tgt.tpG > G.t) return 0;       // (somebody is on his way to it by Teleport: it cannot be hurt until he is there)
   f = f || {};
   const structure = tgt.kind === 'turret' || tgt.kind === 'crystal';
   if (structure && !f.basic) return 0;
@@ -2680,6 +2833,7 @@ function dmg(src, tgt, amt, type, f) {
       const pv = src.def.passive; if (pv && pv.dmgMul) a *= pv.dmgMul(src, tgt, f);
       if (src.has.giantslayer && tgt.maxHp > src.maxHp) a *= 1.1;
       if (f.skill && src.has.stormorb && tgt.hp > tgt.maxHp * 0.7) a *= 1.1;
+      if (src.has.ruinblade && !structure && tgt.hp < tgt.maxHp * RUIN_AT) { const rb = hasBuff(src, 'ruin'); if (!rb) { if (f.basic && type === 'phys') a *= 1 + RUIN_K; fx('ruin', src.x, src.y, { id: src.id }); } addBuff(src, { k: 'ruin', t: RUIN_T, adP: RUIN_K }); }       // Blade of Ruin (the blow that wakes it is already the stronger for it, if it is a basic attack)
     }
   }
   if (G.duel && structure) a *= duelRush();
@@ -2695,6 +2849,8 @@ function dmg(src, tgt, amt, type, f) {
   if (G.practice && src && src.isPlayer && tgt.kind === 'hero') { const P = G.practice; if (G.t - P.last > 3) { P.sum = 0; P.n = 0; P.t0 = G.t; } P.sum += a; P.n++; P.last = G.t; }
   tgt.hp -= left; if (!f.dot || tgt.dummy) tgt.lastDmgT = G.t; tgt.flash = 0.12; if (tgt.camo && a > 0) camoOff(tgt);       // (f.dot: the hurt of something left in the target a while ago, a sting. It does not make a fight of it: it holds up no recall, shows nobody, draws no turret)
   if (tgt.kind === 'hero' && a > 0) logHit(src, tgt, a, a - left, type, f);
+  if (tgt.kind === 'hero' && tgt.has.dawnshard && tgt.hp > 0 && tgt.hp < tgt.maxHp * LAST_AT && !(tgt.lastCd > G.t)) { tgt.lastCd = G.t + LAST_CD; shield(tgt, lastShield(tgt), LAST_T); addBuff(tgt, { k: 'laststand', t: LAST_T, armor: LAST_DEF, mr: LAST_DEF, msMul: LAST_MS }); fx('laststand', tgt.x, tgt.y, { id: tgt.id, dur: LAST_T }); sfx('guard', tgt.x, tgt.y); }       // Dawnshard Blade
+  if (src && src.kind === 'clone' && !src.owner.dead) { const o = src.owner; o.lastCombatT = G.t; tgt.lastHeroHit = o; tgt.lastHeroHitT = G.t; if (tgt.kind === 'hero') { tgt.dmgLog[o.id] = G.t; o.stats.dmgHero += a; } else if (structure) o.stats.dmgTurret += a; }       // (what an echo does is put down to whoever it is an echo of)
   if (src && src.kind === 'hero') {
     if (!f.dot) { src.lastCombatT = G.t; src.revealT = G.t + 1.2; tgt.lastHeroHit = src; tgt.lastHeroHitT = G.t; }       // (nor does it count as the last blow of a hero's for whoever finishes the target off: only its own kill is its own)
     if (tgt.kind === 'hero') { tgt.dmgLog[src.id] = G.t; if (!f.dot) { src.aggroT = G.t; src.aggroV = tgt; } src.stats.dmgHero += a; }
@@ -2744,7 +2900,7 @@ function tickPlating() {       // at PLATE_TIME whatever plating is left comes o
 }
 function kill(u, src) {
   if (u.dead) return; u.dead = true; u.hp = 0;
-  let kh = src && src.kind === 'hero' ? src : null;
+  let kh = src && src.kind === 'hero' ? src : src && src.kind === 'clone' && !src.owner.dead ? src.owner : null;
   if (!kh && u.lastHeroHit && G.t - u.lastHeroHitT < (u.kind === 'hero' ? 8 : 2.5)) kh = u.lastHeroHit;
   const foe = u.team === NEUTRAL ? (kh ? kh.team : -1) : 1 - u.team;
   if (u.kind === 'hero') heroDeath(u, kh, src);
@@ -2756,6 +2912,7 @@ function kill(u, src) {
     fx('poof', u.x, u.y, { c: u.team === BLUE ? '#46b4ff' : '#ff5d5d' });
     if (u.mtype === 'lord') ev({ t: 'lordDown', team: u.team });
   } else if (u.kind === 'monster') monsterDeath(u, kh);
+  else if (u.kind === 'clone') fx('echoEnd', u.x, u.y, { id: u.id, c: u.look.glow, hit: 1 });
   else if (u.kind === 'turret') {
     updateStructureLocks();
     for (const h of G.heroes) if (h.team === foe) giveGold(h, 90);
@@ -2773,6 +2930,7 @@ function heroDeath(u, kh, src) {
   u.respawnT = G.practice ? 3 : 4 + u.level * 1.6 + Math.min(G.t / 60, 20) * 0.7;
   const hadBuffs = ['azure', 'crimson'].filter(k => hasBuff(u, k));
   if (u.snipe) snipeEnd(u, true); if (u.camo) u.camo = false;
+  if (u.tp) tpStop(u, false); if (u.form && u.def.forms.beast) beastOff(u, true);
   u.buffs = []; u.shields = []; u.stunT = u.rootT = 0; u.tauntT = 0; u.tauntBy = null; u.dash = u.leap = u.disp = u.air = null; u.recallT = 0; u.windT = 0; u.atkTarget = null; u.mvx = u.mvy = 0; u.z = 0;
   for (const r of u.re) if (r && r.pts) for (const q of r.pts) if (q.prop) q.prop.t = 0;
   u.re = [null, null, null]; u.mend = null; u.om = null; endFlurry(u); if (u.form) { u.form = 0; u.cds[0] = u.cds[1] = 0; recalc(u); }
@@ -3054,6 +3212,7 @@ function fireBasic(u, t) {
     if (structure) amt = Math.max(u.ad, u.def.base.ad + u.def.base.adG * (u.level - 1) + u.ap * 0.6);
     else if (ls ? rnd() < u.crit + LETHAL_CRIT : u.crit > 0 && rnd() < u.crit) { crit = true; amt *= u.critDmg; }
   } else if (u.kind === 'minion') { if (structure) amt *= (u.mtype === 'siege' ? 2.4 : u.mtype === 'lord' ? 2.0 : 1.0); }
+  else if (u.kind === 'clone') { if (structure) amt *= 0.5; }
   else if (u.kind === 'turret' || u.kind === 'crystal') {
     amt = (u.ad + Math.min(G.t / 60, 20) * 12);
     if (t.kind === 'hero') { amt *= 1 + 0.4 * Math.min(u.ramp, 4); u.ramp++; }
@@ -3063,6 +3222,7 @@ function fireBasic(u, t) {
     ctx = { amt, magic: 0, heal: 0, slow: null, big: false, ls }; const pv = u.def.passive; if (pv && pv.basic) pv.basic(u, t, ctx); if (ctx.type) type = ctx.type;
     if (u.has.galebow) ctx.magic += 30 + 4 * u.level;
     if (u.has.quickblade) { u.pv.qb = (u.pv.qb || 0) + 1; if (u.pv.qb % 4 === 0) { ctx.amt *= 1.8; ctx.big = true; } }
+    if (u.has.squallsong) { if (G.t >= Math.max(u.sqAt || 0, u.sqMin || 0)) { ctx.squall = true; u.sqAt = G.t + SQUALL_CD0; u.sqMin = G.t + SQUALL_CD1; } else u.sqAt -= SQUALL_STEP; }
     amt = ctx.amt; if (ctx.big) crit = crit || 'big';
   }
   const insp = u.kind === 'hero' ? hasBuff(u, 'inspire') : null, fl = { basic: true, crit: crit === true }; let inspH = 0;       // Inspire: this is one of its attacks
@@ -3071,12 +3231,13 @@ function fireBasic(u, t) {
     if (tgt.dead) return;
     dmg(u, tgt, amt, type, fl); if (inspH > 0 && !u.dead) heal(u, u, inspH); if (ctx && ctx.focus && !u.dead) u.mp = Math.min(u.maxMp, u.mp + ctx.focus);
     if (ctx && ctx.after) ctx.after(tgt, amt);
+    if (ctx && ctx.squall && !u.dead) squall(u, tgt);
     if (ctx) { if (ctx.magic > 0 && !tgt.dead) dmg(u, tgt, ctx.magic, 'magic', { noVamp: true }); if (ctx.heal > 0 && !u.dead) heal(u, u, ctx.heal); if (ctx.slow && !tgt.dead) slow(tgt, ctx.slow[0], ctx.slow[1]); if (ctx.mark && !tgt.dead) useMark(u, tgt); }
     if (u.kind === 'hero' && !tgt.dead && hasBuff(u, 'crimson') && !structure) { dmg(u, tgt, 18 + 5 * u.level, 'true', { noVamp: true, n: 'Crimson buff', ic: 'rage' }); slow(tgt, u.melee ? 0.2 : 0.1, 1); }
   };
   const pc = G.cx; G.cx = { h: u, n: 'Basic attack', ic: 'sword' };
   if (u.range <= 260) {
-    if (hyp(t.x - u.x, t.y - u.y) <= u.range + t.r + 110) { apply(t); fx('hit', t.x, t.y, { c: u.kind === 'hero' ? (u.look.glow || u.look.trim) : '#ffffff', big: !!crit, ax: u.x, ay: u.y, hero: u.kind === 'hero' || u.epic, id: u.kind === 'hero' ? u.id : 0 }); sfx(u.kind === 'hero' ? 'hit' : 'tick', t.x, t.y); }
+    if (hyp(t.x - u.x, t.y - u.y) <= u.range + t.r + 110) { apply(t); fx('hit', t.x, t.y, { c: u.kind === 'hero' || u.kind === 'clone' ? (u.look.glow || u.look.trim) : '#ffffff', big: !!crit, ax: u.x, ay: u.y, hero: u.kind === 'hero' || u.epic, id: u.kind === 'hero' ? u.id : 0 }); sfx(u.kind === 'hero' ? 'hit' : 'tick', t.x, t.y); }
   } else {
     const sp = u.kind === 'hero' ? (ls ? 2300 : u.look.weapon === 'rifle' ? 1900 : 1500) : u.kind === 'minion' ? 1000 : 1500;
     const look = u.kind === 'turret' || u.kind === 'crystal' ? 'bolt' : u.kind === 'hero' ? (u.look.weapon === 'bow' ? 'arrow' : u.look.weapon === 'leaf' ? 'leaf' : u.look.weapon === 'rifle' ? (ls ? 'longshot' : 'slug') : 'shot') : 'pellet';
@@ -3087,6 +3248,82 @@ function fireBasic(u, t) {
   G.cx = pc;
 }
 
+/* ---------------- Halvar: his echoes, and the Stormhorn ----------------
+   An echo is a unit of its own (kind 'clone'): it has health, can be hit and killed, and is seen or not as a hero would be. It
+   carries enough of what a hero carries (key, skin, look, def, castN, castI, ...) for the view to draw it as him. It hits what he
+   hits, or failing that whoever of theirs is nearest it, and never strays far from him; what it does is put down to him (dmg, kill).
+   It is worth nothing to whoever kills it. */
+function echoesOf(h) { const out = []; for (const u of G.units) if (u.kind === 'clone' && u.owner === h && !u.dead) out.push(u); return out; }
+function echoEnd(u) { if (u.dead) return; u.dead = true; u.hp = 0; fx('echoEnd', u.x, u.y, { id: u.id, c: u.look.glow }); }
+function echoSpawn(h, x, y, lv, slot) {
+  const u = newUnit('clone', h.team, x, y, { owner: h, key: h.key, skin: h.skin, look: h.look, def: h.def, name: h.name, level: h.level, r: 34, slot, lv,
+    maxHp: Math.round(h.maxHp * ECHO_HP), armor: h.armor, mr: h.mr, ad: h.ad * echoAd(lv), asp: h.asp, range: h.range, ms: h.ms * 1.06, msBase: h.ms * 1.06, melee: true, face: h.face,
+    life: ECHO_T, tgt: null, thinkT: 0, dash: null, leap: null, form: 0, castN: 0, castI: 0, castAnim: 0, z: 0, mp: 1, maxMp: 1, pv: {}, has: {}, recallT: 0, reviveT: 0 });
+  u.hp = Math.max(1, u.maxHp * (h.hp / h.maxHp)); u.bush = h.bush; u.vis = [h.vis[0], h.vis[1]];
+  fx('echo', u.x, u.y, { id: u.id, x0: h.x, y0: h.y, c: h.look.glow }); return u;
+}
+function echoFist(u, e, amt) {       // his Stormknuckle found somebody: the echo goes for the same one
+  if (u.dead || u.stunT > 0 || u.disp || u.air || e.dead) return; const d = hyp(e.x - u.x, e.y - u.y); if (d > ECHO_FIST_R) return;
+  const ang = fatan2(e.y - u.y, e.x - u.x); u.tgt = e; u.castN++; u.castI = 1; u.castAnim = 0.3;
+  startDash(u, ang, d + FIST_PUSH + 60, 1700, { w: 60, aim: e, stopOn: q => q === e, hit(q) { if (q === e) { dmg(u, e, amt, 'phys', { skill: true, n: 'Echoes', ic: 'echo' }); fx('echoHit', e.x, e.y, { c: u.look.glow, ang }); } } });
+}
+function tickEcho(u, dt) {
+  const h = u.owner; u.life -= dt;
+  if (u.life <= 0 || h.dead || h.form) { echoEnd(u); return; }
+  if (u.castAnim > 0) u.castAnim -= dt;
+  if (u.stunT > 0 || u.disp || u.air) { u.dash = null; return; }
+  if (u.dash) { const q = u.dash.o.aim; if (q && !q.dead) u.dash.ang = fatan2(q.y - u.y, q.x - u.x); stepDash(u, dt); return; }       // (it runs at whoever he struck, wherever the blow has sent them)
+  const side = h.face + (u.slot ? 2.3 : -2.3);
+  if (hyp(u.x - h.x, u.y - h.y) > ECHO_LEASH + 240) { const p = nearestWalkable(h.x + fcos(side) * 100, h.y + fsin(side) * 100); u.x = p.x; u.y = p.y; u.tgt = null; u.windT = 0; u.cp = null; }       // left behind (he flickered, or went home): it is beside him again
+  u.thinkT -= dt;
+  if (u.thinkT <= 0 || (u.tgt && !canTarget(u, u.tgt))) {
+    u.thinkT = 0.25; let t = null; const ht = h.atkTarget;
+    if (u.tauntT > 0 && u.tauntBy && !u.tauntBy.dead) t = u.tauntBy;
+    else if (ht && canTarget(u, ht) && hyp(ht.x - h.x, ht.y - h.y) < ECHO_LEASH) t = ht;
+    else { let bd = 1e9; for (const e of G.units) { if (e.team === NEUTRAL || e.kind === 'turret' || e.kind === 'crystal' || !canTarget(u, e) || hyp(e.x - h.x, e.y - h.y) > ECHO_LEASH) continue; let d = hyp(e.x - u.x, e.y - u.y) - e.r; if (d > ECHO_SEEK) continue; if (e.kind !== 'hero') d += 300; if (d < bd) { bd = d; t = e; } } }
+    u.tgt = t;
+  }
+  const t = u.tgt;
+  if (t) {
+    const d = hyp(t.x - u.x, t.y - u.y) - t.r;
+    if (d <= u.range) { u.face = fatan2(t.y - u.y, t.x - u.x); attackStep(u, t); }
+    else if (u.windT <= 0 && u.rootT <= 0) chaseMove(u, t, dt);
+  } else if (u.rootT <= 0) {
+    const x = h.x + fcos(side) * 105, y = h.y + fsin(side) * 105;
+    if (hyp(x - u.x, y - u.y) > 46) goTo(u, -7 - u.slot, x, y, dt); else u.face = h.face;
+  }
+}
+/* The Stormhorn. On: his echoes go, his own two cooldowns are noted (they go on running while he is the ram), the ram's skills are
+   ready, he is bigger and has more health (recalc: forms.hp). Off: when its time is up (his passive's tick) or he falls; his own
+   cooldowns are what they would have come down to, and only now does the ultimate's start. */
+function beastOn(h, lv) {
+  for (const u of echoesOf(h)) echoEnd(u);
+  h.pv.keep = { t: G.t, c: [h.cds[0], h.cds[1]] }; h.pv.bt = G.t + BEAST_T; h.pv.sky = false;
+  h.form = 1; h.r = BEAST_R; h.cds[0] = h.cds[1] = 0; h.re = [null, null, null]; h.windT = 0;
+  addBuff(h, { k: 'beast', t: BEAST_T + 0.5, msMul: BEAST_MS }); recalc(h);
+}
+function beastOff(h, dead) {
+  if (!h.form) return; const k = h.pv.keep, s = h.def.skills[2];
+  h.form = 0; h.r = 36; h.re = [null, null, null]; h.windT = 0; h.buffs = h.buffs.filter(b => b.k !== 'beast');
+  for (let i = 0; i < 2; i++) h.cds[i] = k ? Math.max(0, k.c[i] - (G.t - k.t)) : 0;
+  h.cds[2] = skillCd(s, h.sk[2]) * (1 - h.cdr); h.pv.keep = null;
+  recalc(h); if (!dead) { fx('beastOff', h.x, h.y, { id: h.id }); sfx('skill', h.x, h.y); }
+}
+/* Squallsong: the squall its bearer's basic attack lets loose at t and whoever else of theirs is nearest t */
+function squall(h, t) {
+  let a = squallDmg(h), crit = false; if (h.crit > 0 && rnd() < h.crit) { a *= h.critDmg; crit = true; }
+  const hit = t.dead ? [] : [t], near = [];
+  for (const e of G.units) {
+    if (e === t || e.dead || e.locked || e.team === h.team || e.kind === 'turret' || e.kind === 'crystal') continue;
+    if ((e.kind === 'hero' || e.kind === 'clone') && !e.vis[h.team]) continue;
+    if (e.kind === 'monster' && !e.aggro && t.kind !== 'monster') continue;
+    const d = hyp(e.x - t.x, e.y - t.y) - e.r * 0.6; if (d <= SQUALL_R) near.push([d, e]);
+  }
+  near.sort((p, q) => p[0] - q[0] || p[1].id - q[1].id); for (let i = 0; i < near.length && hit.length < SQUALL_N; i++) hit.push(near[i][1]);
+  fx('squall', t.x, t.y, { id: h.id, ids: hit.map(e => e.id), crit });
+  for (const e of hit) dmg(h, e, e.kind === 'minion' ? a * 2 : a, 'magic', { noVamp: true, crit, n: 'Squall', ic: 'fan' });
+  addBuff(h, { k: 'squall', t: 2, msMul: SQUALL_MS });
+}
 /* ---------------- per-unit tick ---------------- */
 function tickCommon(u, dt) {
   if (u.stunT > 0) u.stunT -= dt; if (u.rootT > 0) u.rootT -= dt;
@@ -3132,7 +3369,7 @@ function tickStructure(s, dt) {
   if (!t) {
     let bd = 1e9;
     const U = G.units;
-    for (let i = 0; i < U.length; i++) { const u = U[i]; if (u.dead || u.team === s.team || u.kind !== 'minion') continue; const dx = u.x - s.x, dy = u.y - s.y, lim = s.range + u.r; if (dx * dx + dy * dy > lim * lim * 1.000001) continue; const d = hyp(dx, dy); if (d < bd && d <= lim && guards(s, u)) { bd = d; t = u; } }       // (the plain squares first: most of the map is nowhere near)
+    for (let i = 0; i < U.length; i++) { const u = U[i]; if (u.dead || u.team === s.team || (u.kind !== 'minion' && u.kind !== 'clone')) continue; const dx = u.x - s.x, dy = u.y - s.y, lim = s.range + u.r; if (dx * dx + dy * dy > lim * lim * 1.000001) continue; const d = hyp(dx, dy); if (d < bd && d <= lim && guards(s, u)) { bd = d; t = u; } }       // (the plain squares first: most of the map is nowhere near)
     if (!t) for (const u of G.heroes) { if (u.team === s.team || u.dead) continue; const d = hyp(u.x - s.x, u.y - s.y); if (d < bd && d <= s.range + u.r && guards(s, u)) { bd = d; t = u; } }
     if (!t && s.hitBy && !s.hitBy.dead && answers(s, s.hitBy)) t = s.hitBy;
   }
@@ -3231,8 +3468,9 @@ function castSkill(h, i, tx, ty) {
   const ang = fatan2(dy, dx);
   if (s.cast === 'point' && s.range && d > s.range) { tx = h.x + dx / d * s.range; ty = h.y + dy / d * s.range; }
   { const pc = G.cx; G.cx = { h, n: s.name, ic: s.ic, c: s.c }; const went = s.fn(h, lv, tx, ty, ang, re); G.cx = pc; if (went === false) return false; }
+  if (h.tp && !sp) tpStop(h, true);
   h.mp -= cost; if (h.camo && !s.hush) camoOff(h);       // (whatever she casts from under her cape, but the cape itself, brings her out from under it)
-  if (re) { if (h.re[i] === re) h.re[i] = null; } else if (sp) h.spellCd = s.cd; else h.cds[i] = skillCd(s0, lv) * (1 - h.cdr);
+  if (re) { if (h.re[i] === re) h.re[i] = null; } else if (sp) h.spellCd = s.cd; else h.cds[i] = s0.cdNow != null ? s0.cdNow : skillCd(s0, lv) * (1 - h.cdr);
   if (s.cast !== 'self') h.face = ang;
   if (!re && !sp) h.castT[i] = G.t;
   h.recallT = 0; h.windT = 0; h.castAnim = 0.3; h.castN++; h.castI = re ? i + (s.stage === 3 ? 10 : 4) : f0 && !sp && h.def.skills[i].alt ? i + 7 : i; if (!s.hush) h.revealT = G.t + 1.2; h.lastCombatT = G.t;       // castI 4..6: the second cast of skill 0..2; 10..12: the third
@@ -3251,7 +3489,7 @@ function acquire(h, mode, inRangeOnly) {
     let sc = d;
     if (mode === 1) sc = (u.kind === 'minion' || u.kind === 'monster') ? u.hp * 0.2 + d * 0.2 - 2000 : d;
     else if (mode === 2) sc = (u.kind === 'turret' || u.kind === 'crystal') ? d - 2000 : d;
-    else if (u.kind === 'hero') sc = d - (d <= h.range + 220 ? 2000 : 0) + (u.hp / u.maxHp) * 150;
+    else if (u.kind === 'hero' || u.kind === 'clone') sc = d - (d <= h.range + 220 ? 2000 : 0) + (u.hp / u.maxHp) * 150;
     if (sc < bs) { bs = sc; best = u; }
   }
   return best;
@@ -3301,6 +3539,7 @@ function snipeTick(h, dt) {
 function autoSkills(h) { let g = 0; while (h.sp > 0 && g++ < 40) { if (canLevel(h, 2)) levelSkill(h, 2); else { const i = h.sk[0] <= h.sk[1] ? 0 : 1; if (!levelSkill(h, i) && !levelSkill(h, 1 - i)) break; } } }
 /* set a hero's level outright. auto: spend the skill points at once (ultimate first, the other two evenly); otherwise they are handed back to place by hand */
 function pracLevel(h, lv, auto) {
+  if (h.form && h.def.forms.beast) beastOff(h, true);
   h.level = clamp(lv | 0, 1, 15); h.xp = 0; h.sk = baseSk(h); h.sp = h.level; h.form = 0; h.cds = [0, 0, 0]; h.re = [null, null, null];
   if (auto) autoSkills(h);
   recalc(h); h.hp = h.maxHp; h.mp = h.maxMp;
@@ -3348,6 +3587,9 @@ function tickHero(h, dt) {
     return;
   }
   recalc(h);
+  { const pv = h.def.passive; if (pv && pv.tick) pv.tick(h, dt); }
+  if (h.has.wellspring && !h.def.energy) { if (h.wsT == null) h.wsT = G.t + WELL_T; else if (G.t >= h.wsT) { h.wsT = G.t + WELL_T; const mp = Math.min(h.maxMp - h.mp, h.maxMp * WELL_MP); if (mp > 0.5) { h.mp += mp; fx('mana', h.x, h.y, { v: mp, tgt: h.id }); } } }       // Wellspring Charm
+  if (h.tp && (h.stunT > 0 || h.tauntT > 0 || h.disp || h.air || h.reviveT > 0)) tpStop(h, true);
   if (h.def.lethal) { if (h.camo && !hasBuff(h, 'camo')) camoOff(h); h.pv.n = lethalReady(h) ? 1 : 0; if (h.snipe) snipeTick(h, dt); }       // Sorrel: the cloak's time is up; a Long Shot is ready (shown as a passive that is full); her four rounds
   if (h.reviveT > 0) {
     h.reviveT -= dt; h.mvx = h.mvy = 0; h.atkTarget = null;
@@ -3377,6 +3619,7 @@ function tickHero(h, dt) {
   else if (h.isPlayer) playerControl(h); else if (h.ai) aiTick(h, dt); else { h.mvx = h.mvy = 0; h.atkTarget = null; }       // a dummy just stands there
   if (h.dead) return;
   if (h.castLock > 0) return;
+  if (h.tp && tpTick(h, dt)) return;       // on his way by Teleport: he stands where he is
   // recall
   const wantMove = (h.mvx || h.mvy) && h.rootT <= 0;
   if (h.recallT > 0) {
@@ -3465,12 +3708,12 @@ function tickSpawns(dt) {
   }
 }
 function tickVision() {
-  for (const u of G.units) if (!u.dead && (u.kind === 'hero' || u.kind === 'minion')) u.bush = bushAt(u.x, u.y);
+  for (const u of G.units) if (!u.dead && (u.kind === 'hero' || u.kind === 'minion' || u.kind === 'clone')) u.bush = bushAt(u.x, u.y);
   for (const T of [BLUE, RED]) {
     const viewers = G.units.filter(u => u.team === T && !u.dead && u.kind !== 'monster');
     for (const e of G.units) {
       if (e.team !== 1 - T || e.dead) continue;
-      if (e.kind !== 'hero' && e.kind !== 'minion') { e.vis[T] = true; continue; }
+      if (e.kind !== 'hero' && e.kind !== 'minion' && e.kind !== 'clone') { e.vis[T] = true; continue; }
       let seen = false;
       for (const v of viewers) {
         const sr = v.kind === 'hero' ? 980 : v.kind === 'minion' ? 720 : 900;
@@ -3538,6 +3781,7 @@ function step(dt) {
     if (u.dead) continue;
     tickCommon(u, dt);
     if (u.kind === 'minion') tickMinion(u, dt);
+    else if (u.kind === 'clone') tickEcho(u, dt);
     else if (u.kind === 'monster') tickMonster(u, dt);
     else tickStructure(u, dt);
     if (G.over) return;
@@ -3569,11 +3813,11 @@ function step(dt) {
    A finished recording: { v, sim, opts: { seed, diff, player }, steps, t, dt, ev, chk, marks, over, winner }.
    pb (while playing one): rec, i: the step to run next, e: read position in ev, next: the step the next event belongs to. */
 const DT_Q = 7200, DU_MAX = 240, MOVE_NONE = 65535, REC_V = 1, ROSTER_0 = 12;
-const KIT_V = 23, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
+const KIT_V = 24, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 24: Halvar, four more items and the Teleport spell (nothing an older match has is changed by them). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
 const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8, A_MOOD = 9;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1, '2b64e130': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }
@@ -4378,6 +4622,7 @@ function aiCombat(h, t, foes) {
         if (A.rally && d <= 620 && foes.length >= 2) { let fr = 0, hurt = hpF < 0.8; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead && hyp(p.x - h.x, p.y - h.y) <= A.r) { fr++; if (p.hp / p.maxHp < 0.8) hurt = true; } if (fr >= 1 && hurt) c = { x: h.x, y: h.y }; }
         break;
       case 'target': if (d <= s.range && (!A.finisher || tF < 0.62)) c = { x: t.x, y: t.y }; break;
+      case 'beast': if (!h.form && d <= 520) c = { x: h.x, y: h.y }; break;       // the Stormhorn, once somebody worth it is within a charge of him (what makes it worth it: the ult rule above)
       case 'form':       // two masks: go in as the Tiger once the far skills are spent on a marked, stunned or weak target; back out when the claws are spent or it gets too hot
         if (!h.form) { if (d <= 540 && hpF > 0.45 && (h.cds[0] > 0.5 && h.cds[1] > 0.5 || d < 260) && (t.stunT > 0.4 || (markOf(t) > 0 && tF < 0.8) || tF < 0.4) && foes.length <= 2 && hpF > tF - 0.25 && !turretThreat(h.team, t.x, t.y, 40, h)) c = { x: h.x, y: h.y }; }
         else if ((h.cds[0] > 1 && h.cds[1] > 1) || hpF < 0.33 || d > 700 || (foes.length > 2 && hpF < 0.6)) c = { x: h.x, y: h.y };
@@ -4440,14 +4685,14 @@ function aiSupport(h) {
 /* nothing of theirs stands in the way of a shot that stops at the first thing it meets */
 function shotClear(h, c) { for (const u of G.units) { if (u.team === h.team || u.dead || u.kind === 'hero' || u.kind === 'turret' || u.kind === 'crystal') continue; if (segDist(u.x, u.y, h.x, h.y, c.x, c.y) < u.r + 40 && hyp(u.x - h.x, u.y - h.y) < hyp(c.x - h.x, c.y - h.y)) return false; } return true; }
 function aiWave(h, m, mpF) {
-  if (h.form && h.def.forms && h.cds[2] <= 0 && h.cds[0] > 0.5 && h.cds[1] > 0.5 && castSkill(h, 2, h.x, h.y)) return;       // claws spent on the wave: back to range
+  if (h.form && h.def.forms && !h.def.forms.beast && h.cds[2] <= 0 && h.cds[0] > 0.5 && h.cds[1] > 0.5 && castSkill(h, 2, h.x, h.y)) return;       // claws spent on the wave: back to range
   for (let i = 0; i < 2; i++) { const re = recastOf(h, i); if (re) { const A = stageDef(skDef(h, i), re).ai; if (A.t === 'chain' && aiChain(h, i, re, A, m)) return; } }       // a chain begun on the wave is finished on it
   const a = h.ai; if (mpF < 0.5 || rnd() > 0.45 * a.P.farm) return;
   const d = hyp(m.x - h.x, m.y - h.y);
   for (const i of [0, 1]) { const s = skDef(h, i), lv = h.sk[i]; if (lv && s.ai.t === 'camo' && h.cds[i] <= 0 && !h.camo && !lethalReady(h) && h.mp >= skillCost(s, lv) + 45 && d <= h.range + 120 && castSkill(h, i, h.x, h.y)) return; }       // (the cloak, for the next Long Shot at the wave; with the Focus for a fight kept back)
   let n = 0; for (const u of G.units) if (u.kind === 'minion' && u.team !== h.team && !u.dead && hyp(u.x - m.x, u.y - m.y) < 260) n++;
   if (n < 3) return;
-  if (h.def.forms && !h.form && h.cds[2] <= 0 && d < 520 && !G.heroes.some(e => e.team !== h.team && !e.dead && hyp(e.x - h.x, e.y - h.y) < 760) && !turretThreat(h.team, m.x, m.y, 40, h)) { castSkill(h, 2, h.x, h.y); return; }       // nobody about: clear the wave with the claws
+  if (h.def.forms && !h.def.forms.beast && !h.form && h.cds[2] <= 0 && d < 520 && !G.heroes.some(e => e.team !== h.team && !e.dead && hyp(e.x - h.x, e.y - h.y) < 760) && !turretThreat(h.team, m.x, m.y, 40, h)) { castSkill(h, 2, h.x, h.y); return; }       // nobody about: clear the wave with the claws
   for (const i of [0, 1]) {
     const s = skDef(h, i), lv = h.sk[i], A = s.ai; if (!lv || !A.wave || h.cds[i] > 0 || h.mp < skillCost(s, lv)) continue;
     if ((A.t === 'self' || A.t === 'near') ? d <= A.r : d <= (s.range || 300) * 0.9) { if (castSkill(h, i, m.x, m.y)) return; }
@@ -4713,9 +4958,11 @@ function ncBegin(M) {
 function ncEnd(M) {
   M.T++; M.turns++; const t = M.T;
   if (t % M.hashN === 0) { const h = simHash() | 0; M.hashes.push([t, h]); if (M.hashes.length > 8) M.hashes.shift(); M.hh = [t, h]; M.dirty = true; for (let s = 0; s < M.seats; s++) if (s !== M.me) ncHashCheck(M, s); }
-  for (let s = 0; s < M.seats; s++) {       // frames that are done with: all but my own that are not known to have arrived, and a gone seat's last ones while they may be asked for
+  for (let s = 0; s < M.seats; s++) {       // frames that are done with: all but my own that are not known to have arrived, and anybody else's last ones, played or not, for as long as that seat
+    // may yet prove to have gone and they be asked for. (Kept only once a seat was known to have gone, they could already be thrown away: a machine that had played turns with frames another
+    // never got, from a seat that then vanished, had nothing left to hand on, and the two that remained waited for each other for good.)
     let keep = t; if (s === M.me) { for (let q = 0; q < M.seats; q++) if (q !== s && !M.gone[q] && M.ack[q] + 1 < keep) keep = M.ack[q] + 1; if (keep < M.hi + 1 - M.win) keep = M.hi + 1 - M.win; }
-    else if (M.gone[s] && M.dropAt[s] < 0) keep = Math.min(keep, M.have[s] - 48 * M.k + 1);
+    else if (M.dropAt[s] < 0) keep = Math.min(keep, M.have[s] - 48 * M.k + 1);
     const cut = keep - M.lo[s]; if (cut > 0) { M.fr[s].splice(0, cut); M.lo[s] += cut; }
   }
 }
@@ -5891,7 +6138,100 @@ const HERO_BUILD = {
     glowPart(R, 'wpnR', new THREE.CylinderGeometry(0.031, 0.031, 0.012, 10), glow, 0, 0.125, 0.345, 0).rotation.x = HP2;
     return { style: 'rifle' };
   },
+  halvar(R, L) {       // a drover of the high passes: a sheepskin over a wool tunic belted with copper, a roll of fleece at the neck, bare arms, forearms wrapped to the knuckles in hide with a band of horn across each fist, a kilt of hide over his breeches, fleece at the tops of his boots; russet hair cropped at the sides with a ridge of it over the top; and in his breastbone the shard the ram sleeps in
+    const b = R.b, zf = 0.158 * b, wool = L.body, fur = L.fur || '#e9e2d0', hide = L.hide || '#3a4256', cop = L.trim, horn = L.horn || '#d8cfe8', glow = L.wglow || L.glow || '#b9a8ff', leather = '#4a3528';
+    baseBody(R, { body: wool, body2: shade(wool, 0.16), trim: cop, skin: L.skin, sleeve: L.skin, fore: leather, glove: leather, pants: L.pants, boot: L.boot });
+    const T = R.P('spine'), H = R.P('head'), Hp = R.P('hips');
+    T.cyl(0.228 * b, 0.19 * b, 0.4, fur, { y: 0.3, z: -0.03, sz: 0.72, c2: shade(fur, -0.18), sh: 0.75 }, 10);
+    for (const k of [-1, 1]) T.box(0.1 * b, 0.4, 0.05, fur, { x: k * 0.15 * b, y: 0.3, z: zf * 0.86, c2: shade(fur, -0.15) }).sph(0.14, fur, { x: k * 0.27 * b, y: 0.5, sy: 0.7, c2: shade(fur, -0.12), sh: 0.85 }, 8, 6);
+    T.tor(0.16, 0.07, fur, { y: 0.545, rx: HP2, c2: shade(fur, -0.2), sh: 0.8 }, 6, 12);
+    glowPart(R, 'spine', new THREE.OctahedronGeometry(0.05, 0), glow, 0, 0.37, zf + 0.02, 0.42).scale.set(0.75, 1.25, 0.5);
+    Hp.cyl(0.2 * b, 0.21 * b, 0.07, cop, { y: 0.03, sz: 0.84, c2: shade(cop, 0.3) }, 12).cyl(0.05, 0.05, 0.03, shade(cop, 0.35), { y: 0.03, z: 0.185 * b, rx: HP2 }, 8);
+    Hp.cyl(0.19 * b, 0.27 * b, 0.36, hide, { y: -0.16, sz: 0.86, c2: shade(hide, -0.25), sh: 0.7 }, 10);
+    for (const s of ['L', 'R']) {
+      R.P('fore' + s).cyl(0.074 * b, 0.066 * b, 0.2, leather, { y: -0.13, c2: shade(leather, 0.25) }, 8).box(0.17 * b, 0.07, 0.11, horn, { y: -0.3, z: 0.03, c2: shade(horn, -0.25) });
+      glowPart(R, 'hand' + s, new THREE.OctahedronGeometry(0.03, 0), glow, 0, -0.035, 0.085, 0.26);
+      R.P('shin' + s).cyl(0.115 * b, 0.105 * b, 0.07, fur, { y: -0.03 }, 8);
+      R.P('arm' + s).cyl(0.085 * b, 0.085 * b, 0.035, cop, { y: -0.2 }, 8);
+    }
+    hairCap(H, L.hair, Math.PI * 0.5, -0.25);
+    H.box(0.2, 0.12, 0.44, L.hair, { y: 0.56, z: -0.03, c2: shade(L.hair, 0.3), sh: 0.8 }).sph(0.085, L.hair, { y: 0.44, z: -0.3, sy: 1.5 });
+    for (const k of [-1, 1]) H.box(0.085, 0.022, 0.03, shade(L.hair, -0.2), { x: k * 0.1, y: 0.375, z: 0.25, rz: -k * 0.22 });
+    return { style: 'brawl' };
+  },
 };
+/* ---------- the Stormhorn: Halvar's second form, a ram the size of a cart ----------
+   A rig of its own (rbody, rneck, rhead, rtail, four legs each with a shin), built from his look like the man is and drawn with the
+   same material, so that whatever fades or lights the man does the same to the ram. The view swaps the two (ramSwap). */
+const RAM_SC = 1.22;
+function buildRam(L) {
+  const fur = L.fleece || '#a9a4bc', hide = L.hide || '#3a4256', horn = L.horn || '#d8cfe8', glow = L.wglow || L.glow || '#b9a8ff', hoof = '#22222a';       // (fleece: a storm cloud's colour, not the cream of the sheepskin he wears as a man)
+  const pb = {}, B = {}, P = n => pb[n] || (pb[n] = new PB()), nb = (n, x, y, z, p) => (B[n] = bone(n, x, y, z, p)), root = new THREE.Group();
+  nb('rbody', 0, 1.02, 0, root); nb('rneck', 0, 0.2, 0.62, B.rbody); nb('rhead', 0, 0.34, 0.3, B.rneck); nb('rtail', 0, 0.2, -0.86, B.rbody);
+  for (const [n, x, z] of [['rFL', 0.33, 0.52], ['rFR', -0.33, 0.52], ['rBL', 0.33, -0.56], ['rBR', -0.33, -0.56]]) { nb(n, x, -0.18, z, B.rbody); nb(n + 's', 0, -0.42, 0, B[n]); }
+  // the barrel of him: hide underneath, a great fleece over the back, a ruff over the shoulders
+  P('rbody').sph(0.5, hide, { sx: 0.92, sy: 0.82, sz: 1.72, c2: shade(hide, 0.2), sh: 0.75 }, 12, 9).sph(0.56, fur, { y: 0.14, z: -0.05, sx: 0.98, sy: 0.74, sz: 1.5, c2: shade(fur, -0.2), sh: 0.78 }, 12, 9);
+  for (let i = 0; i < 7; i++) { const a = i * 2.4; P('rbody').sph(0.24 + (i % 3) * 0.03, fur, { x: Math.sin(a) * 0.3, y: 0.36 + Math.cos(a * 1.7) * 0.06, z: -0.75 + i * 0.25, c2: shade(fur, -0.16), sh: 0.82 }, 8, 6); }
+  P('rbody').sph(0.46, fur, { y: 0.12, z: 0.62, sx: 1.05, sy: 0.95, sz: 0.8, c2: shade(fur, -0.2), sh: 0.8 }, 10, 8);
+  // neck and head: a long dark face with a pale blaze down it, ears, and the horns: each a heavy curl out from the brow, back, down and round to point forward again
+  P('rneck').cyl(0.24, 0.32, 0.56, fur, { y: 0.12, z: 0.12, rx: 0.75, c2: shade(fur, -0.2), sh: 0.8 }, 9);
+  P('rhead').box(0.42, 0.4, 0.56, hide, { y: 0.02, z: 0.12, c2: shade(hide, 0.25), sh: 0.8 }).box(0.3, 0.27, 0.34, shade(hide, -0.15), { y: -0.1, z: 0.5, rx: 0.25 }).box(0.12, 0.05, 0.5, shade(fur, 0.35), { y: 0.23, z: 0.2 }).box(0.2, 0.05, 0.05, hoof, { y: -0.1, z: 0.615 });
+  for (const k of [-1, 1]) {
+    P('rhead').box(0.16, 0.06, 0.1, hide, { x: k * 0.27, y: 0.0, z: -0.14, rz: k * 0.5 });
+    P('rhead').tor(0.36, 0.125, horn, { x: k * 0.4, y: 0.02, z: -0.1, ry: HP2, rz: -Math.PI * 0.75, c2: shade(horn, -0.32), sh: 0.68 }, 7, 16, Math.PI * 1.5);
+    P('rhead').cone(0.12, 0.34, horn, { x: k * 0.4, y: 0.02 - 0.36 * 0.707 + 0.12, z: -0.1 + 0.36 * 0.707 + 0.12, rx: 0.785, c2: shade(horn, 0.2) }, 6);
+    P('rhead').sph(0.16, horn, { x: k * 0.3, y: 0.24, z: 0.0, c2: shade(horn, -0.2) }, 7, 5);
+  }
+  for (const n of ['rFL', 'rFR', 'rBL', 'rBR']) { P(n).cyl(0.22, 0.155, 0.46, fur, { y: -0.2, c2: shade(fur, -0.25), sh: 0.75 }, 8); P(n + 's').cyl(0.135, 0.115, 0.4, hide, { y: -0.2 }, 7).cyl(0.145, 0.165, 0.1, hoof, { y: -0.4 }, 7); }
+  P('rtail').sph(0.13, fur, { sy: 1.4, c2: shade(fur, -0.2) }, 7, 5);
+  for (const k in pb) { const m = pb[k].mesh(GX.mat.vc); m.userData.cm = 1; B[k].add(m); }
+  // the storm in him: his eyes, the shard in his breast, a seam of light along each horn, a glow at each hoof
+  const gp = (bn, geo, x, y, z, hs) => { const m = new THREE.Mesh(geo, glowMat(glow)); m.position.set(x, y, z); B[bn].add(m); if (hs) { const h = halo(glow, hs, 0.7); h.position.copy(m.position); B[bn].add(h); } return m; };
+  for (const k of [-1, 1]) { gp('rhead', new THREE.SphereGeometry(0.04, 6, 5), k * 0.215, 0.09, 0.34, 0.24); gp('rhead', new THREE.TorusGeometry(0.36, 0.026, 4, 14, Math.PI * 1.2), k * 0.535, 0.02, -0.1, 0).rotation.set(0, HP2, -Math.PI * 0.6, 'XYZ'); }
+  gp('rbody', new THREE.OctahedronGeometry(0.11, 0), 0, -0.1, 0.84, 0.75).scale.set(0.8, 1.25, 0.55);
+  for (const n of ['rFLs', 'rFRs', 'rBLs', 'rBRs']) gp(n, new THREE.TorusGeometry(0.165, 0.02, 4, 10), 0, -0.34, 0, 0).rotation.x = HP2;
+  return root;
+}
+function ramInstance(key, skin, mat) {
+  const tk = key + (skin | 0); TPL.ram = TPL.ram || {};
+  if (!TPL.ram[tk]) TPL.ram[tk] = buildRam(heroLook(key, skin | 0));
+  const o = TPL.ram[tk].clone(true); o.traverse(x => { if (x.isMesh && x.userData.cm) { x.material = mat; x.castShadow = true; } });
+  return { o, b: bonesOf(o) };
+}
+/* s: what animHero is given; u: the hero himself (for where in a leap he is) */
+function animRam(v, u, s, t, dt) {
+  const B = v.rb, on = s.moving || s.dash; v.rRun = (v.rRun || 0) + ((on ? 1 : 0) - (v.rRun || 0)) * Math.min(1, dt * 10);
+  if (on) v.rWalk = (v.rWalk || 0) + dt * s.speed * (s.dash ? 4.2 : 2.5);
+  const rk = v.rRun, w = v.rWalk || 0, sw = Math.sin(w), cw = Math.cos(w);
+  let by = 1.02 + Math.abs(cw) * 0.07 * rk + Math.sin(t * 1.8 + v.seed) * 0.012, bz = 0, bx = 0.05 * sw * rk, neck = -0.1 + 0.05 * Math.sin(t * 1.3 + v.seed), head = 0.12 - 0.08 * sw * rk, hy = Math.sin(t * 0.7 + v.seed) * 0.14 * (1 - rk), fl = sw * 0.75 * rk, bl = -sw * 0.75 * rk, tuck = 0;
+  const A = s.atk;
+  if (A >= 0) { const q = tri(A, 0, -1, 1); bz += q > 0 ? q * 0.36 : q * 0.15; neck += q > 0 ? q * 0.5 : q * 0.34; head += q > 0 ? q * 0.6 : q * 0.2; bx += q > 0 ? q * 0.1 : q * 0.08; }       // a butt: back on his haunches, then the whole of him forward behind his horns
+  if (s.dash) { neck += 0.55; head += 0.5; bx += 0.12; }       // the charge: head down, horns first
+  if (s.leap) { const k = clamp(u.leap ? u.leap.t / u.leap.dur : 1, 0, 1); bx += lerp(-0.6, 0.8, smooth(k)); tuck = Math.sin(k * Math.PI) * 0.8; neck += lerp(-0.3, 0.6, k); head += lerp(-0.2, 0.55, k); }
+  if (v.rClip > 0) { v.rClip -= dt / 0.62; const k = 1 - Math.max(0, v.rClip), q = Math.sin(Math.min(1, k * 1.5) * Math.PI);       // the bellow: up off his forefeet, head thrown out
+    bx -= 0.3 * q; by += 0.13 * q; neck -= 0.4 * q; head -= 0.3 * q; fl -= 0.55 * q; }
+  if (s.stun && !s.air) { head += 0.6; neck += 0.35; hy = Math.sin(t * 9) * 0.25; }
+  if (s.air) { tuck = 0.6; bx += Math.sin(s.air * Math.PI) * 0.5; }
+  if (s.recall > 0) { by -= 0.32; tuck = Math.max(tuck, 0.85); neck += 0.3; head += 0.3; }
+  B.rbody.position.set(0, by, bz); B.rbody.rotation.x = bx; B.rneck.rotation.x = neck; B.rhead.rotation.set(head, hy, 0);
+  const leg = (n, a) => { const f = n[1] === 'F' ? 1 : -1; B[n].rotation.x = a * (1 - tuck) - 0.9 * tuck * f; B[n + 's'].rotation.x = f * (Math.max(0, -a * f) * 0.9 * (1 - tuck) + 1.5 * tuck); };
+  leg('rFL', fl); leg('rFR', fl * 0.8 + 0.14 * cw * rk); leg('rBL', bl); leg('rBR', bl * 0.8 - 0.14 * cw * rk);
+  B.rtail.rotation.x = -0.5 + Math.sin(t * 3 + v.seed) * 0.2 + rk * 0.5;
+  if (v.ramK > 0 && v.ramK < 1) { v.ramK = Math.min(1, v.ramK + dt / 0.3); const e = v.ramK; v.o.scale.setScalar(v.sc * (v.big || 1) * RAM_SC * (0.55 + 0.45 * e + 0.22 * Math.sin(e * Math.PI))); }       // he swells into it
+}
+/* man to ram and back: the view's model (v.o) is whichever he is, so everything that turns, scales, fades or ghosts "the model"
+   does it to the right one; what the tall grass does to a model is kept per model. */
+function ramSwap(v, f) {
+  const first = v.form === undefined; v.form = f; if (!v.oMan) v.oMan = v.o;
+  if (f && !v.oRam) { const r = ramInstance(v.key, v.skin, v.mat); v.oRam = r.o; v.rb = r.b; v.oRam.visible = false; v.root.add(v.oRam); }
+  if (first && !f) return;
+  const gh = v.gh; if (gh) heroBush(v, false);
+  if (v.o === v.oRam) v.preRam = v.pre; else v.preMan = v.pre;
+  v.o.visible = false; v.o = f ? v.oRam : v.oMan; v.o.visible = true; v.pre = (f ? v.preRam : v.preMan) || null; v.o.rotation.y = v.face || 0;
+  v.ramS = f ? RAM_SC : 1; v.ramK = f ? 0.001 : 0; v.rClip = 0; v.o.scale.setScalar(v.sc * (v.big || 1) * (f ? RAM_SC * 0.55 : 1));
+  v.top0 = (f ? 3.2 : 2.78) + v.hover; v.top = v.top0 * (0.12 + 0.88 * (v.big || 1));
+  if (gh) heroBush(v, true);
+}
 /* where the long gun's muzzle is in the world right now (a hero whose weapon lies along its hand's z) */
 const _mz = new THREE.Vector3();
 function muzzleOf(v) { return v.b.wpnR.localToWorld(_mz.set(0, 0.04, 1.16)); }
@@ -5974,7 +6314,7 @@ function wglow(R, key, c) {      // a glowing edge on the hero's weapon
   else if (key === 'mira') { const hf = 0.6; glowPart(R, 'wpnL', new THREE.BoxGeometry(0.016, hf * 2.04, 0.016), c, 0, 0, -0.21, 0); for (const k of [-1, 1]) aura('wpnL', k * hf * 1.02, 0.45, -0.21); }
 }
 function buildHeroTemplate(key, skin) {
-  const L = heroLook(key, skin), sk = SKINS[key][skin | 0] || {}, bulk = { bram: 1.28, thorn: 1.26, kaela: 0.95, rook: 1.34, vex: 0.9, kiri: 0.86, tavi: 1.02, lyra: 0.9, zephyr: 0.92, orin: 1.0, mira: 0.92, sera: 0.9, miel: 0.92, hesta: 1.2, sorrel: 0.93 }[key] || 1;
+  const L = heroLook(key, skin), sk = SKINS[key][skin | 0] || {}, bulk = { bram: 1.28, thorn: 1.26, kaela: 0.95, rook: 1.34, vex: 0.9, kiri: 0.86, tavi: 1.02, lyra: 0.9, zephyr: 0.92, orin: 1.0, mira: 0.92, sera: 0.9, miel: 0.92, hesta: 1.2, sorrel: 0.93, halvar: 1.14 }[key] || 1;
   const R = mkRig(bulk); R.look = L; const info = HERO_BUILD[key](R, L);
   for (const n of sk.parts || []) SKIN_PARTS[n](R, L);
   if (L.wglow) wglow(R, key, L.wglow);
@@ -6161,6 +6501,7 @@ const STANCE = {   // idle arm pose: [armL.x, foreL.x, armL.z, armR.x, foreR.x, 
   orb: [0.05, -0.4, 0.2, -0.55, -0.7, -0.2],
   bow: [-0.4, -0.55, 0.12, 0.06, -0.35, -0.12],
   hurl: [0.1, -0.5, 0.18, -0.3, -0.85, -0.16],
+  brawl: [-0.5, -1.55, 0.2, -0.5, -1.55, -0.2],       // fists up before his chin
   rifle: [-1.02, -0.36, -0.6, -0.5, -0.83, -0.05],       // the long gun at the low ready: in the right hand, the left under its fore-end
 };
 function tri(u, a, b, c) {       // stance -> wind-up -> strike (lands at 0.6) -> recover
@@ -6221,7 +6562,8 @@ const CLIP_CH = ['aLx', 'fLx', 'aLz', 'aRx', 'fRx', 'aRz', 'lLx', 'lRx', 'sLx', 
 const HERO_CLIPS = { bram: ['rush', 'guard', 'leap', null, 'heave'], thorn: ['throw', 'slam', 'pull'], kaela: ['cadA', 'lunge', 'roar', 'cadB', null, null, null, null, null, 'cadC'], rook: [['slam', 0.78], 'roar', null], vex: ['throw', 'sweep', 'stab'],
   tavi: ['throw', 'fanout', 'vault', 'lunge', 'pull', 'vault'],
   kiri: ['toss', 'bolt', 'roar', null, null, null, 'vault', 'lunge', 'roar'],       // 6..8: the Tiger's leap, rush and the turn back
-  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'queen'], hesta: ['rush', 'gong', 'raise'], sorrel: ['fade', 'lobL', 'aim', null, null, 'recoil'] };       // (sorrel 5: each round of the four)
+  lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'queen'], hesta: ['rush', 'gong', 'raise'], sorrel: ['fade', 'lobL', 'aim', null, null, 'recoil'],
+  halvar: ['raise', 'lunge', 'roar', null, null, null, null, null, null] };       // (6..8 are the ram's: it has motions of its own, see animRam)       // (sorrel 5: each round of the four)
 function KF(u, a) { if (u <= a[0]) return a[1]; for (let i = 2; i < a.length; i += 2) if (u <= a[i]) return lerp(a[i - 1], a[i + 1], smooth((u - a[i - 2]) / (a[i] - a[i - 2]))); return a[a.length - 1]; }
 /* which mask is over the face: the worn one sits on the face, the other is slung behind the head */
 function kiriMasks(B, f) {
@@ -6231,6 +6573,7 @@ function kiriMasks(B, f) {
 }
 /* a two-form hero's view follows the unit's form: masks, what she holds, how she stands and strikes */
 function applyForm(v, f) {
+  if (HEROES[v.key].forms.beast) { ramSwap(v, f); return; }
   const B = v.b; v.form = f; if (v.style0 === undefined) v.style0 = v.style; v.style = f ? 'claw' : v.style0;
   if (B.mask0) kiriMasks(B, f);
   if (B.gearA) B.gearA.visible = !f; for (const n of ['gearL', 'gearR', 'tails']) if (B[n] && v.key === 'kiri') B[n].visible = !!f;
@@ -6353,6 +6696,7 @@ function animHero(v, s, t, dt) {
       case 'slash': p.aRx = tri(A, p.aRx, -2.75, -0.35); p.fRx = tri(A, p.fRx, -1.2, -0.12); p.aRz = tri(A, p.aRz, -0.55, 0.45); p.spRy = tri(A, p.spRy, -0.55, 0.6); p.hipRx += tri(A, 0, -0.08, 0.22); break;
       case 'smash': p.aRx = tri(A, p.aRx, -3.0, -0.6); p.fRx = tri(A, p.fRx, -0.7, -0.1); p.spRy = tri(A, p.spRy, -0.3, 0.25); p.hipRx += tri(A, 0, -0.15, 0.3); break;
       case 'smash2': p.aRx = tri(A, p.aRx, -3.0, -0.85); p.aLx = tri(A, p.aLx, -3.0, -0.95); p.fRx = tri(A, p.fRx, -0.6, -0.15); p.fLx = tri(A, p.fLx, -0.6, -0.15); p.hipRx += tri(A, 0, -0.22, 0.45); p.hipY += tri(A, 0, 0.05, -0.1); break;
+      case 'brawl':       // a straight left, then a straight right
       case 'dual':
         if (v.alt) { p.aLx = tri(A, p.aLx, 0.35, -1.45); p.fLx = tri(A, p.fLx, -1.7, -0.1); p.spRy = tri(A, p.spRy, 0.45, -0.5); }
         else { p.aRx = tri(A, p.aRx, 0.35, -1.45); p.fRx = tri(A, p.fRx, -1.7, -0.1); p.spRy = tri(A, p.spRy, -0.45, 0.5); }
@@ -7280,6 +7624,32 @@ const SKFX = {
     flash3(mx, 0.8, mz, 4.2, 0.26, '#ffe2b0'); flash3(mx, 0.8, mz, 2.4, 0.18, '#ffffff'); ring3(mx, mz, 0.3, r * 0.55, 0.35, c, 0.9); scorch3(mx, mz, r * 0.42, 2.4);
     smoke(mx, 0.3, mz, 10, '#8a8f96', 0.9, 0.9, 0.9); sparks(mx, 0.6, mz, 18, c, 5, 0.18, 0.5, 1.2, 5); debris(mx, 0.3, mz, 10, '#7a5c3a', 3.2, 0.2, 0.7); streak3(x, z, mx, mz, 0.12, 0.14, '#ffe9b0', 0.9, 0.9); FX.shake = Math.max(FX.shake, 0.16); },
   sorrel1h(e, x, z, c) { flash3(x, 1.0, z, 1.6, 0.18, c); sparks(x, 1.0, z, 7, '#ffe2b0', 3.4, 0.13, 0.35, 1); smoke(x, 0.2, z, 3, '#d8cfb4', 0.4, 0.4, 0.3); },
+  halvar0(e, x, z, c) {       // Echoes: the air beside him tears, and there are three of him
+    ring3(x, z, 0.3, 2.0, 0.34, c, 0.8, true); flash3(x, 1.0, z, 2.2, 0.18, c);
+    for (let i = 0; i < 4; i++) { const a = Math.random() * TAU, r = 0.6 + Math.random() * 0.8; bolt3(x, 1.0, z, x + Math.cos(a) * r, 0.2 + Math.random() * 1.4, z + Math.sin(a) * r, c, 0.05, 0.16, 0.25, 4); } },
+  halvar1(e, x, z, c) {       // Stormknuckle: he goes in behind his fist
+    const a = e.ang, ca = Math.cos(a), sa = Math.sin(a), d = FIST_D * S3; vring3(x + ca * 0.4, 1.0, z + sa * 0.4, a, 0.25, 0.9, 0.22, c, 0.8); streak3(x, z, x + ca * d, z + sa * d, 0.5, 0.22, c, 0.9, 0.6); },
+  halvar1h(e, x, z, c) {       // and it lands: thunder at arm's length
+    const a = e.ang, ca = Math.cos(a), sa = Math.sin(a); flash3(x, 1.1, z, 3.4, 0.2, '#ffffff'); flash3(x, 1.1, z, 2.2, 0.26, c); ring3(x, z, 0.3, 1.9, 0.3, c, 0.9); vring3(x, 1.1, z, a, 0.3, 1.5, 0.24, '#ffffff', 0.8);
+    for (let i = 0; i < 6; i++) { const q = a + (Math.random() - 0.5) * 1.6, r = 1.0 + Math.random() * 1.3; bolt3(x, 1.1, z, x + Math.cos(q) * r, 0.2 + Math.random() * 1.6, z + Math.sin(q) * r, i % 2 ? '#ffffff' : c, 0.06, 0.2, 0.22, 5); }
+    streak3(x, z, x + ca * FIST_PUSH * S3, z + sa * FIST_PUSH * S3, 0.6, 0.25, '#ffffff', 0.6, 0.5); sparks(x, 1.1, z, 14, c, 5, 0.16, 0.4, 1); FX.shake = Math.max(FX.shake, 0.2); },
+  halvar2(e, x, z, c) {       // the ram comes out of him: the storm comes down where he stands
+    pillar3(x, z, 1.5, 6.5, 0.6, c, 0.7); ring3(x, z, 0.4, 3.4, 0.5, c, 0.9); ring3(x, z, 0.3, 2.2, 0.36, '#ffffff', 0.8, true); flash3(x, 1.4, z, 5.5, 0.3, '#ffffff'); scorch3(x, z, 1.5, 2.5);
+    for (let i = 0; i < 7; i++) { const a = i / 7 * TAU + Math.random() * 0.5, r = 0.5 + Math.random() * 1.6; later(i * 0.03, () => bolt3(x + Math.cos(a) * r * 0.3, 7, z + Math.sin(a) * r * 0.3, x + Math.cos(a) * r, 0.05, z + Math.sin(a) * r, i % 2 ? '#ffffff' : c, 0.09, 0.22, 0.14, 8)); }
+    smoke(x, 0.3, z, 10, '#cfc8e0', 1.0, 0.8, 1.0); sparks(x, 1.0, z, 22, c, 5.5, 0.18, 0.6, 1.4, 4); FX.shake = Math.max(FX.shake, 0.3); },
+  halvar0b(e, x, z, c) { const a = e.ang, ca = Math.cos(a), sa = Math.sin(a), d = CHARGE_D * S3; vring3(x + ca * 0.5, 1.1, z + sa * 0.5, a, 0.4, 1.4, 0.28, c, 0.7); streak3(x, z, x + ca * d, z + sa * d, 1.1, 0.4, c, 0.08, 0.45); smoke(x, 0.2, z, 6, '#d8cfb4', 0.7, 0.5, 0.6); debris(x, 0.2, z, 6, '#7a6a52', 2.6, 0.18, 0.6); },       // Headlong
+  halvar0h(e, x, z, c) { flash3(x, 1.0, z, 2.2, 0.18, '#ffffff'); sparks(x, 1.0, z, 9, c, 4.2, 0.15, 0.4, 1.3); ring3(x, z, 0.2, 1.1, 0.24, c, 0.8, true); FX.shake = Math.max(FX.shake, 0.12); },
+  halvar1b(e, x, z, c) {       // Thunderbleat: the bellow goes out before him, and the storm with it
+    const a = e.ang, r = e.r * S3, h = e.a, ca = Math.cos(a), sa = Math.sin(a);
+    slash3(x, z, a, h, r, 0.36, c, 0.08, { op: 0.3, flat: 1 }); later(0.04, () => slash3(x, z, a, h, r * 1.03, 0.3, '#ffffff', 0.1, { thin: 1, op: 0.3, edge: 0.8 }));
+    for (let i = 0; i < 3; i++) later(i * 0.07, () => vring3(x + ca * (0.6 + i * 1.1), 1.3, z + sa * (0.6 + i * 1.1), a, 0.4 + i * 0.3, 1.2 + i * 0.6, 0.3, i ? c : '#ffffff', 0.7));
+    for (let i = 0; i < 5; i++) { const q = a + (Math.random() - 0.5) * 2 * h, d = r * (0.4 + Math.random() * 0.55); bolt3(x + ca * 0.6, 1.4, z + sa * 0.6, x + Math.cos(q) * d, 0.1, z + Math.sin(q) * d, i % 2 ? '#ffffff' : c, 0.06, 0.2, 0.2, 6); }
+    FX.shake = Math.max(FX.shake, 0.14); },
+  halvar2j(e, x, z, c) { const tx = e.x1 * S3, tz = e.y1 * S3, R = SKY_AOE * S3; ring3(x, z, 0.4, 1.8, 0.3, '#d8cfb4', 0.7); smoke(x, 0.2, z, 8, '#d8cfb4', 0.8, 0.5, 0.8); debris(x, 0.2, z, 8, '#7a6a52', 3, 0.2, 0.6); ring3(tx, tz, R, R * 0.25, 0.55, c, 0.75, true); ring3(tx, tz, R, R, 0.55, c, 0.4, true); },       // Skybreaker: off the ground, and where he will come down
+  halvar2l(e, x, z, c) {       // and down
+    const r = e.r * S3; flash3(x, 1.0, z, r * 2.6, 0.3, '#ffffff'); ring3(x, z, r * 0.2, r * 1.05, 0.42, c, 0.95); ring3(x, z, r * 0.1, r * 0.8, 0.3, '#ffffff', 0.8, true); scorch3(x, z, r * 0.7, 3); pillar3(x, z, r * 0.5, 4.5, 0.4, c, 0.6);
+    for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + Math.random() * 0.4; bolt3(x, 0.5, z, x + Math.cos(a) * r, 0.05, z + Math.sin(a) * r, i % 2 ? '#ffffff' : c, 0.08, 0.24, 0.16, 7); }
+    debris(x, 0.3, z, 16, '#6e6252', 4.6, 0.24, 0.9); smoke(x, 0.3, z, 12, '#b8b0c8', 1.1, 0.9, 1.3); sparks(x, 0.8, z, 20, c, 6, 0.18, 0.6, 1.5, 5); FX.shake = Math.max(FX.shake, 0.4); },
   sorrel2(e, x, z, c) { ring3(x, z, 1.6, 0.35, 0.4, c, 0.8, true, 0.1); glint3(x, 1.6, z, 1.6, 0.45, '#ffffff'); if (UI.state === 'play') snd('cock', 0.9); snipeSight(e.id, e.tid, c); },       // Four Rounds: she settles to it (the line to her mark is drawn by snipeSight, from whichever end is in view)
   sorrel2t(e, x, z, c) { const tv = V.views.get(e.tid), top = (tv && tv.top) || 1.7; ring3(x, z, 2.4, 0.7, 0.4, c, 0.9, true, 0.1); glint3(x, top + 0.5, z, 1.4, 0.4, c); snipeSight(e.id, e.tid, c);
     if (V.me && e.tid === V.me.id) { text3(x, top + 0.9, z, 'IN HER SIGHTS', '#ff8a6a', true, 1.2); if (UI.state === 'play') snd('deny', 0.9); } },
@@ -7375,6 +7745,20 @@ function snipeSight(hid, tid, c) {
     tick.forEach((m, i) => { const an = i * HP2 + t * 1.6; m.position.set(tx + Math.cos(an) * (r0 + 0.24), 0.075, tz + Math.sin(an) * (r0 + 0.24)); m.rotation.y = -an; m.scale.set(0.36, 1, 0.06); });
   });
 }
+/* Teleport: where he stands, light gathers for as long as he is on his way; where he is going, a gate of it stands and closes on the
+   moment he arrives. Each is shown to whoever is near it, friend or foe, and both go at once if he breaks it off. */
+function tpFx(e, there) {
+  const c = SPELLS.teleport.c, g = new THREE.Group(), ring = new THREE.Mesh(FG.ring, fxMat(c, 0.85)), rune = new THREE.Mesh(FG.plane, fxMat(c, 0.7, { map: GX.tex.rune })), col = new THREE.Mesh(FG.cyl, fxMat(c, 0.3, { map: GX.tex.pillar }));
+  ring.position.y = 0.07; rune.position.y = 0.06; g.add(ring); g.add(rune); g.add(col); g.renderOrder = 3; g.position.set(e.x * S3, 0, e.y * S3);
+  const life = e.dur + 0.2;
+  fxAdd(g, life, k => {
+    const h = heroById(e.id), on = !!(h && h.tp && !h.dead), q = Math.min(1, k * life / e.dur), t = V.t;
+    g.visible = on && nearCam(g.position.x / S3, g.position.z / S3, 400); if (!on) return;
+    if (there) g.position.set(h.tp.a.x * S3, 0, h.tp.a.y * S3);
+    const s = there ? 1.7 - 0.8 * q : 0.9 + 0.08 * Math.sin(t * 6); ring.scale.set(s, 1, s); ring.rotation.y = t * 2.2; rune.scale.set(s * 2.4, 1, s * 2.4); rune.rotation.y = -t * 1.4; rune.material.opacity = 0.3 + 0.5 * q; col.scale.set(s * 0.8, 1.5 + 3.5 * q, s * 0.8); col.material.opacity = 0.12 + 0.4 * q;
+    if (Math.random() < FX.dt * 16) { const a = Math.random() * TAU; FX.add.emit(g.position.x + Math.cos(a) * s * 0.8, 0.05, g.position.z + Math.sin(a) * s * 0.8, 0, 2.6, 0, 0.7, 0.13, 0.03, c, 0.9, 0, 0); }
+  });
+}
 function heroById(id) { for (const h of G.heroes) if (h.id === id) return h; return null; }
 
 /* sim effect events -> visuals */
@@ -7390,6 +7774,7 @@ function ingestFx() {
     if (e.k === 'mana') { if (nearCam(e.x, e.y, 0)) for (let i = 0; i < 4; i++) FX.add.emit(x + (Math.random() - .5) * 0.7, 0.3 + Math.random() * 0.8, z + (Math.random() - .5) * 0.7, 0, 1.3, 0, 0.7, 0.15, 0.04, '#6fb7ff', 0.9, -0.5, 0); if (e.tgt === mid && e.v > 8) text3(x + 0.55, 1.75, z, '+' + Math.round(e.v), '#6fb7ff', false, 0.85); continue; }
     if (e.k === 'gold') { if (e.id === mid) { text3(x, e.plate ? 3.5 : 1.3, z, '+' + e.v + 'g', '#f2c14e', false, 1.0); sparks(x, e.plate ? 2.0 : 0.6, z + (e.plate ? 0.55 : 0), 6, '#ffd76a', 1.6, 0.14, 0.6, 1.6, 7); } continue; }
     if (e.k === 'glass') { if (nearCam(e.x, e.y, 300)) { ring3(x, z, 0.3, 1.7, 0.45, '#ffd76a', 0.9, true); sparks(x, 1.5, z, 9, '#ffe9a8', 1.8, 0.12, 0.6, 1.3, 5); } if (e.id === mid) text3(x, 3.2, z, 'ULTIMATE −' + (e.v >= 9.5 ? Math.round(e.v) : +e.v.toFixed(1)) + 's', '#ffd76a', false, 1.3); continue; }       // Victor's Hourglass turns: for its bearer, how many seconds it took off
+    if (e.k === 'tp' || e.k === 'tpAt') { tpFx(e, e.k === 'tpAt'); continue; }       // (wherever the camera is now: it lasts, and the camera may come)
     if (!nearCam(e.x, e.y, 300)) continue;
     if (e.k === 'sk') { const h = heroById(e.id), m = /\d/.exec(e.n), sx = h && SKINS[h.key][h.skin].fx, f = (sx && SKFX[e.n + sx]) || SKFX[e.n]; if (f) f(e, x, z, e.c || (h ? skinColor(h.key, h.skin, m ? +m[0] : 0) : '#ffffff'), h); continue; }
     let c = e.c || '#ffffff'; const r = (e.r || 100) * S3;
@@ -7417,6 +7802,17 @@ function ingestFx() {
       case 'totem': totemFx(e, x, z, c); break;
       case 'pierce': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; shards3(x, 1.2, z, 9, c, 4.4, 0.6); ring3(x, z, 1.1, 0.4, 0.24, '#ffffff', 0.9, true, 0.9); flash3(x, 1.1, z, 2.0, 0.18, '#ffffff'); text3(x, top + 0.8, z, 'PIERCED', '#ff8a6a', false, 0.9); break; }       // a hold has gone through the totem
       case 'camo': { const h = heroById(e.id); if (!e.on && h && (V.team < 0 || h.team === V.team)) ring3(x, z, 0.3, 1.2, 0.3, '#ffffff', 0.45, true, 0.1); break; }       // out from under the cape (the going under is the skill's own effect)
+      case 'echo': { const x0 = e.x0 * S3, z0 = e.y0 * S3; streak3(x0, z0, x, z, 0.45, 0.22, c, 0.9, 0.6); flash3(x, 1.0, z, 1.6, 0.18, c); ring3(x, z, 0.2, 0.9, 0.26, c, 0.7, true); smoke(x, 0.3, z, 4, '#e6e0f4', 0.6, 0.4, 0.4); break; }
+      case 'echoEnd': smoke(x, 0.6, z, 7, '#e6e0f4', 0.8, 0.5, 0.6); sparks(x, 1.0, z, e.hit ? 12 : 6, c, 3.2, 0.13, 0.4, 1); ring3(x, z, 0.3, 1.1, 0.26, c, 0.6, true); if (e.hit) shards3(x, 1.1, z, 6, c, 3.4, 0.5); break;
+      case 'echoHit': flash3(x, 1.0, z, 1.5, 0.16, c); sparks(x, 1.0, z, 6, c, 3.6, 0.13, 0.3, 1); cut3(x, 1.0, z, 1.5, (Math.random() - .5) * 1.4, c, 0.18); break;
+      case 'beastOff': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#b9a8ff'; ring3(x, z, 2.2, 0.4, 0.4, hc, 0.7, true); smoke(x, 0.5, z, 10, '#cfc8e0', 1.0, 0.7, 0.9); flash3(x, 1.2, z, 2.6, 0.22, '#ffffff'); break; }
+      case 'cleave': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#b9a8ff'; slash3(x, z, e.ang, BEAST_ARC, (BEAST_RANGE + 110) * S3, 0.18, hc, 0.9, { op: 0.4 }); break; }
+      case 'squall': { const sc = ITEMS.squallsong.c; ring3(x, z, 0.2, 1.3, 0.28, sc, 0.8, true);       // Squallsong: the squall leaps from its target to whoever else it takes in
+        for (const id of e.ids) { const q = V.views.get(id), u = q && q.u; if (!u) continue; const ux = u.x * S3, uz = u.y * S3; if (Math.hypot(ux - x, uz - z) > 0.05) bolt3(x, 1.1, z, ux, 1.0, uz, sc, 0.05, 0.2, 0.18, 5); flash3(ux, 1.0, uz, e.crit ? 1.9 : 1.2, 0.16, sc); sparks(ux, 1.0, uz, 5, '#e8fff8', 3, 0.12, 0.3, 1); } break; }
+      case 'laststand': { const lc = ITEMS.dawnshard.c, h = heroById(e.id); ring3(x, z, 0.4, 1.8, 0.4, lc, 0.9); pillar3(x, z, 0.9, 2.6, 0.5, lc, 0.5); flash3(x, 1.1, z, 2.6, 0.24, '#ffd0dc'); if (h && h === V.me) text3(x, 3.0, z, 'LAST STAND', '#ffc2d0', false, 1.1); break; }
+      case 'ruin': ring3(x, z, 1.3, 0.3, 0.3, ITEMS.ruinblade.c, 0.8, true, 0.1); flash3(x, 1.2, z, 1.6, 0.2, '#ff5d7a'); break;
+      case 'tpin': { const tc = SPELLS.teleport.c; pillar3(x, z, 1.1, 6, 0.5, tc, 0.8); ring3(x, z, 0.3, 2.2, 0.4, tc, 0.9); flash3(x, 1.2, z, 3.5, 0.26, '#ffffff'); sparks(x, 1.0, z, 14, tc, 4, 0.15, 0.5, 1.6, 2); if (nearCam(e.x0, e.y0, 300)) { ring3(e.x0 * S3, e.y0 * S3, 1.4, 0.2, 0.35, tc, 0.6, true); smoke(e.x0 * S3, 0.4, e.y0 * S3, 6, '#d8d0f0', 0.8, 0.5, 0.6); } break; }
+      case 'tpx': { const h = heroById(e.id); ring3(x, z, 1.0, 0.2, 0.25, '#ffffff', 0.5, true); smoke(x, 0.4, z, 5, '#d8d0f0', 0.7, 0.4, 0.5); if (h && h === V.me) text3(x, 3.0, z, 'BROKEN OFF', '#d8d0f0', false, 1.0); break; }
       case 'snipe': break;
       case 'mood': if (e.id === mid) snd('ui'); break;       // a temper changed (what it looks like is the view's business: see moodExtras)
       case 'taunt': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; ring3(x, z, 1.0, 0.4, 0.3, TAUNT_C, 0.9, true, 0.1); flash3(x, top * 0.7, z, 1.6, 0.25, TAUNT_C); if (e.id === mid) { text3(x, top + 0.9, z, 'TAUNTED', '#ff8a6a', true, 1.0); if (!UI.hints.taunt && UI.state === 'play') { UI.hints.taunt = 1; hint('Taunted: until it ends, your hero can only go for whoever called it out.', 6); } } break; }       // called out: for the one it happens to, the word for it
@@ -7661,7 +8057,7 @@ function pickTarget(px, py, maxPx) {
   const me = G.player; let best = null, bd = maxPx;
   for (const u of G.units) {
     if (!canTarget(me, u)) continue;
-    const h = u.kind === 'turret' ? 1.8 : u.kind === 'crystal' ? 1.6 : u.kind === 'hero' ? 1.0 : 0.5;
+    const h = u.kind === 'turret' ? 1.8 : u.kind === 'crystal' ? 1.6 : u.kind === 'hero' || u.kind === 'clone' ? 1.0 : 0.5;
     if (!w2s(u.x * S3, h, u.y * S3, _sp)) continue;
     const d = Math.hypot(_sp.x - px, (_sp.y - py) * 0.7) - u.r * V.z * 0.7; if (d < bd) { bd = d; best = u; }
   }
@@ -7705,11 +8101,12 @@ function heroBush(v, on) {
     if (on) { if (!x._m0) { x._m0 = x.material; x.material = dimOf(x.material); } } else if (x._m0) { x.material = x._m0; x._m0 = null; }
   });
 }
+const _white = new THREE.Color(1, 1, 1);
 function relHex(u) { return u === V.me ? COL.self : tcol(u.team, V.team); }
 function makeView(u) {
   let v;
-  if (u.kind === 'hero') {
-    v = heroInstance(u.key, u.skin); v.sc = 1.16; v.top = v.top0 = 2.78 + v.hover; v.big = 1; v.bigV = 0; v.castN = u.castN; v.gT = 0; v.lx = u.x; v.ly = u.y;       // bars clear a crest or a hovering head
+  if (u.kind === 'hero' || u.kind === 'clone') {       // (clone: one of Halvar's echoes. To the other side it is him to the life; to his own it is a shade paler, lit with his storm, so that they know him from it)
+    v = heroInstance(u.key, u.skin); if (u.kind === 'clone' && (V.team < 0 || u.team === V.team)) { v.mat.color.copy(lin(u.look.glow)).lerp(_white, 0.5); v.echo = 1; } v.sc = 1.16; v.top = v.top0 = 2.78 + v.hover; v.big = 1; v.bigV = 0; v.castN = u.castN; v.gT = 0; v.lx = u.x; v.ly = u.y;       // bars clear a crest or a hovering head
     v.ring = new THREE.Mesh(FG.ring, new THREE.MeshBasicMaterial({ color: lin(relHex(u)), transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false }));
     v.ring.scale.set(0.58, 1, 0.58); v.ring.position.y = 0.05; v.ring.renderOrder = 2;
   } else { v = unitInstance(u); v.sc = u.kind === 'minion' && u.mtype !== 'lord' ? 1.12 : 1; v.top *= v.sc; }
@@ -7881,7 +8278,7 @@ function heroSize(v, u, dt, cut) {
   const want = !u.dead && immuneOf(u) ? TOTEM_BIG : 1; let b = v.big || 1;
   if (cut) { b = want; v.bigV = 0; }
   else if (b !== want || v.bigV) { const n = Math.max(1, Math.ceil(dt / 0.012)), h = dt / n; let w = v.bigV || 0; for (let i = 0; i < n; i++) { w += ((want - b) * 150 - w * 13) * h; b += w * h; } if (Math.abs(want - b) < 0.002 && Math.abs(w) < 0.02) { b = want; w = 0; } v.bigV = w; }
-  if (b !== v.big) { v.big = b; v.o.scale.setScalar(v.sc * b); v.ring.scale.set(0.58 * (0.4 + 0.6 * b), 1, 0.58 * (0.4 + 0.6 * b)); v.top = v.top0 * (0.12 + 0.88 * b); }
+  if (b !== v.big) { v.big = b; v.o.scale.setScalar(v.sc * b * (v.ramS || 1)); v.ring.scale.set(0.58 * (0.4 + 0.6 * b), 1, 0.58 * (0.4 + 0.6 * b)); v.top = v.top0 * (0.12 + 0.88 * b); }
   return b;
 }
 function syncViews(t, dt) {
@@ -7890,7 +8287,7 @@ function syncViews(t, dt) {
     if (u.kind === 'turret' || u.kind === 'crystal') continue;
     let v = V.views.get(u.id); if (!v) { v = makeView(u); V.views.set(u.id, v); }
     v.tick = tick; v.u = u;
-    const hero = u.kind === 'hero';
+    const hero = u.kind === 'hero' || u.kind === 'clone';
     if (hero) { if (u.dead) v.deadT += dt; else if (v.deadT > 0) { v.deadT = 0; v.mat.opacity = 1; v.mat.transparent = false; v.b.body.rotation.x = 0; v.b.body.position.y = 0; v.face = null; } }
     const show = seen(u) && nearCam(u.x, u.y, 500) && !(hero && u.dead && v.deadT > 2.3);
     v.root.visible = show; if (!show) { v.lastAtk = u.atkAnim; if (hero && u.camo && !u.dead && !seen(u) && nearCam(u.x, u.y, 200)) camoHint(v, u, dt); continue; }
@@ -7909,12 +8306,12 @@ function syncViews(t, dt) {
       if (u.def.forms && v.form !== u.form) applyForm(v, u.form);
       if (cut) { v.castN = u.castN; v.rcK = 0; v.arrT = 0; if (v.cq) v.cq.on = false; v.lx = u.x; v.ly = u.y; }       // the picture jumped: no cast, no arrival, no cloth is carried across
       heroSize(v, u, dt, cut);
-      if (v.castN !== u.castN) { v.castN = u.castN; if (u.castI !== 3) startClip(v, u.castI > 3 ? u.castI - 1 : u.castI); }       // 4..6 are second casts: clips 3..5
+      if (v.castN !== u.castN) { v.castN = u.castN; if (u.castI !== 3) startClip(v, u.castI > 3 ? u.castI - 1 : u.castI); if (v.rb && u.form && u.castI === 8) v.rClip = 1; }       // 4..6 are second casts: clips 3..5
       if ((u.dash || u.leap) && !u.dead) { v.gT -= dt; if (v.gT <= 0) { v.gT = 0.07; const gc = skinColor(u.key, u.skin, v.clipI || 0); ghost3(v, gc, 0.32, 0.28); trail3(v.lx * S3, v.ly * S3, u.x * S3, u.y * S3, 0.75, 0.45, gc, 0.1 + (u.z || 0) * S3, 0.55); v.lx = u.x; v.ly = u.y; } } else { v.gT = 0; v.lx = u.x; v.ly = u.y; }
       st.cast = u.castAnim > 0 ? Math.min(1, u.castAnim / 0.3) : 0; st.dash = !!u.dash; st.leap = !!u.leap; st.spin = !!hasBuff(u, 'whirl'); st.stun = u.stunT > 0 || u.reviveT > 0; st.air = u.air && !u.dead ? clamp(u.air.t / u.air.dur, 0.001, 1) : 0; st.recall = u.recallT > 0 ? Math.max(0.001, 1 - u.recallT / 6) : 0; st.dead = u.dead ? v.deadT : 0;
       if (v.rcK > 0.9 && !st.recall && !u.dead && hyp(u.x - v.rcX, u.y - v.rcY) > 400) v.arrT = 0.001;       // the recall went through: play the setting-down at the fountain
       v.rcK = st.recall; if (st.recall) { v.rcX = u.x; v.rcY = u.y; } if (v.arrT > 0) { v.arrT += dt / 0.6; if (v.arrT >= 1) v.arrT = 0; } st.arrive = v.arrT || 0;
-      animHero(v, st, t, dt);
+      animHero(v, st, t, dt); if (v.rb && v.form) animRam(v, u, st, t, dt);
       if (v.style === 'rifle') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) rifleFlash(v, u); v.a0 = st.atk; }
       if (v.style === 'hurl') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) slash3(u.x * S3 + Math.cos(u.face) * 0.25, u.y * S3 + Math.sin(u.face) * 0.25, u.face, 0.62, 1.05, 0.15, u.look.glow || u.look.trim, 1.25, { thin: 1, op: 0.5, edge: 0.7 }); v.a0 = st.atk; }       // the sweep of the throwing arm as the leaf leaves it
       { const im = !u.dead && immuneOf(u); if (im && im.shell && !(u.flash > 0)) { v.mat.emissive.copy(lin(im.shell)).multiplyScalar(0.16 + 0.05 * Math.sin(t * 6)); v.glow = 1; } else if (u.flash > 0 && !u.dead) { v.mat.emissive.setScalar(0.13); v.glow = 1; } else if (v.glow !== 0) { v.mat.emissive.setScalar(0); v.glow = 0; } }
@@ -8050,16 +8447,18 @@ function drawOverlay(dt) {
       g.fillStyle = TAUNT_C; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill(); g.lineWidth = 1.5; g.strokeStyle = 'rgba(0,0,0,0.6)'; g.stroke();
       g.fillStyle = '#fff'; g.fillRect(cx - 1.4 * us, cy - 5 * us, 2.8 * us, 6.2 * us); g.beginPath(); g.arc(cx, cy + 3.9 * us, 1.6 * us, 0, TAU); g.fill(); }
     if (u.stunT > 0) { g.fillStyle = '#ffe36a'; for (let j = 0; j < 3; j++) { const a = t * 6 + j * TAU / 3; g.beginPath(); g.arc(px + Math.cos(a) * 15 * us, by + 16 * us + Math.sin(a) * 5 * us, 3.4 * us, 0, TAU); g.fill(); } }
-    if (u.kind === 'hero') {
-      const w = 80 * us, h = 8.5 * us, x = px - w / 2 + 7 * us, y = by - h - 4 * us, mine = u === me;
-      drawBar(g, x, y, w, h, u.hp / u.maxHp, mine ? COL.self : col, shieldOf(u) / u.maxHp, 500, u.maxHp);
-      g.fillStyle = '#16222a'; g.fillRect(x, y + h + 1.5, w, 3 * us); g.fillStyle = '#4f8dff'; g.fillRect(x, y + h + 1.5, w * (u.mp / u.maxMp), 3 * us);
+    if (u.kind === 'hero' || u.kind === 'clone') {
+      const w = 80 * us, h = 8.5 * us, x = px - w / 2 + 7 * us, y = by - h - 4 * us, mine = u === me, mo = u.owner || u;       // (an echo shows his mana, not its own: its own would give it away)
+      drawBar(g, x, y, w, h, u.hp / u.maxHp, mine ? COL.self : col, shieldOf(u) / u.maxHp, 500, u.kind === 'clone' && !v.echo ? mo.maxHp : u.maxHp);       // (nor do the marks along an echo's bar count its own health, to the side that must not know it from him)
+      g.fillStyle = '#16222a'; g.fillRect(x, y + h + 1.5, w, 3 * us); g.fillStyle = '#4f8dff'; g.fillRect(x, y + h + 1.5, w * (mo.mp / mo.maxMp), 3 * us);
       g.fillStyle = 'rgba(8,14,18,0.9)'; g.beginPath(); g.arc(x - 9 * us, y + h / 2 + 1, 9.5 * us, 0, TAU); g.fill(); g.strokeStyle = mine ? COL.self : col; g.lineWidth = 1.5; g.stroke();
       g.fillStyle = '#fff'; g.font = `700 ${12 * us}px ${F1}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(u.level, x - 9 * us, y + h / 2 + 1.5);
-      label(mine ? 'You' : u.name, px + 3 * us, y - 4 * us, 11 * us, mine ? '#d6ffe0' : u.team === V.team || (V.team < 0 && u.team === BLUE) ? '#cfe9ff' : '#ffd2d2');
+      label(mine ? 'You' : v.echo ? 'Echo' : u.name, px + 3 * us, y - 4 * us, 11 * us, mine ? '#d6ffe0' : u.team === V.team || (V.team < 0 && u.team === BLUE) ? '#cfe9ff' : '#ffd2d2');
       if (u.sg) for (let j = 0; j < u.sg.n; j++) { const sx = x + w + (8 + j * 9.5) * us, sy = y + h / 2; g.fillStyle = '#ffb21e'; g.strokeStyle = 'rgba(24,14,0,0.9)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(sx, sy - 5.5 * us); g.lineTo(sx + 3.8 * us, sy); g.lineTo(sx, sy + 5.5 * us); g.lineTo(sx - 3.8 * us, sy); g.closePath(); g.stroke(); g.fill(); }       // Miel's stings in this hero: a pip for each, at the end of the bar
       if (u === V.focus) { const ty = y - 17 * us, s = 5.5 * us; g.fillStyle = '#fff'; g.strokeStyle = 'rgba(0,0,0,0.7)'; g.lineWidth = 2; g.beginPath(); g.moveTo(px + 3 * us - s, ty - s); g.lineTo(px + 3 * us + s, ty - s); g.lineTo(px + 3 * us, ty); g.closePath(); g.stroke(); g.fill(); }       // watching: the one the view is on
       if (V.replay && u.id === V.slayer && w2s(u.x * S3, 0, u.y * S3, _sp2)) { const gx = _sp2.x, gy = _sp2.y + 15 * us; g.fillStyle = '#ff5d5d'; g.beginPath(); g.moveTo(gx - 5 * us, gy + 6 * us); g.lineTo(gx + 5 * us, gy + 6 * us); g.lineTo(gx, gy); g.closePath(); g.fill(); label('SLAYER', gx, gy + 19 * us, 12 * us, '#ffb3b3'); }       // under his feet, where neither the bars nor the dark bands hide it
+      if (u.tp) { const k = 1 - u.tp.t / TP_T; g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 4 * us); g.fillStyle = SPELLS.teleport.c; g.fillRect(x, y + h + 7 * us, w * k, 4 * us); }       // on his way by Teleport
+      else if (u.form && u.def.forms && u.def.forms.beast && u.pv.bt) { const k = clamp((u.pv.bt - G.t) / BEAST_T, 0, 1); g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 3.5 * us); g.fillStyle = skinColor(u.key, u.skin, 2); g.fillRect(x, y + h + 7 * us, w * k, 3.5 * us); }       // how much longer he is the Stormhorn
       if (u.recallT > 0) { const k = 1 - u.recallT / 6; g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 4 * us); g.fillStyle = '#9fd8ff'; g.fillRect(x, y + h + 7 * us, w * k, 4 * us); }
     } else if (u.kind === 'minion') {
       if (u.mtype === 'lord') drawBar(g, px - 62 * us, by - 8, 124 * us, 7.5 * us, u.hp / u.maxHp, col, 0);
@@ -8224,7 +8623,9 @@ function drawMinimap() {
   for (const s of G.turrets) { if (s.dead) continue; const c = tcol(s.team, T), w = 3.4 * q, e = s.plate > 0 ? Math.max(1.5, 1.4 * q) : 0; g.fillStyle = e ? '#f2c14e' : '#0b1418'; g.fillRect(s.x * k - w - 1 - e, s.y * k - w - 1 - e, w * 2 + 2 + e * 2, w * 2 + 2 + e * 2); g.fillStyle = c; g.fillRect(s.x * k - w, s.y * k - w, w * 2, w * 2); }
   for (const s of G.crystals) { if (s.dead) continue; const c = tcol(s.team, T), w = 6.5 * q; g.fillStyle = '#0b1418'; g.beginPath(); g.moveTo(s.x * k, s.y * k - w - 1.5); g.lineTo(s.x * k + w * 0.7 + 1.5, s.y * k); g.lineTo(s.x * k, s.y * k + w + 1.5); g.lineTo(s.x * k - w * 0.7 - 1.5, s.y * k); g.fill(); g.fillStyle = c; g.beginPath(); g.moveTo(s.x * k, s.y * k - w); g.lineTo(s.x * k + w * 0.7, s.y * k); g.lineTo(s.x * k, s.y * k + w); g.lineTo(s.x * k - w * 0.7, s.y * k); g.fill(); }
   for (const u of G.units) if (u.kind === 'minion' && !u.dead && seen(u)) dot(u.x, u.y, u.mtype === 'lord' ? 4 : 1.5, u.mtype === 'lord' ? '#c070ff' : tcol(u.team, T));
-  for (let pass = 0; pass < 3; pass++) for (const h of G.heroes) {       // allies first, enemies over them, the player on top: icons this size overlap in a fight
+  for (const u of G.units) if (u.kind === 'clone' && !u.dead && seen(u) && (T < 0 || u.team === T)) { g.strokeStyle = tcol(u.team, T); g.lineWidth = 1.4 * Math.max(1, q); g.beginPath(); g.arc(u.x * k, u.y * k, 3.2 * q, 0, TAU); g.stroke(); }
+  const mmH = T < 0 ? G.heroes : G.heroes.concat(G.units.filter(u => u.kind === 'clone' && u.team !== T));
+  for (let pass = 0; pass < 3; pass++) for (const h of mmH) {       // allies first, enemies over them, the player on top: icons this size overlap in a fight
     if (h.dead || !seen(h) || (h === me ? 2 : h.team === T ? 0 : 1) !== pass) continue; const c = h === me ? COL.self : tcol(h.team, T), r = MM_HERO * q, x = h.x * k, y = h.y * k;
     g.fillStyle = '#0b1418'; g.beginPath(); g.arc(x, y, r + 2.6 * q, 0, TAU); g.fill();
     g.fillStyle = c; g.beginPath(); g.arc(x, y, r + 1.8 * q, 0, TAU); g.fill();
@@ -8377,6 +8778,17 @@ const ICONS = {
   fade: `<path stroke-dasharray="2.6 2.4" d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle ${F} cx="12" cy="12" r="2.600"/><path d="M4.500 19.500l15-15"/>`,
   charge: `<circle ${F} cx="10" cy="14.500" r="6"/><path d="M14.200 10.300l2.600-2.600M18.500 2.500v3M21.500 5.500h-3M20.800 3.200l-1.800 1.800"/>`,
   rounds: `<path ${F} d="M2.500 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM7.830 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM13.170 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM18.500 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21z"/>`,
+  echo: `<circle ${F} cx="12" cy="7.5" r="3"/><path ${F} d="M6.5 20.5c0-4 2.4-6.5 5.5-6.5s5.5 2.5 5.5 6.5z"/><circle cx="4.5" cy="9.5" r="2.1"/><circle cx="19.5" cy="9.5" r="2.1"/><path d="M1.8 19c0-2.4.9-4.1 2.4-4.8M22.2 19c0-2.4-.9-4.1-2.4-4.8"/>`,
+  fist: `<path ${F} d="M5.5 10h11a2.5 2.5 0 0 1 2.5 2.5V15a5 5 0 0 1-5 5H10a4.5 4.5 0 0 1-4.5-4.5z"/><path d="M8 10V6.5M11.4 10V5.5M14.8 10V6.5"/><path d="M19.5 3l-1.6 2.4h2.2L18.500 8"/>`,
+  ram: `<path ${F} d="M9 9.5h6l-1.200 9.500h-3.600z"/><path d="M9.5 9C7.5 4.500 2.500 6 3 10.500c.4 3.4 4.200 3.800 4.800 1.300.3-1.300-1-2.100-1.900-1.300M14.500 9c2-4.500 7-3 6.500 1.500-.4 3.400-4.200 3.800-4.800 1.300-.3-1.300 1-2.100 1.900-1.300"/>`,
+  ramcharge: `<path d="M2.5 8.500h5M1.500 12h6.500M2.500 15.500h5"/><path ${F} d="M11 5l10 7-10 7 3-7z"/>`,
+  bellow: `<path ${F} d="M3 10v4h4.500l5 4V6l-5 4z"/><path d="M16 9c1.600 1.700 1.600 4.300 0 6M18.800 6.200c3.200 3.200 3.200 8.400 0 11.600"/>`,
+  skyfall: `<path ${F} d="M12 16.500l-5.200-8h3.300V3h3.800v5.500h3.300z"/><path d="M3.500 20.500c2.600-2.200 5.300-3.200 8.500-3.200s5.900 1 8.500 3.200"/>`,
+  fan: `<path ${F} d="M12 20.500L3.200 9.800a11.400 11.400 0 0 1 17.600 0z"/><path stroke="#0d1b21" stroke-width="1.3" d="M12 20V6.200M12 20L7.300 8M12 20l4.700-12"/>`,
+  comet: `<path ${F} d="M13.500 3.500l7 .1.100 7-9.300 9.300-4.700 1.500 1.500-4.700z"/><path d="M3 8.500l3.500-3.500M2.500 13.500l2.500-2.500"/>`,
+  ruin: `<path ${F} d="M4.500 19.500L15.800 3l4.700 4.700L9 19.500z"/><path d="M3.500 20.500l3-3M5.800 15.200l3 3"/><path stroke="#0d1b21" stroke-width="1.2" d="M14 8l-1.500 3 2 .5-1.800 3"/>`,
+  charm: `<circle cx="12" cy="12.500" r="8.500"/><path ${F} d="M12 6.500c2.600 3.100 4.100 5.100 4.100 7.100a4.100 4.100 0 0 1-8.200 0c0-2 1.500-4 4.100-7.100z"/><path d="M12 2v2"/>`,
+  gate: `<path d="M5.500 21V10.500a6.500 6.500 0 0 1 13 0V21"/><path ${F} d="M12 8.200l3.700 4.800h-2.400v5.200h-2.600V13H8.300z"/>`,
   scope: `<circle cx="12" cy="12" r="7.500"/><path d="M12 2v5.500M12 16.500V22M2 12h5.500M16.500 12H22"/><circle ${F} cx="12" cy="12" r="1.700"/>`,
   gong: `<path d="M3 3h18M7.5 3l1.6 3.4M16.5 3l-1.6 3.4"/><circle ${F} cx="12" cy="13.6" r="7.9"/><circle cx="12" cy="13.6" r="3.5" stroke="#0d1b21" stroke-width="1.7"/>`,
   linked: `<path d="M2.6 16.5a9.4 9.4 0 0 1 18.8 0"/><circle ${F} cx="12" cy="13.6" r="2.7"/><circle ${F} cx="6.3" cy="17.3" r="2.1"/><circle ${F} cx="17.7" cy="17.3" r="2.1"/><path d="M2.6 21.4h18.8"/>`,
@@ -8747,13 +9159,16 @@ function updateHud(dt) {
   const ik = me.items.join(',');
   if (UI.last.ik !== ik) { UI.last.ik = ik; $('stItems').innerHTML = Array.from({ length: 6 }, (_, i) => me.items[i] ? `<div class="slot ii${ITEMS[me.items[i]].part ? ' part' : ''}" title="${esc(ITEMS[me.items[i]].name)}">${icon(ITEMS[me.items[i]].ic, ITEMS[me.items[i]].c)}</div>` : '<div class="slot"></div>').join(''); if (!$('shop').hidden) renderShop(); }
   // skills
+  if (UI.tp) tpDraw();
   if (UI.last.form !== me.form) { skillButtons(); UI.last.form = me.form; $('tip').hidden = true; }
   for (let i = 0; i < 4; i++) {
     const b = $(i < 3 ? 'bS' + i : 'bSp'), sp = i === 3, s = sp ? SPELLS[me.spell] : skDef(me, i), lv = sp ? 1 : me.sk[i];
     const re = sp || me.dead ? null : recastOf(me, i) || (chainHold(me, i) ? me.re[i] : null);       // its next cast is waiting (or, in a chain, about to be): the button is lit, shows what it will do and how long is left
-    const hold = !sp && i === 0 && me.camo ? hasBuff(me, 'camo') : null;       // under her cape: the button shows how long of that is left, and only then its cooldown
-    const cd = hold ? hold.t : re ? 0 : sp ? me.spellCd : me.cds[i], full = hold ? CAMO_T : sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
+    const ram = !sp && i === 2 && me.form && me.def.forms.beast && me.pv.sky ? { t: Math.max(0, me.pv.bt - G.t) } : null;       // the Stormhorn with its leap spent: the button shows how long he is the ram yet
+    const hold = ram || (!sp && i === 0 && me.camo ? hasBuff(me, 'camo') : null);       // under her cape: the button shows how long of that is left, and only then its cooldown
+    const cd = hold ? hold.t : re ? 0 : sp ? me.spellCd : me.cds[i], full = ram ? BEAST_T : hold ? CAMO_T : sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
     if (!sp && me.def.lethal) setCls(b, 'on', i === 0 ? !!hold : i === 2 && !!me.snipe, 'on' + i);
+    if (!sp && i === 2 && me.def.forms && me.def.forms.beast) setCls(b, 'on', !!ram, 'on' + i);
     const p = cd > 0 ? clamp(cd / full, 0, 1) : 0, pk = Math.round(p * 100);
     if (!sp && s.chain) { const st = re ? re.n - 1 : 0, key = st * 2 + (re ? 1 : 0); if (UI.last['ch' + i] !== key) { UI.last['ch' + i] = key; b.classList.toggle('st3', !!re && re.n === 3); const pp = b.lastElementChild.children; for (let j = 0; j < pp.length; j++) pp[j].className = j < st ? 'f' : j === st && re ? 'n' : ''; } }       // how many cuts are made, and which is next
     if (!sp) { setCls(b, 'armed', !!re, 'ar' + i); if (re) { const w = Math.round(clamp((re.until - G.t) / (re.span || (re.span = re.until - G.t)), 0, 1) * 50) / 50; if (UI.last['w' + i] !== w) { UI.last['w' + i] = w; b.style.setProperty('--w', w); } } }
@@ -8945,9 +9360,10 @@ const CATS = ['For you', 'Attack', 'Magic', 'Defense', 'Boots'];
    back, another item takes its place, and a new match starts without one. It is the player's own note: the sim knows nothing of it. */
 function prioItem(me) {       // the marked item, for as long as it is still to be had
   const k = UI.prio; if (!k) return null; const it = ITEMS[k];
-  if (!it || (!it.part && me.items.includes(k))) { UI.prio = null; return null; }
+  if (!it || (!it.part && heldOf(me, k) > (UI.prioN || 0))) { UI.prio = null; return null; }       // (one more of it than when it was marked: it has been had. Holding one already was no bar to marking it: another may be what is wanted)
   return k;
 }
+function heldOf(me, k) { let n = 0; for (const q of me.items) if (q === k) n++; return n; }
 function prioBlocked(me, k) { const it = ITEMS[k]; return !!it.boots && me.items.some(q => ITEMS[q].boots && !(it.from || []).includes(q)); }       // a second pair of boots is never to be had
 function stepTo(me, k) {       // the purchase towards item k that can be made now, or null
   if (canBuy(me, k)) return k;
@@ -8965,17 +9381,19 @@ function prioWait(me, k) {       // nothing of it can be bought yet: what the ch
 function prioToggle(k) {
   const me = G.player, it = ITEMS[k]; if (!me || !it || UI.state !== 'play') return;
   if (UI.prio === k) UI.prio = null;
-  else if ((!it.part && me.items.includes(k)) || prioBlocked(me, k)) { snd('deny'); return; }
-  else UI.prio = k;
+  else if (prioBlocked(me, k)) { snd('deny'); return; }
+  else { UI.prio = k; UI.prioN = heldOf(me, k); }
   snd('ui'); UI.last.qk = null;
   if (!$('shop').hidden) { const y = $('items').closest('.body').scrollTop; renderShop(); $('items').closest('.body').scrollTop = y; }
 }
-function bought(k) { if (k === UI.prio) UI.prio = null; UI.tap2 = null; }       // (a marked part is marked until it is bought once)
+const AGAIN_MS = 5000;       // how long the question stands
+function againArmed(k) { const a = UI.again; return !!a && a.k === k && performance.now() - a.t < AGAIN_MS; }
+function bought(k) { if (k === UI.prio) UI.prio = null; UI.tap2 = null; UI.again = null; }       // (a marked part is marked until it is bought once)
 function itemCard(k) {
   const it = ITEMS[k];
   const rc = it.from ? `<div class="rc">${it.from.map(c => `<button class="pt" data-k="${c}" aria-label="Buy ${esc(ITEMS[c].name)}"><span class="ii">${icon(ITEMS[c].ic, ITEMS[c].c)}</span><span>${esc(ITEMS[c].name)}</span><i></i></button>`).join('')}<small>+ ${it.fee} gold to forge</small></div>`
     : it.into ? `<div class="rc"><small>Builds into ${it.into.map(c => esc(ITEMS[c].name)).join(', ')}</small></div>` : '';
-  return `<div class="itw${it.part ? ' part' : ''}" data-k="${k}"><button class="it" data-k="${k}"><span class="ii">${icon(it.ic, it.c)}</span><b>${esc(it.name)}</b><span class="pr"></span><span class="st">${itemStatText(it).join(' · ')}${it.p ? `<em>${esc(it.p)}</em>` : ''}${it.act ? `<em class="act"><u>Press</u> ${esc(it.act.name)}: ${esc(it.act.desc)} ${it.act.cd}s cooldown.</em>` : ''}</span></button>${rc}<button class="pri" data-p="${k}" aria-pressed="false">${icon('star')}<span>Prioritize</span></button></div>`;
+  return `<div class="itw${it.part ? ' part' : ''}" data-k="${k}"><button class="it" data-k="${k}"><span class="ii">${icon(it.ic, it.c)}<span class="ow" hidden></span></span><b>${esc(it.name)}</b><span class="pr"></span><span class="st">${itemStatText(it).join(' · ')}${it.p ? `<em>${esc(it.p)}</em>` : ''}${it.act ? `<em class="act"><u>Press</u> ${esc(it.act.name)}: ${esc(it.act.desc)} ${it.act.cd}s cooldown.</em>` : ''}</span>${it.part ? '' : '<span class="ag" hidden></span>'}</button>${rc}<button class="pri" data-p="${k}" aria-pressed="false">${icon('star')}<span>Prioritize</span></button></div>`;
 }
 function renderShop() {
   const me = G.player;
@@ -8991,13 +9409,15 @@ function renderShop() {
 function syncShop() {
   const me = G.player, nb = wantItem(me), ns = wantStep(me), pk = prioItem(me); setTxt('shopGold', Math.floor(me.gold) + ' gold');
   document.querySelectorAll('#items .itw').forEach(w => {
-    const k = w.dataset.k, it = ITEMS[k], own = !it.part && me.items.includes(k), can = canBuy(me, k), price = itemPrice(me, k), b = w.firstChild, pr = b.querySelector('.pr');
-    w.classList.toggle('own', own); w.classList.toggle('can', can); w.classList.toggle('no', !can && !own); w.classList.toggle('rec', k === nb || k === ns); b.disabled = own; w.classList.toggle('prio', k === pk); { const q = w.querySelector('.pri'), on = k === pk; q.hidden = own; if (q.getAttribute('aria-pressed') !== String(on)) { q.setAttribute('aria-pressed', String(on)); q.lastChild.textContent = on ? 'Priority' : 'Prioritize'; } }
-    const txt = own ? 'Owned' : price < it.cost ? `<s>${it.cost}</s>${price}` : String(it.cost); if (pr.innerHTML !== txt) pr.innerHTML = txt;
-    if (it.from) { const have = me.items.slice(); w.querySelectorAll('.pt').forEach(c => { const ck = c.dataset.k, i = have.indexOf(ck), has = i >= 0 || own; if (i >= 0) have.splice(i, 1); c.classList.toggle('have', has); c.classList.toggle('can', !has && canBuy(me, ck)); c.classList.toggle('next', !has && ck === ns && k === nb); c.disabled = has; const t = has ? '✓' : String(ITEMS[ck].cost), e = c.lastChild; if (e.textContent !== t) e.textContent = t; }); }
+    const k = w.dataset.k, it = ITEMS[k], held = it.part ? 0 : heldOf(me, k), own = held > 0, done = own && !!it.boots, can = canBuy(me, k), price = itemPrice(me, k), b = w.firstChild, pr = b.querySelector('.pr');       // (own: a complete item of which one at least is in the bag; it can be bought again all the same)
+    w.classList.toggle('own', own); w.classList.toggle('done', done); w.classList.toggle('can', can); w.classList.toggle('no', !can && !done); w.classList.toggle('rec', k === nb || k === ns); b.disabled = done; w.classList.toggle('prio', k === pk); { const q = w.querySelector('.pri'), on = k === pk; q.hidden = done; if (q.getAttribute('aria-pressed') !== String(on)) { q.setAttribute('aria-pressed', String(on)); q.lastChild.textContent = on ? 'Priority' : 'Prioritize'; } }
+    const txt = done ? 'Owned' : price < it.cost ? `<s>${it.cost}</s>${price}` : String(it.cost); if (pr.innerHTML !== txt) pr.innerHTML = txt;
+    { const ow = b.querySelector('.ow'), t = own && !done ? '\u00d7' + held : ''; if (ow.textContent !== t) ow.textContent = t; ow.hidden = !t; if (t) ow.setAttribute('aria-label', 'You have ' + held); }
+    { const ag = b.querySelector('.ag'); if (ag) { const arm = againArmed(k), t = arm ? (can ? 'You have ' + (held === 1 ? 'one' : held) + '. Press again to buy another: its numbers add up; its passive, Move Speed and penetration count once.' : '') : ''; if (ag.textContent !== t) ag.textContent = t; ag.hidden = !t; w.classList.toggle('again', !!t); } }
+    if (it.from) { const have = me.items.slice(); w.querySelectorAll('.pt').forEach(c => { const ck = c.dataset.k, i = have.indexOf(ck), has = i >= 0 || done; if (i >= 0) have.splice(i, 1); c.classList.toggle('have', has); c.classList.toggle('can', !has && canBuy(me, ck)); c.classList.toggle('next', !has && ck === ns && k === nb); c.disabled = has; const t = has ? '✓' : String(ITEMS[ck].cost), e = c.lastChild; if (e.textContent !== t) e.textContent = t; }); }
   });
 }
-function openModal(id) { for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (m !== id) $(m).hidden = true; $(id).hidden = false; if (id === 'prac') renderPrac(); if (id === 'shop') renderShop(); if (id === 'board') $('boardT').innerHTML = boardHtml(false); if (id === 'pause') { const me = UI.state === 'play' ? G.player : null, net = !!NET.M; UI.paused = true; $('pauseH').textContent = net ? 'Menu' : 'Paused'; $('btnResume').textContent = net ? 'Back to the match' : 'Resume'; $('pauseNet').hidden = !net; $('btnLastRecap').hidden = !(me && me.recap); $('pauseSkWrap').hidden = !me; $('rowAimCam').hidden = !me; $('btnQuit').textContent = me ? 'Leave match' : 'Stop watching'; $('pauseWd').hidden = !(UI.state === 'watch' && !UI.pb); wdShow(); $('panNote').textContent = me ? 'How far the view travels when you drag the battlefield. Drag towards what you want to see; let go to return.' : 'How far the view travels when you drag the battlefield. Drag towards what you want to see.'; if (me) $('pauseSk').innerHTML = skillsHtml(me.def, i => Math.max(1, me.sk[i])); $('btnSound').textContent = UI.mute ? 'Sound off' : 'Sound on'; $('btnGfx').textContent = 'Graphics: ' + GFX_NAMES[V.q]; $('btnCam').textContent = 'Camera: ' + camName(); showCamPrefs(); } clearInput(id !== 'pause'); }
+function openModal(id) { for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (m !== id) $(m).hidden = true; $(id).hidden = false; if (id === 'prac') renderPrac(); if (id === 'shop') { UI.again = null; renderShop(); } if (id === 'board') $('boardT').innerHTML = boardHtml(false); if (id === 'pause') { const me = UI.state === 'play' ? G.player : null, net = !!NET.M; UI.paused = true; $('pauseH').textContent = net ? 'Menu' : 'Paused'; $('btnResume').textContent = net ? 'Back to the match' : 'Resume'; $('pauseNet').hidden = !net; $('btnLastRecap').hidden = !(me && me.recap); $('pauseSkWrap').hidden = !me; $('rowAimCam').hidden = !me; $('btnQuit').textContent = me ? 'Leave match' : 'Stop watching'; $('pauseWd').hidden = !(UI.state === 'watch' && !UI.pb); wdShow(); $('panNote').textContent = me ? 'How far the view travels when you drag the battlefield. Drag towards what you want to see; let go to return.' : 'How far the view travels when you drag the battlefield. Drag towards what you want to see.'; if (me) $('pauseSk').innerHTML = skillsHtml(me.def, i => Math.max(1, me.sk[i])); $('btnSound').textContent = UI.mute ? 'Sound off' : 'Sound on'; $('btnGfx').textContent = 'Graphics: ' + GFX_NAMES[V.q]; $('btnCam').textContent = 'Camera: ' + camName(); showCamPrefs(); } clearInput(id !== 'pause'); }
 function setPan(v, save) { UI.panK = clamp(Math.round(v / PAN_STEP) * PAN_STEP, PAN_MIN, PAN_MAX); showCamPrefs(); if (save) prefs(true); }
 function showCamPrefs() { const s = $('slPan'), v = +UI.panK.toFixed(2); s.style.setProperty('--f', ((UI.panK - PAN_MIN) / (PAN_MAX - PAN_MIN)).toFixed(4)); s.setAttribute('aria-valuenow', v); s.setAttribute('aria-valuetext', v + ' times'); $('outPan').textContent = v + '×'; $('btnPanDn').disabled = UI.panK <= PAN_MIN; $('btnPanUp').disabled = UI.panK >= PAN_MAX; const b = $('btnAimCam'); b.textContent = 'Aim camera: ' + (UI.aimCam ? 'On' : 'Off'); b.setAttribute('aria-pressed', String(UI.aimCam)); }
 function closeModal(id) { $(id).hidden = true; if (id === 'pause') UI.paused = false; }
@@ -9098,7 +9518,36 @@ function bindTaps() {
 
 /* ---------------- input ---------------- */
 /* drop whatever is being held. soft = a panel opened over the game (shop, scoreboard): only aiming is dropped, the hero keeps walking under the finger or key that holds it */
+/* Teleport is aimed on a map, not on the ground. Pressing it opens the map with every place he can arrive at marked on it (his side's
+   turrets, his crystal, his minions); a press on the map takes whichever of them is nearest it. The match goes on meanwhile. */
+function tpAnchors() { const me = G.player, out = []; for (const u of G.turrets) if (!u.dead && u.team === me.team) out.push(u); for (const u of G.crystals) if (!u.dead && u.team === me.team) out.push(u); for (const u of G.units) if (u.kind === 'minion' && !u.dead && u.team === me.team) out.push(u); return out; }
+function tpNear(x, y) {       // (a thumb is not a pointer: whatever of his is nearest within TP_TAP of the press, and a press inside a turret's ring is that turret though a minion walking past it is nearer)
+  let best = null, bd = TP_TAP, st = null, sd = 1e9;
+  for (const u of tpAnchors()) { const d = hyp(u.x - x, u.y - y); if (d < bd) { bd = d; best = u; } if (u.kind !== 'minion' && d < sd) { sd = d; st = u; } }
+  return st && sd <= (st.kind === 'crystal' ? 380 : 320) ? st : best;
+}
+const TP_TAP = 900;
+function tpOpen() { if (UI.paused || UI.ended || !G.player || G.player.dead) return; UI.tp = { hx: -1, hy: -1, say: '' }; $('tp').hidden = false; $('tip').hidden = true; UI.aimKey = -1; V.aim = null; tpDraw(); }
+function tpClose() { if (!UI.tp) return; UI.tp = null; $('tp').hidden = true; }
+function tpPoint(p) { const r = lrect($('tpMap')); return { x: clamp((p.x - r.left) / r.width, 0, 1) * W, y: clamp((p.y - r.top) / r.height, 0, 1) * W }; }
+function tpTake(p) { const w = tpPoint(p), a = tpNear(w.x, w.y); if (!a) { snd('deny'); return; } tpClose(); doCast(3, a.x, a.y); }
+function tpDraw() {
+  const cv = $('tpMap'), me = G.player; if (!UI.tp || !me || me.dead || UI.ended || UI.state !== 'play' || me.spellCd > 0 || SPELLS[me.spell].cast !== 'map') { tpClose(); return; }
+  const n = cv.width, g = cv.getContext('2d'), k = n / W, q = n / 160, T = me.team, t = performance.now() / 1000, hot = UI.tp.hx >= 0 ? tpNear(UI.tp.hx, UI.tp.hy) : null, c = SPELLS.teleport.c;
+  g.setTransform(1, 0, 0, 1, 0, 0); if (V.mmBg) g.drawImage(V.mmBg, 0, 0, n, n); else { g.fillStyle = '#12301f'; g.fillRect(0, 0, n, n); }
+  g.fillStyle = 'rgba(4,10,14,0.38)'; g.fillRect(0, 0, n, n);
+  for (const s of G.turrets) if (!s.dead && s.team !== T) { g.fillStyle = COL.enemy; g.fillRect(s.x * k - 2.2 * q, s.y * k - 2.2 * q, 4.4 * q, 4.4 * q); }
+  for (const h of G.heroes) if (!h.dead && h !== me && (h.team === T || h.vis[T])) { g.fillStyle = tcol(h.team, T); g.beginPath(); g.arc(h.x * k, h.y * k, 3 * q, 0, TAU); g.fill(); }
+  for (const u of tpAnchors()) {
+    const x = u.x * k, y = u.y * k, mn = u.kind === 'minion', r = (mn ? 1.9 : u.kind === 'crystal' ? 5.5 : 4.2) * q, on = u === hot;
+    if (!mn || on) { g.strokeStyle = on ? '#ffffff' : c; g.globalAlpha = on ? 1 : 0.6 + 0.3 * Math.sin(t * 4 + x); g.lineWidth = (on ? 2.6 : 1.5) * Math.max(1, q * 0.7); g.beginPath(); g.arc(x, y, r + (on ? 4.6 : 3) * q, 0, TAU); g.stroke(); g.globalAlpha = 1; }
+    g.fillStyle = on ? '#ffffff' : mn ? '#a9d4ff' : c; if (mn) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); } else g.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  g.fillStyle = COL.self; g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.beginPath(); g.arc(me.x * k, me.y * k, 4 * q, 0, TAU); g.fill(); g.stroke();
+  const say = hot ? 'Arrive at ' + (hot.kind === 'turret' ? 'this turret' : hot.kind === 'crystal' ? 'your crystal' : 'this minion') : 'Choose one of your turrets, your crystal or a minion'; if (UI.tp.say !== say) { UI.tp.say = say; $('tpSay').textContent = say; }
+}
 function clearInput(soft) {
+  tpClose();
   UI.aimKey = -1; UI.sk = null; UI.q = null; V.aim = null; $('cancel').hidden = true; $('cancel').classList.remove('hot'); if (soft) return;
   UI.nav = null; UI.keys = {}; UI.joy.id = null; UI.joy.x = UI.joy.y = 0; UI.mouseAtk = false; UI.atkPtr = 0; if (G && !G.pb) { G.input.atk = false; G.input.mx = G.input.my = 0; }       // (a recording's hands are its own)
   $('joy').classList.add('idle'); $('joyKnob').style.transform = ''; $('joy').style.left = $('joy').style.top = '';
@@ -9162,7 +9611,7 @@ function bindInput() {
     if (k === 'Enter' && chatOn() && !UI.ended && !RP.on && !e.repeat) { e.preventDefault(); chatType(e.shiftKey ? 1 : 0); return; }       // Enter: a line to the team (with Shift: to everyone)
     if (RP.on) { if (k === 'Escape' || k === ' ' || k === 'Enter') { e.preventDefault(); endReplay(); } return; }       // a replay only listens for "enough"
     if (k === 'Tab') { e.preventDefault(); if (!UI.boardHold && !UI.ended) { UI.boardHold = true; openModal('board'); } return; }
-    if (k === 'Escape') { if (UI.aimKey >= 0) { UI.aimKey = -1; V.aim = null; return; } for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (!$(m).hidden) { closeModal(m); return; } if (!UI.ended) openModal('pause'); return; }
+    if (k === 'Escape') { if (UI.tp) { tpClose(); return; } if (UI.aimKey >= 0) { UI.aimKey = -1; V.aim = null; return; } for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (!$(m).hidden) { closeModal(m); return; } if (!UI.ended) openModal('pause'); return; }
     if (UI.ended) return;
     if (k === 'n' && !e.repeat) { if (!$('recap').hidden) closeModal('recap'); else if (G.player.recap) openRecap(); return; }
     if (k === 'p') { $('shop').hidden ? openModal('shop') : closeModal('shop'); return; }
@@ -9171,7 +9620,7 @@ function bindInput() {
     if (UI.touch) { UI.touch = false; document.body.classList.remove('touch'); }
     UI.keys[k] = true;
     const si = { q: 0, e: 1, r: 2, f: 3 }[k];
-    if (si != null) { if (!skillReady(si)) { if (!queueCast(si, true)) snd('deny'); return; } const s = skillOf(si); if (s.cast === 'self') doCast(si, G.player.x, G.player.y); else UI.aimKey = si; return; }
+    if (si != null) { if (!skillReady(si)) { if (!queueCast(si, true)) snd('deny'); return; } const s = skillOf(si); if (s.cast === 'self') doCast(si, G.player.x, G.player.y); else if (s.cast === 'map') { if (UI.tp) tpClose(); else tpOpen(); } else UI.aimKey = si; return; }
     if (k === '1' || k === '2' || k === '3') { if (act(A_LEVEL, +k - 1)) snd('level'); return; }
     if (k === 'b') { act(A_RECALL); return; }
     if (k === 'g') { doMend(); return; }
@@ -9241,6 +9690,7 @@ function bindInput() {
       down(p) {
         setTouch(p); if (UI.sk || UI.paused || UI.ended) return false;
         if (!skillReady(i)) { if (!queueCast(i, false)) snd('deny'); return false; }
+        if (skillOf(i).cast === 'map') { if (UI.tp) tpClose(); else tpOpen(); return false; }       // (Teleport: not aimed from the button; the map opens)
         UI.sk = { id: p.id, i, s: skillOf(i), x0: p.x, y0: p.y, drag: false, ux: 0, uy: 0, k: 0, cancel: false }; b.classList.add('on');
       },
       move(p) {
@@ -9261,6 +9711,9 @@ function bindInput() {
   $('bMd').addEventListener('click', doMood);
   $('bIt').addEventListener('click', doItem); $('bIt').addEventListener('mouseenter', () => { if (!UI.touch && UI.state === 'play') showItemTip(); }); $('bIt').addEventListener('mouseleave', () => { $('tip').hidden = true; });
   $('bHl').addEventListener('click', doMend); $('bHl').addEventListener('mouseenter', () => { if (!UI.touch && UI.state === 'play') showMendTip(); }); $('bHl').addEventListener('mouseleave', () => { $('tip').hidden = true; });
+  press($('tpMap'), { down(p) { if (!UI.tp) return false; const w = tpPoint(p); UI.tp.hx = w.x; UI.tp.hy = w.y; }, move(p) { if (UI.tp) { const w = tpPoint(p); UI.tp.hx = w.x; UI.tp.hy = w.y; } }, up(p, cancelled) { if (UI.tp && !cancelled) tpTake(p); } });
+  $('tpMap').addEventListener('mousemove', e => { if (UI.tp && !UI.touch) { const w = tpPoint(lpt(e.clientX, e.clientY, {})); UI.tp.hx = w.x; UI.tp.hy = w.y; } });
+  $('tpNo').addEventListener('click', tpClose);
   // minimap peek
   const mw = $('mmWrap'); let mmId = null;
   const peek = p => { const r = lrect(mw), x = clamp((p.x - r.left) / r.width, 0, 1) * W, y = clamp((p.y - r.top) / r.height, 0, 1) * W;
@@ -9322,6 +9775,7 @@ function bindInput() {
   $('items').addEventListener('click', e => {
     const p = e.target.closest('button.pri'); if (p) { prioToggle(p.dataset.p); return; }
     const b = e.target.closest('.pt, .it'); if (!b) return; const k = b.dataset.k, card = b.classList.contains('it'), now = performance.now(), t2 = UI.tap2;
+    if (card && !ITEMS[k].part && G.player.items.includes(k) && canBuy(G.player, k) && !againArmed(k)) { UI.again = { k, t: now }; UI.tap2 = null; snd('ui'); syncShop(); return; }       // one is held already: the first press asks, the second buys
     if (act(A_BUY, k)) { bought(k); snd('gold'); const y = $('items').closest('.body').scrollTop; renderShop(); $('items').closest('.body').scrollTop = y; }
     else if (card && t2 && t2.k === k && now - t2.t < 480) { UI.tap2 = null; prioToggle(k); }       // pressed twice and not to be bought yet: it is put first (or taken back)
     else { UI.tap2 = card ? { k, t: now } : null; snd('deny'); }
@@ -10177,7 +10631,7 @@ function linkAsk(name) { const R = LK.rooms.get(name); if (R && !R.left) lkAsk(R
    NET.ok: 0 not asked yet, 1 connected, -1 this view cannot connect. chan: the table (null: not at one). P: the pages at the table,
    as read. hs: this page hosts. go: what the host started. M: the match in progress, as the turn exchange holds it (ncNew).
    ============================================================ */
-const NETV = 7;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
+const NETV = 8;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
 const NET_AWAY = 6000;        // ms the page of a seat may be missing from the table during a match before the seat counts as gone (connections are refreshed now and then, and that is no leaving)
 const NET_GO_MS = 15000;      // ms the host keeps saying how a match started
 const NET_BYTES = 3900;       // the most a page may keep in a room is 4 KiB

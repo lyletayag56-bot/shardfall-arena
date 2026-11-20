@@ -756,6 +756,32 @@ const SKFX = {
     flash3(mx, 0.8, mz, 4.2, 0.26, '#ffe2b0'); flash3(mx, 0.8, mz, 2.4, 0.18, '#ffffff'); ring3(mx, mz, 0.3, r * 0.55, 0.35, c, 0.9); scorch3(mx, mz, r * 0.42, 2.4);
     smoke(mx, 0.3, mz, 10, '#8a8f96', 0.9, 0.9, 0.9); sparks(mx, 0.6, mz, 18, c, 5, 0.18, 0.5, 1.2, 5); debris(mx, 0.3, mz, 10, '#7a5c3a', 3.2, 0.2, 0.7); streak3(x, z, mx, mz, 0.12, 0.14, '#ffe9b0', 0.9, 0.9); FX.shake = Math.max(FX.shake, 0.16); },
   sorrel1h(e, x, z, c) { flash3(x, 1.0, z, 1.6, 0.18, c); sparks(x, 1.0, z, 7, '#ffe2b0', 3.4, 0.13, 0.35, 1); smoke(x, 0.2, z, 3, '#d8cfb4', 0.4, 0.4, 0.3); },
+  halvar0(e, x, z, c) {       // Echoes: the air beside him tears, and there are three of him
+    ring3(x, z, 0.3, 2.0, 0.34, c, 0.8, true); flash3(x, 1.0, z, 2.2, 0.18, c);
+    for (let i = 0; i < 4; i++) { const a = Math.random() * TAU, r = 0.6 + Math.random() * 0.8; bolt3(x, 1.0, z, x + Math.cos(a) * r, 0.2 + Math.random() * 1.4, z + Math.sin(a) * r, c, 0.05, 0.16, 0.25, 4); } },
+  halvar1(e, x, z, c) {       // Stormknuckle: he goes in behind his fist
+    const a = e.ang, ca = Math.cos(a), sa = Math.sin(a), d = FIST_D * S3; vring3(x + ca * 0.4, 1.0, z + sa * 0.4, a, 0.25, 0.9, 0.22, c, 0.8); streak3(x, z, x + ca * d, z + sa * d, 0.5, 0.22, c, 0.9, 0.6); },
+  halvar1h(e, x, z, c) {       // and it lands: thunder at arm's length
+    const a = e.ang, ca = Math.cos(a), sa = Math.sin(a); flash3(x, 1.1, z, 3.4, 0.2, '#ffffff'); flash3(x, 1.1, z, 2.2, 0.26, c); ring3(x, z, 0.3, 1.9, 0.3, c, 0.9); vring3(x, 1.1, z, a, 0.3, 1.5, 0.24, '#ffffff', 0.8);
+    for (let i = 0; i < 6; i++) { const q = a + (Math.random() - 0.5) * 1.6, r = 1.0 + Math.random() * 1.3; bolt3(x, 1.1, z, x + Math.cos(q) * r, 0.2 + Math.random() * 1.6, z + Math.sin(q) * r, i % 2 ? '#ffffff' : c, 0.06, 0.2, 0.22, 5); }
+    streak3(x, z, x + ca * FIST_PUSH * S3, z + sa * FIST_PUSH * S3, 0.6, 0.25, '#ffffff', 0.6, 0.5); sparks(x, 1.1, z, 14, c, 5, 0.16, 0.4, 1); FX.shake = Math.max(FX.shake, 0.2); },
+  halvar2(e, x, z, c) {       // the ram comes out of him: the storm comes down where he stands
+    pillar3(x, z, 1.5, 6.5, 0.6, c, 0.7); ring3(x, z, 0.4, 3.4, 0.5, c, 0.9); ring3(x, z, 0.3, 2.2, 0.36, '#ffffff', 0.8, true); flash3(x, 1.4, z, 5.5, 0.3, '#ffffff'); scorch3(x, z, 1.5, 2.5);
+    for (let i = 0; i < 7; i++) { const a = i / 7 * TAU + Math.random() * 0.5, r = 0.5 + Math.random() * 1.6; later(i * 0.03, () => bolt3(x + Math.cos(a) * r * 0.3, 7, z + Math.sin(a) * r * 0.3, x + Math.cos(a) * r, 0.05, z + Math.sin(a) * r, i % 2 ? '#ffffff' : c, 0.09, 0.22, 0.14, 8)); }
+    smoke(x, 0.3, z, 10, '#cfc8e0', 1.0, 0.8, 1.0); sparks(x, 1.0, z, 22, c, 5.5, 0.18, 0.6, 1.4, 4); FX.shake = Math.max(FX.shake, 0.3); },
+  halvar0b(e, x, z, c) { const a = e.ang, ca = Math.cos(a), sa = Math.sin(a), d = CHARGE_D * S3; vring3(x + ca * 0.5, 1.1, z + sa * 0.5, a, 0.4, 1.4, 0.28, c, 0.7); streak3(x, z, x + ca * d, z + sa * d, 1.1, 0.4, c, 0.08, 0.45); smoke(x, 0.2, z, 6, '#d8cfb4', 0.7, 0.5, 0.6); debris(x, 0.2, z, 6, '#7a6a52', 2.6, 0.18, 0.6); },       // Headlong
+  halvar0h(e, x, z, c) { flash3(x, 1.0, z, 2.2, 0.18, '#ffffff'); sparks(x, 1.0, z, 9, c, 4.2, 0.15, 0.4, 1.3); ring3(x, z, 0.2, 1.1, 0.24, c, 0.8, true); FX.shake = Math.max(FX.shake, 0.12); },
+  halvar1b(e, x, z, c) {       // Thunderbleat: the bellow goes out before him, and the storm with it
+    const a = e.ang, r = e.r * S3, h = e.a, ca = Math.cos(a), sa = Math.sin(a);
+    slash3(x, z, a, h, r, 0.36, c, 0.08, { op: 0.3, flat: 1 }); later(0.04, () => slash3(x, z, a, h, r * 1.03, 0.3, '#ffffff', 0.1, { thin: 1, op: 0.3, edge: 0.8 }));
+    for (let i = 0; i < 3; i++) later(i * 0.07, () => vring3(x + ca * (0.6 + i * 1.1), 1.3, z + sa * (0.6 + i * 1.1), a, 0.4 + i * 0.3, 1.2 + i * 0.6, 0.3, i ? c : '#ffffff', 0.7));
+    for (let i = 0; i < 5; i++) { const q = a + (Math.random() - 0.5) * 2 * h, d = r * (0.4 + Math.random() * 0.55); bolt3(x + ca * 0.6, 1.4, z + sa * 0.6, x + Math.cos(q) * d, 0.1, z + Math.sin(q) * d, i % 2 ? '#ffffff' : c, 0.06, 0.2, 0.2, 6); }
+    FX.shake = Math.max(FX.shake, 0.14); },
+  halvar2j(e, x, z, c) { const tx = e.x1 * S3, tz = e.y1 * S3, R = SKY_AOE * S3; ring3(x, z, 0.4, 1.8, 0.3, '#d8cfb4', 0.7); smoke(x, 0.2, z, 8, '#d8cfb4', 0.8, 0.5, 0.8); debris(x, 0.2, z, 8, '#7a6a52', 3, 0.2, 0.6); ring3(tx, tz, R, R * 0.25, 0.55, c, 0.75, true); ring3(tx, tz, R, R, 0.55, c, 0.4, true); },       // Skybreaker: off the ground, and where he will come down
+  halvar2l(e, x, z, c) {       // and down
+    const r = e.r * S3; flash3(x, 1.0, z, r * 2.6, 0.3, '#ffffff'); ring3(x, z, r * 0.2, r * 1.05, 0.42, c, 0.95); ring3(x, z, r * 0.1, r * 0.8, 0.3, '#ffffff', 0.8, true); scorch3(x, z, r * 0.7, 3); pillar3(x, z, r * 0.5, 4.5, 0.4, c, 0.6);
+    for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + Math.random() * 0.4; bolt3(x, 0.5, z, x + Math.cos(a) * r, 0.05, z + Math.sin(a) * r, i % 2 ? '#ffffff' : c, 0.08, 0.24, 0.16, 7); }
+    debris(x, 0.3, z, 16, '#6e6252', 4.6, 0.24, 0.9); smoke(x, 0.3, z, 12, '#b8b0c8', 1.1, 0.9, 1.3); sparks(x, 0.8, z, 20, c, 6, 0.18, 0.6, 1.5, 5); FX.shake = Math.max(FX.shake, 0.4); },
   sorrel2(e, x, z, c) { ring3(x, z, 1.6, 0.35, 0.4, c, 0.8, true, 0.1); glint3(x, 1.6, z, 1.6, 0.45, '#ffffff'); if (UI.state === 'play') snd('cock', 0.9); snipeSight(e.id, e.tid, c); },       // Four Rounds: she settles to it (the line to her mark is drawn by snipeSight, from whichever end is in view)
   sorrel2t(e, x, z, c) { const tv = V.views.get(e.tid), top = (tv && tv.top) || 1.7; ring3(x, z, 2.4, 0.7, 0.4, c, 0.9, true, 0.1); glint3(x, top + 0.5, z, 1.4, 0.4, c); snipeSight(e.id, e.tid, c);
     if (V.me && e.tid === V.me.id) { text3(x, top + 0.9, z, 'IN HER SIGHTS', '#ff8a6a', true, 1.2); if (UI.state === 'play') snd('deny', 0.9); } },
@@ -851,6 +877,20 @@ function snipeSight(hid, tid, c) {
     tick.forEach((m, i) => { const an = i * HP2 + t * 1.6; m.position.set(tx + Math.cos(an) * (r0 + 0.24), 0.075, tz + Math.sin(an) * (r0 + 0.24)); m.rotation.y = -an; m.scale.set(0.36, 1, 0.06); });
   });
 }
+/* Teleport: where he stands, light gathers for as long as he is on his way; where he is going, a gate of it stands and closes on the
+   moment he arrives. Each is shown to whoever is near it, friend or foe, and both go at once if he breaks it off. */
+function tpFx(e, there) {
+  const c = SPELLS.teleport.c, g = new THREE.Group(), ring = new THREE.Mesh(FG.ring, fxMat(c, 0.85)), rune = new THREE.Mesh(FG.plane, fxMat(c, 0.7, { map: GX.tex.rune })), col = new THREE.Mesh(FG.cyl, fxMat(c, 0.3, { map: GX.tex.pillar }));
+  ring.position.y = 0.07; rune.position.y = 0.06; g.add(ring); g.add(rune); g.add(col); g.renderOrder = 3; g.position.set(e.x * S3, 0, e.y * S3);
+  const life = e.dur + 0.2;
+  fxAdd(g, life, k => {
+    const h = heroById(e.id), on = !!(h && h.tp && !h.dead), q = Math.min(1, k * life / e.dur), t = V.t;
+    g.visible = on && nearCam(g.position.x / S3, g.position.z / S3, 400); if (!on) return;
+    if (there) g.position.set(h.tp.a.x * S3, 0, h.tp.a.y * S3);
+    const s = there ? 1.7 - 0.8 * q : 0.9 + 0.08 * Math.sin(t * 6); ring.scale.set(s, 1, s); ring.rotation.y = t * 2.2; rune.scale.set(s * 2.4, 1, s * 2.4); rune.rotation.y = -t * 1.4; rune.material.opacity = 0.3 + 0.5 * q; col.scale.set(s * 0.8, 1.5 + 3.5 * q, s * 0.8); col.material.opacity = 0.12 + 0.4 * q;
+    if (Math.random() < FX.dt * 16) { const a = Math.random() * TAU; FX.add.emit(g.position.x + Math.cos(a) * s * 0.8, 0.05, g.position.z + Math.sin(a) * s * 0.8, 0, 2.6, 0, 0.7, 0.13, 0.03, c, 0.9, 0, 0); }
+  });
+}
 function heroById(id) { for (const h of G.heroes) if (h.id === id) return h; return null; }
 
 /* sim effect events -> visuals */
@@ -866,6 +906,7 @@ function ingestFx() {
     if (e.k === 'mana') { if (nearCam(e.x, e.y, 0)) for (let i = 0; i < 4; i++) FX.add.emit(x + (Math.random() - .5) * 0.7, 0.3 + Math.random() * 0.8, z + (Math.random() - .5) * 0.7, 0, 1.3, 0, 0.7, 0.15, 0.04, '#6fb7ff', 0.9, -0.5, 0); if (e.tgt === mid && e.v > 8) text3(x + 0.55, 1.75, z, '+' + Math.round(e.v), '#6fb7ff', false, 0.85); continue; }
     if (e.k === 'gold') { if (e.id === mid) { text3(x, e.plate ? 3.5 : 1.3, z, '+' + e.v + 'g', '#f2c14e', false, 1.0); sparks(x, e.plate ? 2.0 : 0.6, z + (e.plate ? 0.55 : 0), 6, '#ffd76a', 1.6, 0.14, 0.6, 1.6, 7); } continue; }
     if (e.k === 'glass') { if (nearCam(e.x, e.y, 300)) { ring3(x, z, 0.3, 1.7, 0.45, '#ffd76a', 0.9, true); sparks(x, 1.5, z, 9, '#ffe9a8', 1.8, 0.12, 0.6, 1.3, 5); } if (e.id === mid) text3(x, 3.2, z, 'ULTIMATE −' + (e.v >= 9.5 ? Math.round(e.v) : +e.v.toFixed(1)) + 's', '#ffd76a', false, 1.3); continue; }       // Victor's Hourglass turns: for its bearer, how many seconds it took off
+    if (e.k === 'tp' || e.k === 'tpAt') { tpFx(e, e.k === 'tpAt'); continue; }       // (wherever the camera is now: it lasts, and the camera may come)
     if (!nearCam(e.x, e.y, 300)) continue;
     if (e.k === 'sk') { const h = heroById(e.id), m = /\d/.exec(e.n), sx = h && SKINS[h.key][h.skin].fx, f = (sx && SKFX[e.n + sx]) || SKFX[e.n]; if (f) f(e, x, z, e.c || (h ? skinColor(h.key, h.skin, m ? +m[0] : 0) : '#ffffff'), h); continue; }
     let c = e.c || '#ffffff'; const r = (e.r || 100) * S3;
@@ -893,6 +934,17 @@ function ingestFx() {
       case 'totem': totemFx(e, x, z, c); break;
       case 'pierce': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; shards3(x, 1.2, z, 9, c, 4.4, 0.6); ring3(x, z, 1.1, 0.4, 0.24, '#ffffff', 0.9, true, 0.9); flash3(x, 1.1, z, 2.0, 0.18, '#ffffff'); text3(x, top + 0.8, z, 'PIERCED', '#ff8a6a', false, 0.9); break; }       // a hold has gone through the totem
       case 'camo': { const h = heroById(e.id); if (!e.on && h && (V.team < 0 || h.team === V.team)) ring3(x, z, 0.3, 1.2, 0.3, '#ffffff', 0.45, true, 0.1); break; }       // out from under the cape (the going under is the skill's own effect)
+      case 'echo': { const x0 = e.x0 * S3, z0 = e.y0 * S3; streak3(x0, z0, x, z, 0.45, 0.22, c, 0.9, 0.6); flash3(x, 1.0, z, 1.6, 0.18, c); ring3(x, z, 0.2, 0.9, 0.26, c, 0.7, true); smoke(x, 0.3, z, 4, '#e6e0f4', 0.6, 0.4, 0.4); break; }
+      case 'echoEnd': smoke(x, 0.6, z, 7, '#e6e0f4', 0.8, 0.5, 0.6); sparks(x, 1.0, z, e.hit ? 12 : 6, c, 3.2, 0.13, 0.4, 1); ring3(x, z, 0.3, 1.1, 0.26, c, 0.6, true); if (e.hit) shards3(x, 1.1, z, 6, c, 3.4, 0.5); break;
+      case 'echoHit': flash3(x, 1.0, z, 1.5, 0.16, c); sparks(x, 1.0, z, 6, c, 3.6, 0.13, 0.3, 1); cut3(x, 1.0, z, 1.5, (Math.random() - .5) * 1.4, c, 0.18); break;
+      case 'beastOff': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#b9a8ff'; ring3(x, z, 2.2, 0.4, 0.4, hc, 0.7, true); smoke(x, 0.5, z, 10, '#cfc8e0', 1.0, 0.7, 0.9); flash3(x, 1.2, z, 2.6, 0.22, '#ffffff'); break; }
+      case 'cleave': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#b9a8ff'; slash3(x, z, e.ang, BEAST_ARC, (BEAST_RANGE + 110) * S3, 0.18, hc, 0.9, { op: 0.4 }); break; }
+      case 'squall': { const sc = ITEMS.squallsong.c; ring3(x, z, 0.2, 1.3, 0.28, sc, 0.8, true);       // Squallsong: the squall leaps from its target to whoever else it takes in
+        for (const id of e.ids) { const q = V.views.get(id), u = q && q.u; if (!u) continue; const ux = u.x * S3, uz = u.y * S3; if (Math.hypot(ux - x, uz - z) > 0.05) bolt3(x, 1.1, z, ux, 1.0, uz, sc, 0.05, 0.2, 0.18, 5); flash3(ux, 1.0, uz, e.crit ? 1.9 : 1.2, 0.16, sc); sparks(ux, 1.0, uz, 5, '#e8fff8', 3, 0.12, 0.3, 1); } break; }
+      case 'laststand': { const lc = ITEMS.dawnshard.c, h = heroById(e.id); ring3(x, z, 0.4, 1.8, 0.4, lc, 0.9); pillar3(x, z, 0.9, 2.6, 0.5, lc, 0.5); flash3(x, 1.1, z, 2.6, 0.24, '#ffd0dc'); if (h && h === V.me) text3(x, 3.0, z, 'LAST STAND', '#ffc2d0', false, 1.1); break; }
+      case 'ruin': ring3(x, z, 1.3, 0.3, 0.3, ITEMS.ruinblade.c, 0.8, true, 0.1); flash3(x, 1.2, z, 1.6, 0.2, '#ff5d7a'); break;
+      case 'tpin': { const tc = SPELLS.teleport.c; pillar3(x, z, 1.1, 6, 0.5, tc, 0.8); ring3(x, z, 0.3, 2.2, 0.4, tc, 0.9); flash3(x, 1.2, z, 3.5, 0.26, '#ffffff'); sparks(x, 1.0, z, 14, tc, 4, 0.15, 0.5, 1.6, 2); if (nearCam(e.x0, e.y0, 300)) { ring3(e.x0 * S3, e.y0 * S3, 1.4, 0.2, 0.35, tc, 0.6, true); smoke(e.x0 * S3, 0.4, e.y0 * S3, 6, '#d8d0f0', 0.8, 0.5, 0.6); } break; }
+      case 'tpx': { const h = heroById(e.id); ring3(x, z, 1.0, 0.2, 0.25, '#ffffff', 0.5, true); smoke(x, 0.4, z, 5, '#d8d0f0', 0.7, 0.4, 0.5); if (h && h === V.me) text3(x, 3.0, z, 'BROKEN OFF', '#d8d0f0', false, 1.0); break; }
       case 'snipe': break;
       case 'mood': if (e.id === mid) snd('ui'); break;       // a temper changed (what it looks like is the view's business: see moodExtras)
       case 'taunt': { const v = V.views.get(e.id), top = (v && v.top) || 1.7; ring3(x, z, 1.0, 0.4, 0.3, TAUNT_C, 0.9, true, 0.1); flash3(x, top * 0.7, z, 1.6, 0.25, TAUNT_C); if (e.id === mid) { text3(x, top + 0.9, z, 'TAUNTED', '#ff8a6a', true, 1.0); if (!UI.hints.taunt && UI.state === 'play') { UI.hints.taunt = 1; hint('Taunted: until it ends, your hero can only go for whoever called it out.', 6); } } break; }       // called out: for the one it happens to, the word for it

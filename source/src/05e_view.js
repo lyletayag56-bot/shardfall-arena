@@ -58,7 +58,7 @@ function pickTarget(px, py, maxPx) {
   const me = G.player; let best = null, bd = maxPx;
   for (const u of G.units) {
     if (!canTarget(me, u)) continue;
-    const h = u.kind === 'turret' ? 1.8 : u.kind === 'crystal' ? 1.6 : u.kind === 'hero' ? 1.0 : 0.5;
+    const h = u.kind === 'turret' ? 1.8 : u.kind === 'crystal' ? 1.6 : u.kind === 'hero' || u.kind === 'clone' ? 1.0 : 0.5;
     if (!w2s(u.x * S3, h, u.y * S3, _sp)) continue;
     const d = Math.hypot(_sp.x - px, (_sp.y - py) * 0.7) - u.r * V.z * 0.7; if (d < bd) { bd = d; best = u; }
   }
@@ -102,11 +102,12 @@ function heroBush(v, on) {
     if (on) { if (!x._m0) { x._m0 = x.material; x.material = dimOf(x.material); } } else if (x._m0) { x.material = x._m0; x._m0 = null; }
   });
 }
+const _white = new THREE.Color(1, 1, 1);
 function relHex(u) { return u === V.me ? COL.self : tcol(u.team, V.team); }
 function makeView(u) {
   let v;
-  if (u.kind === 'hero') {
-    v = heroInstance(u.key, u.skin); v.sc = 1.16; v.top = v.top0 = 2.78 + v.hover; v.big = 1; v.bigV = 0; v.castN = u.castN; v.gT = 0; v.lx = u.x; v.ly = u.y;       // bars clear a crest or a hovering head
+  if (u.kind === 'hero' || u.kind === 'clone') {       // (clone: one of Halvar's echoes. To the other side it is him to the life; to his own it is a shade paler, lit with his storm, so that they know him from it)
+    v = heroInstance(u.key, u.skin); if (u.kind === 'clone' && (V.team < 0 || u.team === V.team)) { v.mat.color.copy(lin(u.look.glow)).lerp(_white, 0.5); v.echo = 1; } v.sc = 1.16; v.top = v.top0 = 2.78 + v.hover; v.big = 1; v.bigV = 0; v.castN = u.castN; v.gT = 0; v.lx = u.x; v.ly = u.y;       // bars clear a crest or a hovering head
     v.ring = new THREE.Mesh(FG.ring, new THREE.MeshBasicMaterial({ color: lin(relHex(u)), transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false }));
     v.ring.scale.set(0.58, 1, 0.58); v.ring.position.y = 0.05; v.ring.renderOrder = 2;
   } else { v = unitInstance(u); v.sc = u.kind === 'minion' && u.mtype !== 'lord' ? 1.12 : 1; v.top *= v.sc; }
@@ -278,7 +279,7 @@ function heroSize(v, u, dt, cut) {
   const want = !u.dead && immuneOf(u) ? TOTEM_BIG : 1; let b = v.big || 1;
   if (cut) { b = want; v.bigV = 0; }
   else if (b !== want || v.bigV) { const n = Math.max(1, Math.ceil(dt / 0.012)), h = dt / n; let w = v.bigV || 0; for (let i = 0; i < n; i++) { w += ((want - b) * 150 - w * 13) * h; b += w * h; } if (Math.abs(want - b) < 0.002 && Math.abs(w) < 0.02) { b = want; w = 0; } v.bigV = w; }
-  if (b !== v.big) { v.big = b; v.o.scale.setScalar(v.sc * b); v.ring.scale.set(0.58 * (0.4 + 0.6 * b), 1, 0.58 * (0.4 + 0.6 * b)); v.top = v.top0 * (0.12 + 0.88 * b); }
+  if (b !== v.big) { v.big = b; v.o.scale.setScalar(v.sc * b * (v.ramS || 1)); v.ring.scale.set(0.58 * (0.4 + 0.6 * b), 1, 0.58 * (0.4 + 0.6 * b)); v.top = v.top0 * (0.12 + 0.88 * b); }
   return b;
 }
 function syncViews(t, dt) {
@@ -287,7 +288,7 @@ function syncViews(t, dt) {
     if (u.kind === 'turret' || u.kind === 'crystal') continue;
     let v = V.views.get(u.id); if (!v) { v = makeView(u); V.views.set(u.id, v); }
     v.tick = tick; v.u = u;
-    const hero = u.kind === 'hero';
+    const hero = u.kind === 'hero' || u.kind === 'clone';
     if (hero) { if (u.dead) v.deadT += dt; else if (v.deadT > 0) { v.deadT = 0; v.mat.opacity = 1; v.mat.transparent = false; v.b.body.rotation.x = 0; v.b.body.position.y = 0; v.face = null; } }
     const show = seen(u) && nearCam(u.x, u.y, 500) && !(hero && u.dead && v.deadT > 2.3);
     v.root.visible = show; if (!show) { v.lastAtk = u.atkAnim; if (hero && u.camo && !u.dead && !seen(u) && nearCam(u.x, u.y, 200)) camoHint(v, u, dt); continue; }
@@ -306,12 +307,12 @@ function syncViews(t, dt) {
       if (u.def.forms && v.form !== u.form) applyForm(v, u.form);
       if (cut) { v.castN = u.castN; v.rcK = 0; v.arrT = 0; if (v.cq) v.cq.on = false; v.lx = u.x; v.ly = u.y; }       // the picture jumped: no cast, no arrival, no cloth is carried across
       heroSize(v, u, dt, cut);
-      if (v.castN !== u.castN) { v.castN = u.castN; if (u.castI !== 3) startClip(v, u.castI > 3 ? u.castI - 1 : u.castI); }       // 4..6 are second casts: clips 3..5
+      if (v.castN !== u.castN) { v.castN = u.castN; if (u.castI !== 3) startClip(v, u.castI > 3 ? u.castI - 1 : u.castI); if (v.rb && u.form && u.castI === 8) v.rClip = 1; }       // 4..6 are second casts: clips 3..5
       if ((u.dash || u.leap) && !u.dead) { v.gT -= dt; if (v.gT <= 0) { v.gT = 0.07; const gc = skinColor(u.key, u.skin, v.clipI || 0); ghost3(v, gc, 0.32, 0.28); trail3(v.lx * S3, v.ly * S3, u.x * S3, u.y * S3, 0.75, 0.45, gc, 0.1 + (u.z || 0) * S3, 0.55); v.lx = u.x; v.ly = u.y; } } else { v.gT = 0; v.lx = u.x; v.ly = u.y; }
       st.cast = u.castAnim > 0 ? Math.min(1, u.castAnim / 0.3) : 0; st.dash = !!u.dash; st.leap = !!u.leap; st.spin = !!hasBuff(u, 'whirl'); st.stun = u.stunT > 0 || u.reviveT > 0; st.air = u.air && !u.dead ? clamp(u.air.t / u.air.dur, 0.001, 1) : 0; st.recall = u.recallT > 0 ? Math.max(0.001, 1 - u.recallT / 6) : 0; st.dead = u.dead ? v.deadT : 0;
       if (v.rcK > 0.9 && !st.recall && !u.dead && hyp(u.x - v.rcX, u.y - v.rcY) > 400) v.arrT = 0.001;       // the recall went through: play the setting-down at the fountain
       v.rcK = st.recall; if (st.recall) { v.rcX = u.x; v.rcY = u.y; } if (v.arrT > 0) { v.arrT += dt / 0.6; if (v.arrT >= 1) v.arrT = 0; } st.arrive = v.arrT || 0;
-      animHero(v, st, t, dt);
+      animHero(v, st, t, dt); if (v.rb && v.form) animRam(v, u, st, t, dt);
       if (v.style === 'rifle') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) rifleFlash(v, u); v.a0 = st.atk; }
       if (v.style === 'hurl') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) slash3(u.x * S3 + Math.cos(u.face) * 0.25, u.y * S3 + Math.sin(u.face) * 0.25, u.face, 0.62, 1.05, 0.15, u.look.glow || u.look.trim, 1.25, { thin: 1, op: 0.5, edge: 0.7 }); v.a0 = st.atk; }       // the sweep of the throwing arm as the leaf leaves it
       { const im = !u.dead && immuneOf(u); if (im && im.shell && !(u.flash > 0)) { v.mat.emissive.copy(lin(im.shell)).multiplyScalar(0.16 + 0.05 * Math.sin(t * 6)); v.glow = 1; } else if (u.flash > 0 && !u.dead) { v.mat.emissive.setScalar(0.13); v.glow = 1; } else if (v.glow !== 0) { v.mat.emissive.setScalar(0); v.glow = 0; } }
@@ -447,16 +448,18 @@ function drawOverlay(dt) {
       g.fillStyle = TAUNT_C; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill(); g.lineWidth = 1.5; g.strokeStyle = 'rgba(0,0,0,0.6)'; g.stroke();
       g.fillStyle = '#fff'; g.fillRect(cx - 1.4 * us, cy - 5 * us, 2.8 * us, 6.2 * us); g.beginPath(); g.arc(cx, cy + 3.9 * us, 1.6 * us, 0, TAU); g.fill(); }
     if (u.stunT > 0) { g.fillStyle = '#ffe36a'; for (let j = 0; j < 3; j++) { const a = t * 6 + j * TAU / 3; g.beginPath(); g.arc(px + Math.cos(a) * 15 * us, by + 16 * us + Math.sin(a) * 5 * us, 3.4 * us, 0, TAU); g.fill(); } }
-    if (u.kind === 'hero') {
-      const w = 80 * us, h = 8.5 * us, x = px - w / 2 + 7 * us, y = by - h - 4 * us, mine = u === me;
-      drawBar(g, x, y, w, h, u.hp / u.maxHp, mine ? COL.self : col, shieldOf(u) / u.maxHp, 500, u.maxHp);
-      g.fillStyle = '#16222a'; g.fillRect(x, y + h + 1.5, w, 3 * us); g.fillStyle = '#4f8dff'; g.fillRect(x, y + h + 1.5, w * (u.mp / u.maxMp), 3 * us);
+    if (u.kind === 'hero' || u.kind === 'clone') {
+      const w = 80 * us, h = 8.5 * us, x = px - w / 2 + 7 * us, y = by - h - 4 * us, mine = u === me, mo = u.owner || u;       // (an echo shows his mana, not its own: its own would give it away)
+      drawBar(g, x, y, w, h, u.hp / u.maxHp, mine ? COL.self : col, shieldOf(u) / u.maxHp, 500, u.kind === 'clone' && !v.echo ? mo.maxHp : u.maxHp);       // (nor do the marks along an echo's bar count its own health, to the side that must not know it from him)
+      g.fillStyle = '#16222a'; g.fillRect(x, y + h + 1.5, w, 3 * us); g.fillStyle = '#4f8dff'; g.fillRect(x, y + h + 1.5, w * (mo.mp / mo.maxMp), 3 * us);
       g.fillStyle = 'rgba(8,14,18,0.9)'; g.beginPath(); g.arc(x - 9 * us, y + h / 2 + 1, 9.5 * us, 0, TAU); g.fill(); g.strokeStyle = mine ? COL.self : col; g.lineWidth = 1.5; g.stroke();
       g.fillStyle = '#fff'; g.font = `700 ${12 * us}px ${F1}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(u.level, x - 9 * us, y + h / 2 + 1.5);
-      label(mine ? 'You' : u.name, px + 3 * us, y - 4 * us, 11 * us, mine ? '#d6ffe0' : u.team === V.team || (V.team < 0 && u.team === BLUE) ? '#cfe9ff' : '#ffd2d2');
+      label(mine ? 'You' : v.echo ? 'Echo' : u.name, px + 3 * us, y - 4 * us, 11 * us, mine ? '#d6ffe0' : u.team === V.team || (V.team < 0 && u.team === BLUE) ? '#cfe9ff' : '#ffd2d2');
       if (u.sg) for (let j = 0; j < u.sg.n; j++) { const sx = x + w + (8 + j * 9.5) * us, sy = y + h / 2; g.fillStyle = '#ffb21e'; g.strokeStyle = 'rgba(24,14,0,0.9)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(sx, sy - 5.5 * us); g.lineTo(sx + 3.8 * us, sy); g.lineTo(sx, sy + 5.5 * us); g.lineTo(sx - 3.8 * us, sy); g.closePath(); g.stroke(); g.fill(); }       // Miel's stings in this hero: a pip for each, at the end of the bar
       if (u === V.focus) { const ty = y - 17 * us, s = 5.5 * us; g.fillStyle = '#fff'; g.strokeStyle = 'rgba(0,0,0,0.7)'; g.lineWidth = 2; g.beginPath(); g.moveTo(px + 3 * us - s, ty - s); g.lineTo(px + 3 * us + s, ty - s); g.lineTo(px + 3 * us, ty); g.closePath(); g.stroke(); g.fill(); }       // watching: the one the view is on
       if (V.replay && u.id === V.slayer && w2s(u.x * S3, 0, u.y * S3, _sp2)) { const gx = _sp2.x, gy = _sp2.y + 15 * us; g.fillStyle = '#ff5d5d'; g.beginPath(); g.moveTo(gx - 5 * us, gy + 6 * us); g.lineTo(gx + 5 * us, gy + 6 * us); g.lineTo(gx, gy); g.closePath(); g.fill(); label('SLAYER', gx, gy + 19 * us, 12 * us, '#ffb3b3'); }       // under his feet, where neither the bars nor the dark bands hide it
+      if (u.tp) { const k = 1 - u.tp.t / TP_T; g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 4 * us); g.fillStyle = SPELLS.teleport.c; g.fillRect(x, y + h + 7 * us, w * k, 4 * us); }       // on his way by Teleport
+      else if (u.form && u.def.forms && u.def.forms.beast && u.pv.bt) { const k = clamp((u.pv.bt - G.t) / BEAST_T, 0, 1); g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 3.5 * us); g.fillStyle = skinColor(u.key, u.skin, 2); g.fillRect(x, y + h + 7 * us, w * k, 3.5 * us); }       // how much longer he is the Stormhorn
       if (u.recallT > 0) { const k = 1 - u.recallT / 6; g.fillStyle = 'rgba(8,14,18,0.85)'; g.fillRect(x, y + h + 7 * us, w, 4 * us); g.fillStyle = '#9fd8ff'; g.fillRect(x, y + h + 7 * us, w * k, 4 * us); }
     } else if (u.kind === 'minion') {
       if (u.mtype === 'lord') drawBar(g, px - 62 * us, by - 8, 124 * us, 7.5 * us, u.hp / u.maxHp, col, 0);
@@ -621,7 +624,9 @@ function drawMinimap() {
   for (const s of G.turrets) { if (s.dead) continue; const c = tcol(s.team, T), w = 3.4 * q, e = s.plate > 0 ? Math.max(1.5, 1.4 * q) : 0; g.fillStyle = e ? '#f2c14e' : '#0b1418'; g.fillRect(s.x * k - w - 1 - e, s.y * k - w - 1 - e, w * 2 + 2 + e * 2, w * 2 + 2 + e * 2); g.fillStyle = c; g.fillRect(s.x * k - w, s.y * k - w, w * 2, w * 2); }
   for (const s of G.crystals) { if (s.dead) continue; const c = tcol(s.team, T), w = 6.5 * q; g.fillStyle = '#0b1418'; g.beginPath(); g.moveTo(s.x * k, s.y * k - w - 1.5); g.lineTo(s.x * k + w * 0.7 + 1.5, s.y * k); g.lineTo(s.x * k, s.y * k + w + 1.5); g.lineTo(s.x * k - w * 0.7 - 1.5, s.y * k); g.fill(); g.fillStyle = c; g.beginPath(); g.moveTo(s.x * k, s.y * k - w); g.lineTo(s.x * k + w * 0.7, s.y * k); g.lineTo(s.x * k, s.y * k + w); g.lineTo(s.x * k - w * 0.7, s.y * k); g.fill(); }
   for (const u of G.units) if (u.kind === 'minion' && !u.dead && seen(u)) dot(u.x, u.y, u.mtype === 'lord' ? 4 : 1.5, u.mtype === 'lord' ? '#c070ff' : tcol(u.team, T));
-  for (let pass = 0; pass < 3; pass++) for (const h of G.heroes) {       // allies first, enemies over them, the player on top: icons this size overlap in a fight
+  for (const u of G.units) if (u.kind === 'clone' && !u.dead && seen(u) && (T < 0 || u.team === T)) { g.strokeStyle = tcol(u.team, T); g.lineWidth = 1.4 * Math.max(1, q); g.beginPath(); g.arc(u.x * k, u.y * k, 3.2 * q, 0, TAU); g.stroke(); }
+  const mmH = T < 0 ? G.heroes : G.heroes.concat(G.units.filter(u => u.kind === 'clone' && u.team !== T));
+  for (let pass = 0; pass < 3; pass++) for (const h of mmH) {       // allies first, enemies over them, the player on top: icons this size overlap in a fight
     if (h.dead || !seen(h) || (h === me ? 2 : h.team === T ? 0 : 1) !== pass) continue; const c = h === me ? COL.self : tcol(h.team, T), r = MM_HERO * q, x = h.x * k, y = h.y * k;
     g.fillStyle = '#0b1418'; g.beginPath(); g.arc(x, y, r + 2.6 * q, 0, TAU); g.fill();
     g.fillStyle = c; g.beginPath(); g.arc(x, y, r + 1.8 * q, 0, TAU); g.fill();

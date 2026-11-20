@@ -148,33 +148,38 @@ function makeHero(key, team, x, y, skin) {
 }
 
 /* ---------------- stats ---------------- */
+/* What the bag is worth. Each item's numbers are added up, a second copy of the same complete item too (KIT_V 24: canBuy), but not
+   everything of a second copy counts again: its Move Speed and its penetration do not (ITEM_ONCE), and its passive does not either
+   (h.has knows that an item is held, not how many of it). Parts were always free to repeat, and add up in full as they always did. */
+const ITEM_ONCE = { ms: 1, ppen: 1, ppenP: 1, mpen: 1, mpenP: 1 };
 function recalcItems(h) {
-  const s = {}; for (const k of h.items) { const it = ITEMS[k]; for (const p in it) if (typeof it[p] === 'number' && p !== 'cost') s[p] = (s[p] || 0) + it[p]; }
+  const s = {}, n = {};
+  for (const k of h.items) { const it = ITEMS[k], again = !it.part && n[k] === 1; n[k] = 1; for (const p in it) if (typeof it[p] === 'number' && p !== 'cost' && !(again && ITEM_ONCE[p] === 1)) s[p] = (s[p] || 0) + it[p]; }
   h.itemStats = s; h.has = {}; for (const k of h.items) h.has[k] = 1;
 }
 function recalc(h) {
   const b = h.def.base, l = h.level - 1, it = h.itemStats;
-  let ad = 0, ap = 0, as = 0, armor = 0, mr = 0, ls = 0, range = 0, cdr = 0, slowMul = 1, haste = 0, noSlow = false, mpR = 0, asK = 1, asCap = 2.5;       // (asK, asCap: Inspire's)
+  let ad = 0, adP = 0, ap = 0, as = 0, armor = 0, mr = 0, ls = 0, range = 0, cdr = 0, slowMul = 1, haste = 0, noSlow = false, mpR = 0, asK = 1, asCap = 2.5;       // (asK, asCap: Inspire's)
   for (const f of h.buffs) {
     if (f.asMul) { asK *= f.asMul; if (f.asCap > asCap) asCap = f.asCap; }
-    if (f.ad) ad += f.ad; if (f.ap) ap += f.ap; if (f.as) as += f.as; if (f.armor) armor += f.armor; if (f.mr) mr += f.mr;
+    if (f.ad) ad += f.ad; if (f.adP) adP += f.adP; if (f.ap) ap += f.ap; if (f.as) as += f.as; if (f.armor) armor += f.armor; if (f.mr) mr += f.mr;
     if (f.ls) ls += f.ls; if (f.range) range += f.range; if (f.cdr) cdr += f.cdr; if (f.mpR) mpR += f.mpR;
     if (f.msMul) { if (f.msMul < 1) slowMul = Math.min(slowMul, f.msMul); else haste += f.msMul - 1; }
     if (f.noSlow) noSlow = true;
   }
   const oldMax = h.maxHp;
-  h.maxHp = b.hp + b.hpG * l + (it.hp || 0);
-  h.maxMp = h.def.energy ? ENERGY_MAX : b.mp + b.mpG * l + (it.mp || 0);       // (energy: Focus, a bar of one size whatever she carries)
-  h.ad = b.ad + b.adG * l + (it.ad || 0) + ad;
-  h.ap = ((it.ap || 0) + ap) * (h.has.zenith ? 1.2 : 1);
   const fm0 = h.form && h.def.forms ? h.def.forms : null;
+  h.maxHp = b.hp + b.hpG * l + (it.hp || 0) + (fm0 && fm0.hp ? fm0.hp(h) : 0);       // (forms.hp: the Stormhorn's own)
+  h.maxMp = h.def.energy ? ENERGY_MAX : b.mp + b.mpG * l + (it.mp || 0);       // (energy: Focus, a bar of one size whatever she carries)
+  h.ad = (b.ad + b.adG * l + (it.ad || 0) + ad) * (1 + adP);
+  h.ap = ((it.ap || 0) + ap) * (h.has.zenith ? 1.2 : 1);
   h.armor = b.armor + b.armorG * l + (it.armor || 0) + armor + (fm0 ? fm0.tough : 0);
   h.mr = b.mr + b.mrG * l + (it.mr || 0) + mr + (fm0 ? fm0.tough : 0);
   const fm = h.form && h.def.forms ? h.def.forms : null;       // the second form fights hand to hand
   h.asp = Math.min(asCap, b.as * (1 + (b.asG * l + (it.as || 0) + as + (fm ? fm.as : 0)) / 100) * asK);
   h.range = (fm ? fm.range : b.range) + range + (h.def.lethal && lethalReady(h) ? LETHAL_RANGE : 0); h.melee = fm ? true : !!h.def.melee;
   h.crit = (it.crit || 0) / 100 + (h.def.lethal && h.sk ? SNIPE_CRIT * h.sk[2] : 0); h.critDmg = h.has.reaver ? 2.2 : 1.85; h.ls = ((it.ls || 0) + ls) / 100; h.sv = (it.sv || 0) / 100;
-  h.cdr = Math.min(0.4, ((it.cdr || 0) + cdr) / 100);
+  h.cdr = Math.min(h.has.wellspring ? WELL_CAP : CDR_CAP, ((it.cdr || 0) + cdr) / 100);
   h.ppen = it.ppen || 0; h.ppenP = (it.ppenP || 0) / 100; h.mpen = it.mpen || 0; h.mpenP = (it.mpenP || 0) / 100;
   h.hpRegen = b.hpRegen + l * 0.7 + (it.hpRegen || 0);
   h.mpRegen = h.def.energy ? ENERGY_REGEN * (h.camo ? 2 : 1) : b.mpRegen + l * 0.28 + h.maxMp * (mpR + (h.has.scepter ? 0.01 : 0));
@@ -207,7 +212,7 @@ function canBuy(h, key) {
   const it = ITEMS[key]; if (!it) return false;
   const u = recipeUse(h, key);
   if (h.gold < u.price || h.items.length - u.used.length >= 6) return false;
-  if (!it.part && h.items.includes(key)) return false;       // one of each complete item; parts may repeat
+  if (!it.part && G.kit < 24 && h.items.includes(key)) return false;       // (before kit 24: one of each complete item. Since then a second of the same may be bought, and a third: what of it counts again is recalcItems's business. Parts could always repeat.)
   if (it.boots && h.items.some((k, i) => ITEMS[k].boots && !u.used.includes(i))) return false;
   return true;
 }
@@ -300,6 +305,7 @@ const RECAP_SPAN = 10;
 function whoOf(u) {
   if (!u) return { wk: 'other', who: 'The wilds', key: '', skin: 0, wid: 0, team: NEUTRAL };
   if (u.kind === 'hero') return { wk: 'hero', who: u.name, key: u.key, skin: u.skin, wid: u.id, team: u.team };
+  if (u.kind === 'clone') return { wk: 'hero', who: u.name, key: u.key, skin: u.skin, wid: u.owner.id, team: u.team };
   if (u.kind === 'turret') return { wk: 'turret', who: 'Turret', key: '', skin: 0, wid: 0, team: u.team };
   if (u.kind === 'crystal') return { wk: 'turret', who: 'Enemy fountain', key: '', skin: 0, wid: 0, team: u.team };
   if (u.kind === 'minion') return { wk: 'minion', who: u.mtype === 'lord' ? 'Shardlord' : 'Minions', key: u.mtype, skin: 0, wid: 0, team: u.team };
@@ -318,6 +324,7 @@ function hitName(src, f) {
   }
   if (src.kind === 'turret') return ['Turret shot', 'tower'];
   if (src.kind === 'crystal') return ['Fountain beam', 'home'];
+  if (src.kind === 'clone') return ['Echoes', 'echo'];       // (an echo's blows are put down to the skill that made it, as every blow is to its skill)
   if (src.kind === 'minion') return [src.mtype === 'lord' ? (f.basic ? 'Shardlord strike' : 'Shardlord slam') : src.mtype === 'siege' ? 'Siege minion' : src.mtype === 'ranged' ? 'Ranged minion' : 'Melee minion', 'pawn'];
   return [f.basic ? 'Attack' : 'Slam', 'claws'];
 }
@@ -367,7 +374,7 @@ function taunt(u, by, dur, pierce) {
   if (u.epic) dur *= 0.35; if (u.has && u.has.wardboots) dur *= 0.75;
   logHold(u, 'taunt', dur); u.tauntT = Math.max(u.tauntT || 0, dur); u.tauntBy = by; if (u.windTgt !== by) u.windT = 0;
   if (u.kind === 'hero') { u.dash = null; u.recallT = 0; u.atkTarget = by; u.chase = true; }
-  else if (u.kind === 'minion') { u.tgt = by; u.thinkT = Math.max(u.thinkT, dur); }
+  else if (u.kind === 'minion' || u.kind === 'clone') { u.tgt = by; u.thinkT = Math.max(u.thinkT, dur); }
   else if (u.kind === 'monster') { u.aggro = by; u.calmT = 0; }
   by.revealT = Math.max(by.revealT, G.t + dur);       // (whoever is called out sees who is calling)
   fx('taunt', u.x, u.y, { id: u.id, by: by.id, dur: u.tauntT }); return true;
@@ -388,6 +395,7 @@ function heal(src, u, amt) {
 /* ---------------- damage & death ---------------- */
 function dmg(src, tgt, amt, type, f) {
   if (!tgt || tgt.dead || tgt.locked || G.over) return 0;
+  if (tgt.tpG > G.t) return 0;       // (somebody is on his way to it by Teleport: it cannot be hurt until he is there)
   f = f || {};
   const structure = tgt.kind === 'turret' || tgt.kind === 'crystal';
   if (structure && !f.basic) return 0;
@@ -405,6 +413,7 @@ function dmg(src, tgt, amt, type, f) {
       const pv = src.def.passive; if (pv && pv.dmgMul) a *= pv.dmgMul(src, tgt, f);
       if (src.has.giantslayer && tgt.maxHp > src.maxHp) a *= 1.1;
       if (f.skill && src.has.stormorb && tgt.hp > tgt.maxHp * 0.7) a *= 1.1;
+      if (src.has.ruinblade && !structure && tgt.hp < tgt.maxHp * RUIN_AT) { const rb = hasBuff(src, 'ruin'); if (!rb) { if (f.basic && type === 'phys') a *= 1 + RUIN_K; fx('ruin', src.x, src.y, { id: src.id }); } addBuff(src, { k: 'ruin', t: RUIN_T, adP: RUIN_K }); }       // Blade of Ruin (the blow that wakes it is already the stronger for it, if it is a basic attack)
     }
   }
   if (G.duel && structure) a *= duelRush();
@@ -420,6 +429,8 @@ function dmg(src, tgt, amt, type, f) {
   if (G.practice && src && src.isPlayer && tgt.kind === 'hero') { const P = G.practice; if (G.t - P.last > 3) { P.sum = 0; P.n = 0; P.t0 = G.t; } P.sum += a; P.n++; P.last = G.t; }
   tgt.hp -= left; if (!f.dot || tgt.dummy) tgt.lastDmgT = G.t; tgt.flash = 0.12; if (tgt.camo && a > 0) camoOff(tgt);       // (f.dot: the hurt of something left in the target a while ago, a sting. It does not make a fight of it: it holds up no recall, shows nobody, draws no turret)
   if (tgt.kind === 'hero' && a > 0) logHit(src, tgt, a, a - left, type, f);
+  if (tgt.kind === 'hero' && tgt.has.dawnshard && tgt.hp > 0 && tgt.hp < tgt.maxHp * LAST_AT && !(tgt.lastCd > G.t)) { tgt.lastCd = G.t + LAST_CD; shield(tgt, lastShield(tgt), LAST_T); addBuff(tgt, { k: 'laststand', t: LAST_T, armor: LAST_DEF, mr: LAST_DEF, msMul: LAST_MS }); fx('laststand', tgt.x, tgt.y, { id: tgt.id, dur: LAST_T }); sfx('guard', tgt.x, tgt.y); }       // Dawnshard Blade
+  if (src && src.kind === 'clone' && !src.owner.dead) { const o = src.owner; o.lastCombatT = G.t; tgt.lastHeroHit = o; tgt.lastHeroHitT = G.t; if (tgt.kind === 'hero') { tgt.dmgLog[o.id] = G.t; o.stats.dmgHero += a; } else if (structure) o.stats.dmgTurret += a; }       // (what an echo does is put down to whoever it is an echo of)
   if (src && src.kind === 'hero') {
     if (!f.dot) { src.lastCombatT = G.t; src.revealT = G.t + 1.2; tgt.lastHeroHit = src; tgt.lastHeroHitT = G.t; }       // (nor does it count as the last blow of a hero's for whoever finishes the target off: only its own kill is its own)
     if (tgt.kind === 'hero') { tgt.dmgLog[src.id] = G.t; if (!f.dot) { src.aggroT = G.t; src.aggroV = tgt; } src.stats.dmgHero += a; }
@@ -469,7 +480,7 @@ function tickPlating() {       // at PLATE_TIME whatever plating is left comes o
 }
 function kill(u, src) {
   if (u.dead) return; u.dead = true; u.hp = 0;
-  let kh = src && src.kind === 'hero' ? src : null;
+  let kh = src && src.kind === 'hero' ? src : src && src.kind === 'clone' && !src.owner.dead ? src.owner : null;
   if (!kh && u.lastHeroHit && G.t - u.lastHeroHitT < (u.kind === 'hero' ? 8 : 2.5)) kh = u.lastHeroHit;
   const foe = u.team === NEUTRAL ? (kh ? kh.team : -1) : 1 - u.team;
   if (u.kind === 'hero') heroDeath(u, kh, src);
@@ -481,6 +492,7 @@ function kill(u, src) {
     fx('poof', u.x, u.y, { c: u.team === BLUE ? '#46b4ff' : '#ff5d5d' });
     if (u.mtype === 'lord') ev({ t: 'lordDown', team: u.team });
   } else if (u.kind === 'monster') monsterDeath(u, kh);
+  else if (u.kind === 'clone') fx('echoEnd', u.x, u.y, { id: u.id, c: u.look.glow, hit: 1 });
   else if (u.kind === 'turret') {
     updateStructureLocks();
     for (const h of G.heroes) if (h.team === foe) giveGold(h, 90);
@@ -498,6 +510,7 @@ function heroDeath(u, kh, src) {
   u.respawnT = G.practice ? 3 : 4 + u.level * 1.6 + Math.min(G.t / 60, 20) * 0.7;
   const hadBuffs = ['azure', 'crimson'].filter(k => hasBuff(u, k));
   if (u.snipe) snipeEnd(u, true); if (u.camo) u.camo = false;
+  if (u.tp) tpStop(u, false); if (u.form && u.def.forms.beast) beastOff(u, true);
   u.buffs = []; u.shields = []; u.stunT = u.rootT = 0; u.tauntT = 0; u.tauntBy = null; u.dash = u.leap = u.disp = u.air = null; u.recallT = 0; u.windT = 0; u.atkTarget = null; u.mvx = u.mvy = 0; u.z = 0;
   for (const r of u.re) if (r && r.pts) for (const q of r.pts) if (q.prop) q.prop.t = 0;
   u.re = [null, null, null]; u.mend = null; u.om = null; endFlurry(u); if (u.form) { u.form = 0; u.cds[0] = u.cds[1] = 0; recalc(u); }
@@ -779,6 +792,7 @@ function fireBasic(u, t) {
     if (structure) amt = Math.max(u.ad, u.def.base.ad + u.def.base.adG * (u.level - 1) + u.ap * 0.6);
     else if (ls ? rnd() < u.crit + LETHAL_CRIT : u.crit > 0 && rnd() < u.crit) { crit = true; amt *= u.critDmg; }
   } else if (u.kind === 'minion') { if (structure) amt *= (u.mtype === 'siege' ? 2.4 : u.mtype === 'lord' ? 2.0 : 1.0); }
+  else if (u.kind === 'clone') { if (structure) amt *= 0.5; }
   else if (u.kind === 'turret' || u.kind === 'crystal') {
     amt = (u.ad + Math.min(G.t / 60, 20) * 12);
     if (t.kind === 'hero') { amt *= 1 + 0.4 * Math.min(u.ramp, 4); u.ramp++; }
@@ -788,6 +802,7 @@ function fireBasic(u, t) {
     ctx = { amt, magic: 0, heal: 0, slow: null, big: false, ls }; const pv = u.def.passive; if (pv && pv.basic) pv.basic(u, t, ctx); if (ctx.type) type = ctx.type;
     if (u.has.galebow) ctx.magic += 30 + 4 * u.level;
     if (u.has.quickblade) { u.pv.qb = (u.pv.qb || 0) + 1; if (u.pv.qb % 4 === 0) { ctx.amt *= 1.8; ctx.big = true; } }
+    if (u.has.squallsong) { if (G.t >= Math.max(u.sqAt || 0, u.sqMin || 0)) { ctx.squall = true; u.sqAt = G.t + SQUALL_CD0; u.sqMin = G.t + SQUALL_CD1; } else u.sqAt -= SQUALL_STEP; }
     amt = ctx.amt; if (ctx.big) crit = crit || 'big';
   }
   const insp = u.kind === 'hero' ? hasBuff(u, 'inspire') : null, fl = { basic: true, crit: crit === true }; let inspH = 0;       // Inspire: this is one of its attacks
@@ -796,12 +811,13 @@ function fireBasic(u, t) {
     if (tgt.dead) return;
     dmg(u, tgt, amt, type, fl); if (inspH > 0 && !u.dead) heal(u, u, inspH); if (ctx && ctx.focus && !u.dead) u.mp = Math.min(u.maxMp, u.mp + ctx.focus);
     if (ctx && ctx.after) ctx.after(tgt, amt);
+    if (ctx && ctx.squall && !u.dead) squall(u, tgt);
     if (ctx) { if (ctx.magic > 0 && !tgt.dead) dmg(u, tgt, ctx.magic, 'magic', { noVamp: true }); if (ctx.heal > 0 && !u.dead) heal(u, u, ctx.heal); if (ctx.slow && !tgt.dead) slow(tgt, ctx.slow[0], ctx.slow[1]); if (ctx.mark && !tgt.dead) useMark(u, tgt); }
     if (u.kind === 'hero' && !tgt.dead && hasBuff(u, 'crimson') && !structure) { dmg(u, tgt, 18 + 5 * u.level, 'true', { noVamp: true, n: 'Crimson buff', ic: 'rage' }); slow(tgt, u.melee ? 0.2 : 0.1, 1); }
   };
   const pc = G.cx; G.cx = { h: u, n: 'Basic attack', ic: 'sword' };
   if (u.range <= 260) {
-    if (hyp(t.x - u.x, t.y - u.y) <= u.range + t.r + 110) { apply(t); fx('hit', t.x, t.y, { c: u.kind === 'hero' ? (u.look.glow || u.look.trim) : '#ffffff', big: !!crit, ax: u.x, ay: u.y, hero: u.kind === 'hero' || u.epic, id: u.kind === 'hero' ? u.id : 0 }); sfx(u.kind === 'hero' ? 'hit' : 'tick', t.x, t.y); }
+    if (hyp(t.x - u.x, t.y - u.y) <= u.range + t.r + 110) { apply(t); fx('hit', t.x, t.y, { c: u.kind === 'hero' || u.kind === 'clone' ? (u.look.glow || u.look.trim) : '#ffffff', big: !!crit, ax: u.x, ay: u.y, hero: u.kind === 'hero' || u.epic, id: u.kind === 'hero' ? u.id : 0 }); sfx(u.kind === 'hero' ? 'hit' : 'tick', t.x, t.y); }
   } else {
     const sp = u.kind === 'hero' ? (ls ? 2300 : u.look.weapon === 'rifle' ? 1900 : 1500) : u.kind === 'minion' ? 1000 : 1500;
     const look = u.kind === 'turret' || u.kind === 'crystal' ? 'bolt' : u.kind === 'hero' ? (u.look.weapon === 'bow' ? 'arrow' : u.look.weapon === 'leaf' ? 'leaf' : u.look.weapon === 'rifle' ? (ls ? 'longshot' : 'slug') : 'shot') : 'pellet';
@@ -812,6 +828,82 @@ function fireBasic(u, t) {
   G.cx = pc;
 }
 
+/* ---------------- Halvar: his echoes, and the Stormhorn ----------------
+   An echo is a unit of its own (kind 'clone'): it has health, can be hit and killed, and is seen or not as a hero would be. It
+   carries enough of what a hero carries (key, skin, look, def, castN, castI, ...) for the view to draw it as him. It hits what he
+   hits, or failing that whoever of theirs is nearest it, and never strays far from him; what it does is put down to him (dmg, kill).
+   It is worth nothing to whoever kills it. */
+function echoesOf(h) { const out = []; for (const u of G.units) if (u.kind === 'clone' && u.owner === h && !u.dead) out.push(u); return out; }
+function echoEnd(u) { if (u.dead) return; u.dead = true; u.hp = 0; fx('echoEnd', u.x, u.y, { id: u.id, c: u.look.glow }); }
+function echoSpawn(h, x, y, lv, slot) {
+  const u = newUnit('clone', h.team, x, y, { owner: h, key: h.key, skin: h.skin, look: h.look, def: h.def, name: h.name, level: h.level, r: 34, slot, lv,
+    maxHp: Math.round(h.maxHp * ECHO_HP), armor: h.armor, mr: h.mr, ad: h.ad * echoAd(lv), asp: h.asp, range: h.range, ms: h.ms * 1.06, msBase: h.ms * 1.06, melee: true, face: h.face,
+    life: ECHO_T, tgt: null, thinkT: 0, dash: null, leap: null, form: 0, castN: 0, castI: 0, castAnim: 0, z: 0, mp: 1, maxMp: 1, pv: {}, has: {}, recallT: 0, reviveT: 0 });
+  u.hp = Math.max(1, u.maxHp * (h.hp / h.maxHp)); u.bush = h.bush; u.vis = [h.vis[0], h.vis[1]];
+  fx('echo', u.x, u.y, { id: u.id, x0: h.x, y0: h.y, c: h.look.glow }); return u;
+}
+function echoFist(u, e, amt) {       // his Stormknuckle found somebody: the echo goes for the same one
+  if (u.dead || u.stunT > 0 || u.disp || u.air || e.dead) return; const d = hyp(e.x - u.x, e.y - u.y); if (d > ECHO_FIST_R) return;
+  const ang = fatan2(e.y - u.y, e.x - u.x); u.tgt = e; u.castN++; u.castI = 1; u.castAnim = 0.3;
+  startDash(u, ang, d + FIST_PUSH + 60, 1700, { w: 60, aim: e, stopOn: q => q === e, hit(q) { if (q === e) { dmg(u, e, amt, 'phys', { skill: true, n: 'Echoes', ic: 'echo' }); fx('echoHit', e.x, e.y, { c: u.look.glow, ang }); } } });
+}
+function tickEcho(u, dt) {
+  const h = u.owner; u.life -= dt;
+  if (u.life <= 0 || h.dead || h.form) { echoEnd(u); return; }
+  if (u.castAnim > 0) u.castAnim -= dt;
+  if (u.stunT > 0 || u.disp || u.air) { u.dash = null; return; }
+  if (u.dash) { const q = u.dash.o.aim; if (q && !q.dead) u.dash.ang = fatan2(q.y - u.y, q.x - u.x); stepDash(u, dt); return; }       // (it runs at whoever he struck, wherever the blow has sent them)
+  const side = h.face + (u.slot ? 2.3 : -2.3);
+  if (hyp(u.x - h.x, u.y - h.y) > ECHO_LEASH + 240) { const p = nearestWalkable(h.x + fcos(side) * 100, h.y + fsin(side) * 100); u.x = p.x; u.y = p.y; u.tgt = null; u.windT = 0; u.cp = null; }       // left behind (he flickered, or went home): it is beside him again
+  u.thinkT -= dt;
+  if (u.thinkT <= 0 || (u.tgt && !canTarget(u, u.tgt))) {
+    u.thinkT = 0.25; let t = null; const ht = h.atkTarget;
+    if (u.tauntT > 0 && u.tauntBy && !u.tauntBy.dead) t = u.tauntBy;
+    else if (ht && canTarget(u, ht) && hyp(ht.x - h.x, ht.y - h.y) < ECHO_LEASH) t = ht;
+    else { let bd = 1e9; for (const e of G.units) { if (e.team === NEUTRAL || e.kind === 'turret' || e.kind === 'crystal' || !canTarget(u, e) || hyp(e.x - h.x, e.y - h.y) > ECHO_LEASH) continue; let d = hyp(e.x - u.x, e.y - u.y) - e.r; if (d > ECHO_SEEK) continue; if (e.kind !== 'hero') d += 300; if (d < bd) { bd = d; t = e; } } }
+    u.tgt = t;
+  }
+  const t = u.tgt;
+  if (t) {
+    const d = hyp(t.x - u.x, t.y - u.y) - t.r;
+    if (d <= u.range) { u.face = fatan2(t.y - u.y, t.x - u.x); attackStep(u, t); }
+    else if (u.windT <= 0 && u.rootT <= 0) chaseMove(u, t, dt);
+  } else if (u.rootT <= 0) {
+    const x = h.x + fcos(side) * 105, y = h.y + fsin(side) * 105;
+    if (hyp(x - u.x, y - u.y) > 46) goTo(u, -7 - u.slot, x, y, dt); else u.face = h.face;
+  }
+}
+/* The Stormhorn. On: his echoes go, his own two cooldowns are noted (they go on running while he is the ram), the ram's skills are
+   ready, he is bigger and has more health (recalc: forms.hp). Off: when its time is up (his passive's tick) or he falls; his own
+   cooldowns are what they would have come down to, and only now does the ultimate's start. */
+function beastOn(h, lv) {
+  for (const u of echoesOf(h)) echoEnd(u);
+  h.pv.keep = { t: G.t, c: [h.cds[0], h.cds[1]] }; h.pv.bt = G.t + BEAST_T; h.pv.sky = false;
+  h.form = 1; h.r = BEAST_R; h.cds[0] = h.cds[1] = 0; h.re = [null, null, null]; h.windT = 0;
+  addBuff(h, { k: 'beast', t: BEAST_T + 0.5, msMul: BEAST_MS }); recalc(h);
+}
+function beastOff(h, dead) {
+  if (!h.form) return; const k = h.pv.keep, s = h.def.skills[2];
+  h.form = 0; h.r = 36; h.re = [null, null, null]; h.windT = 0; h.buffs = h.buffs.filter(b => b.k !== 'beast');
+  for (let i = 0; i < 2; i++) h.cds[i] = k ? Math.max(0, k.c[i] - (G.t - k.t)) : 0;
+  h.cds[2] = skillCd(s, h.sk[2]) * (1 - h.cdr); h.pv.keep = null;
+  recalc(h); if (!dead) { fx('beastOff', h.x, h.y, { id: h.id }); sfx('skill', h.x, h.y); }
+}
+/* Squallsong: the squall its bearer's basic attack lets loose at t and whoever else of theirs is nearest t */
+function squall(h, t) {
+  let a = squallDmg(h), crit = false; if (h.crit > 0 && rnd() < h.crit) { a *= h.critDmg; crit = true; }
+  const hit = t.dead ? [] : [t], near = [];
+  for (const e of G.units) {
+    if (e === t || e.dead || e.locked || e.team === h.team || e.kind === 'turret' || e.kind === 'crystal') continue;
+    if ((e.kind === 'hero' || e.kind === 'clone') && !e.vis[h.team]) continue;
+    if (e.kind === 'monster' && !e.aggro && t.kind !== 'monster') continue;
+    const d = hyp(e.x - t.x, e.y - t.y) - e.r * 0.6; if (d <= SQUALL_R) near.push([d, e]);
+  }
+  near.sort((p, q) => p[0] - q[0] || p[1].id - q[1].id); for (let i = 0; i < near.length && hit.length < SQUALL_N; i++) hit.push(near[i][1]);
+  fx('squall', t.x, t.y, { id: h.id, ids: hit.map(e => e.id), crit });
+  for (const e of hit) dmg(h, e, e.kind === 'minion' ? a * 2 : a, 'magic', { noVamp: true, crit, n: 'Squall', ic: 'fan' });
+  addBuff(h, { k: 'squall', t: 2, msMul: SQUALL_MS });
+}
 /* ---------------- per-unit tick ---------------- */
 function tickCommon(u, dt) {
   if (u.stunT > 0) u.stunT -= dt; if (u.rootT > 0) u.rootT -= dt;
@@ -857,7 +949,7 @@ function tickStructure(s, dt) {
   if (!t) {
     let bd = 1e9;
     const U = G.units;
-    for (let i = 0; i < U.length; i++) { const u = U[i]; if (u.dead || u.team === s.team || u.kind !== 'minion') continue; const dx = u.x - s.x, dy = u.y - s.y, lim = s.range + u.r; if (dx * dx + dy * dy > lim * lim * 1.000001) continue; const d = hyp(dx, dy); if (d < bd && d <= lim && guards(s, u)) { bd = d; t = u; } }       // (the plain squares first: most of the map is nowhere near)
+    for (let i = 0; i < U.length; i++) { const u = U[i]; if (u.dead || u.team === s.team || (u.kind !== 'minion' && u.kind !== 'clone')) continue; const dx = u.x - s.x, dy = u.y - s.y, lim = s.range + u.r; if (dx * dx + dy * dy > lim * lim * 1.000001) continue; const d = hyp(dx, dy); if (d < bd && d <= lim && guards(s, u)) { bd = d; t = u; } }       // (the plain squares first: most of the map is nowhere near)
     if (!t) for (const u of G.heroes) { if (u.team === s.team || u.dead) continue; const d = hyp(u.x - s.x, u.y - s.y); if (d < bd && d <= s.range + u.r && guards(s, u)) { bd = d; t = u; } }
     if (!t && s.hitBy && !s.hitBy.dead && answers(s, s.hitBy)) t = s.hitBy;
   }
@@ -956,8 +1048,9 @@ function castSkill(h, i, tx, ty) {
   const ang = fatan2(dy, dx);
   if (s.cast === 'point' && s.range && d > s.range) { tx = h.x + dx / d * s.range; ty = h.y + dy / d * s.range; }
   { const pc = G.cx; G.cx = { h, n: s.name, ic: s.ic, c: s.c }; const went = s.fn(h, lv, tx, ty, ang, re); G.cx = pc; if (went === false) return false; }
+  if (h.tp && !sp) tpStop(h, true);
   h.mp -= cost; if (h.camo && !s.hush) camoOff(h);       // (whatever she casts from under her cape, but the cape itself, brings her out from under it)
-  if (re) { if (h.re[i] === re) h.re[i] = null; } else if (sp) h.spellCd = s.cd; else h.cds[i] = skillCd(s0, lv) * (1 - h.cdr);
+  if (re) { if (h.re[i] === re) h.re[i] = null; } else if (sp) h.spellCd = s.cd; else h.cds[i] = s0.cdNow != null ? s0.cdNow : skillCd(s0, lv) * (1 - h.cdr);
   if (s.cast !== 'self') h.face = ang;
   if (!re && !sp) h.castT[i] = G.t;
   h.recallT = 0; h.windT = 0; h.castAnim = 0.3; h.castN++; h.castI = re ? i + (s.stage === 3 ? 10 : 4) : f0 && !sp && h.def.skills[i].alt ? i + 7 : i; if (!s.hush) h.revealT = G.t + 1.2; h.lastCombatT = G.t;       // castI 4..6: the second cast of skill 0..2; 10..12: the third
@@ -976,7 +1069,7 @@ function acquire(h, mode, inRangeOnly) {
     let sc = d;
     if (mode === 1) sc = (u.kind === 'minion' || u.kind === 'monster') ? u.hp * 0.2 + d * 0.2 - 2000 : d;
     else if (mode === 2) sc = (u.kind === 'turret' || u.kind === 'crystal') ? d - 2000 : d;
-    else if (u.kind === 'hero') sc = d - (d <= h.range + 220 ? 2000 : 0) + (u.hp / u.maxHp) * 150;
+    else if (u.kind === 'hero' || u.kind === 'clone') sc = d - (d <= h.range + 220 ? 2000 : 0) + (u.hp / u.maxHp) * 150;
     if (sc < bs) { bs = sc; best = u; }
   }
   return best;
@@ -1026,6 +1119,7 @@ function snipeTick(h, dt) {
 function autoSkills(h) { let g = 0; while (h.sp > 0 && g++ < 40) { if (canLevel(h, 2)) levelSkill(h, 2); else { const i = h.sk[0] <= h.sk[1] ? 0 : 1; if (!levelSkill(h, i) && !levelSkill(h, 1 - i)) break; } } }
 /* set a hero's level outright. auto: spend the skill points at once (ultimate first, the other two evenly); otherwise they are handed back to place by hand */
 function pracLevel(h, lv, auto) {
+  if (h.form && h.def.forms.beast) beastOff(h, true);
   h.level = clamp(lv | 0, 1, 15); h.xp = 0; h.sk = baseSk(h); h.sp = h.level; h.form = 0; h.cds = [0, 0, 0]; h.re = [null, null, null];
   if (auto) autoSkills(h);
   recalc(h); h.hp = h.maxHp; h.mp = h.maxMp;
@@ -1073,6 +1167,9 @@ function tickHero(h, dt) {
     return;
   }
   recalc(h);
+  { const pv = h.def.passive; if (pv && pv.tick) pv.tick(h, dt); }
+  if (h.has.wellspring && !h.def.energy) { if (h.wsT == null) h.wsT = G.t + WELL_T; else if (G.t >= h.wsT) { h.wsT = G.t + WELL_T; const mp = Math.min(h.maxMp - h.mp, h.maxMp * WELL_MP); if (mp > 0.5) { h.mp += mp; fx('mana', h.x, h.y, { v: mp, tgt: h.id }); } } }       // Wellspring Charm
+  if (h.tp && (h.stunT > 0 || h.tauntT > 0 || h.disp || h.air || h.reviveT > 0)) tpStop(h, true);
   if (h.def.lethal) { if (h.camo && !hasBuff(h, 'camo')) camoOff(h); h.pv.n = lethalReady(h) ? 1 : 0; if (h.snipe) snipeTick(h, dt); }       // Sorrel: the cloak's time is up; a Long Shot is ready (shown as a passive that is full); her four rounds
   if (h.reviveT > 0) {
     h.reviveT -= dt; h.mvx = h.mvy = 0; h.atkTarget = null;
@@ -1102,6 +1199,7 @@ function tickHero(h, dt) {
   else if (h.isPlayer) playerControl(h); else if (h.ai) aiTick(h, dt); else { h.mvx = h.mvy = 0; h.atkTarget = null; }       // a dummy just stands there
   if (h.dead) return;
   if (h.castLock > 0) return;
+  if (h.tp && tpTick(h, dt)) return;       // on his way by Teleport: he stands where he is
   // recall
   const wantMove = (h.mvx || h.mvy) && h.rootT <= 0;
   if (h.recallT > 0) {
@@ -1190,12 +1288,12 @@ function tickSpawns(dt) {
   }
 }
 function tickVision() {
-  for (const u of G.units) if (!u.dead && (u.kind === 'hero' || u.kind === 'minion')) u.bush = bushAt(u.x, u.y);
+  for (const u of G.units) if (!u.dead && (u.kind === 'hero' || u.kind === 'minion' || u.kind === 'clone')) u.bush = bushAt(u.x, u.y);
   for (const T of [BLUE, RED]) {
     const viewers = G.units.filter(u => u.team === T && !u.dead && u.kind !== 'monster');
     for (const e of G.units) {
       if (e.team !== 1 - T || e.dead) continue;
-      if (e.kind !== 'hero' && e.kind !== 'minion') { e.vis[T] = true; continue; }
+      if (e.kind !== 'hero' && e.kind !== 'minion' && e.kind !== 'clone') { e.vis[T] = true; continue; }
       let seen = false;
       for (const v of viewers) {
         const sr = v.kind === 'hero' ? 980 : v.kind === 'minion' ? 720 : 900;
@@ -1263,6 +1361,7 @@ function step(dt) {
     if (u.dead) continue;
     tickCommon(u, dt);
     if (u.kind === 'minion') tickMinion(u, dt);
+    else if (u.kind === 'clone') tickEcho(u, dt);
     else if (u.kind === 'monster') tickMonster(u, dt);
     else tickStructure(u, dt);
     if (G.over) return;
@@ -1294,11 +1393,11 @@ function step(dt) {
    A finished recording: { v, sim, opts: { seed, diff, player }, steps, t, dt, ev, chk, marks, over, winner }.
    pb (while playing one): rec, i: the step to run next, e: read position in ev, next: the step the next event belongs to. */
 const DT_Q = 7200, DU_MAX = 240, MOVE_NONE = 65535, REC_V = 1, ROSTER_0 = 12;
-const KIT_V = 23, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
+const KIT_V = 24, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 24: Halvar, four more items and the Teleport spell (nothing an older match has is changed by them). 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
 const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8, A_MOOD = 9;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1, '2b64e130': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }

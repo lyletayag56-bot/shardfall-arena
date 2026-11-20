@@ -666,6 +666,7 @@ function aiCombat(h, t, foes) {
         if (A.rally && d <= 620 && foes.length >= 2) { let fr = 0, hurt = hpF < 0.8; for (const p of G.heroes) if (p !== h && p.team === h.team && !p.dead && hyp(p.x - h.x, p.y - h.y) <= A.r) { fr++; if (p.hp / p.maxHp < 0.8) hurt = true; } if (fr >= 1 && hurt) c = { x: h.x, y: h.y }; }
         break;
       case 'target': if (d <= s.range && (!A.finisher || tF < 0.62)) c = { x: t.x, y: t.y }; break;
+      case 'beast': if (!h.form && d <= 520) c = { x: h.x, y: h.y }; break;       // the Stormhorn, once somebody worth it is within a charge of him (what makes it worth it: the ult rule above)
       case 'form':       // two masks: go in as the Tiger once the far skills are spent on a marked, stunned or weak target; back out when the claws are spent or it gets too hot
         if (!h.form) { if (d <= 540 && hpF > 0.45 && (h.cds[0] > 0.5 && h.cds[1] > 0.5 || d < 260) && (t.stunT > 0.4 || (markOf(t) > 0 && tF < 0.8) || tF < 0.4) && foes.length <= 2 && hpF > tF - 0.25 && !turretThreat(h.team, t.x, t.y, 40, h)) c = { x: h.x, y: h.y }; }
         else if ((h.cds[0] > 1 && h.cds[1] > 1) || hpF < 0.33 || d > 700 || (foes.length > 2 && hpF < 0.6)) c = { x: h.x, y: h.y };
@@ -728,14 +729,14 @@ function aiSupport(h) {
 /* nothing of theirs stands in the way of a shot that stops at the first thing it meets */
 function shotClear(h, c) { for (const u of G.units) { if (u.team === h.team || u.dead || u.kind === 'hero' || u.kind === 'turret' || u.kind === 'crystal') continue; if (segDist(u.x, u.y, h.x, h.y, c.x, c.y) < u.r + 40 && hyp(u.x - h.x, u.y - h.y) < hyp(c.x - h.x, c.y - h.y)) return false; } return true; }
 function aiWave(h, m, mpF) {
-  if (h.form && h.def.forms && h.cds[2] <= 0 && h.cds[0] > 0.5 && h.cds[1] > 0.5 && castSkill(h, 2, h.x, h.y)) return;       // claws spent on the wave: back to range
+  if (h.form && h.def.forms && !h.def.forms.beast && h.cds[2] <= 0 && h.cds[0] > 0.5 && h.cds[1] > 0.5 && castSkill(h, 2, h.x, h.y)) return;       // claws spent on the wave: back to range
   for (let i = 0; i < 2; i++) { const re = recastOf(h, i); if (re) { const A = stageDef(skDef(h, i), re).ai; if (A.t === 'chain' && aiChain(h, i, re, A, m)) return; } }       // a chain begun on the wave is finished on it
   const a = h.ai; if (mpF < 0.5 || rnd() > 0.45 * a.P.farm) return;
   const d = hyp(m.x - h.x, m.y - h.y);
   for (const i of [0, 1]) { const s = skDef(h, i), lv = h.sk[i]; if (lv && s.ai.t === 'camo' && h.cds[i] <= 0 && !h.camo && !lethalReady(h) && h.mp >= skillCost(s, lv) + 45 && d <= h.range + 120 && castSkill(h, i, h.x, h.y)) return; }       // (the cloak, for the next Long Shot at the wave; with the Focus for a fight kept back)
   let n = 0; for (const u of G.units) if (u.kind === 'minion' && u.team !== h.team && !u.dead && hyp(u.x - m.x, u.y - m.y) < 260) n++;
   if (n < 3) return;
-  if (h.def.forms && !h.form && h.cds[2] <= 0 && d < 520 && !G.heroes.some(e => e.team !== h.team && !e.dead && hyp(e.x - h.x, e.y - h.y) < 760) && !turretThreat(h.team, m.x, m.y, 40, h)) { castSkill(h, 2, h.x, h.y); return; }       // nobody about: clear the wave with the claws
+  if (h.def.forms && !h.def.forms.beast && !h.form && h.cds[2] <= 0 && d < 520 && !G.heroes.some(e => e.team !== h.team && !e.dead && hyp(e.x - h.x, e.y - h.y) < 760) && !turretThreat(h.team, m.x, m.y, 40, h)) { castSkill(h, 2, h.x, h.y); return; }       // nobody about: clear the wave with the claws
   for (const i of [0, 1]) {
     const s = skDef(h, i), lv = h.sk[i], A = s.ai; if (!lv || !A.wave || h.cds[i] > 0 || h.mp < skillCost(s, lv)) continue;
     if ((A.t === 'self' || A.t === 'near') ? d <= A.r : d <= (s.range || 300) * 0.9) { if (castSkill(h, i, m.x, m.y)) return; }

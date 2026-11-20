@@ -82,6 +82,17 @@ const ICONS = {
   fade: `<path stroke-dasharray="2.6 2.4" d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle ${F} cx="12" cy="12" r="2.600"/><path d="M4.500 19.500l15-15"/>`,
   charge: `<circle ${F} cx="10" cy="14.500" r="6"/><path d="M14.200 10.300l2.600-2.600M18.500 2.500v3M21.500 5.500h-3M20.800 3.200l-1.800 1.800"/>`,
   rounds: `<path ${F} d="M2.500 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM7.830 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM13.170 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21zM18.500 21V11.500c0-2.300.800-4.300 1.750-5.700.950 1.400 1.750 3.400 1.750 5.700V21z"/>`,
+  echo: `<circle ${F} cx="12" cy="7.5" r="3"/><path ${F} d="M6.5 20.5c0-4 2.4-6.5 5.5-6.5s5.5 2.5 5.5 6.5z"/><circle cx="4.5" cy="9.5" r="2.1"/><circle cx="19.5" cy="9.5" r="2.1"/><path d="M1.8 19c0-2.4.9-4.1 2.4-4.8M22.2 19c0-2.4-.9-4.1-2.4-4.8"/>`,
+  fist: `<path ${F} d="M5.5 10h11a2.5 2.5 0 0 1 2.5 2.5V15a5 5 0 0 1-5 5H10a4.5 4.5 0 0 1-4.5-4.5z"/><path d="M8 10V6.5M11.4 10V5.5M14.8 10V6.5"/><path d="M19.5 3l-1.6 2.4h2.2L18.500 8"/>`,
+  ram: `<path ${F} d="M9 9.5h6l-1.200 9.500h-3.600z"/><path d="M9.5 9C7.5 4.500 2.500 6 3 10.500c.4 3.4 4.200 3.800 4.800 1.300.3-1.300-1-2.100-1.900-1.300M14.500 9c2-4.500 7-3 6.500 1.500-.4 3.400-4.200 3.800-4.800 1.300-.3-1.300 1-2.100 1.900-1.300"/>`,
+  ramcharge: `<path d="M2.5 8.500h5M1.500 12h6.500M2.500 15.500h5"/><path ${F} d="M11 5l10 7-10 7 3-7z"/>`,
+  bellow: `<path ${F} d="M3 10v4h4.500l5 4V6l-5 4z"/><path d="M16 9c1.600 1.700 1.600 4.300 0 6M18.800 6.200c3.200 3.200 3.200 8.400 0 11.600"/>`,
+  skyfall: `<path ${F} d="M12 16.500l-5.200-8h3.300V3h3.800v5.500h3.300z"/><path d="M3.500 20.500c2.600-2.200 5.300-3.200 8.500-3.200s5.900 1 8.500 3.200"/>`,
+  fan: `<path ${F} d="M12 20.500L3.200 9.800a11.400 11.400 0 0 1 17.600 0z"/><path stroke="#0d1b21" stroke-width="1.3" d="M12 20V6.200M12 20L7.300 8M12 20l4.700-12"/>`,
+  comet: `<path ${F} d="M13.500 3.500l7 .1.100 7-9.300 9.300-4.700 1.500 1.500-4.700z"/><path d="M3 8.500l3.500-3.500M2.500 13.500l2.500-2.500"/>`,
+  ruin: `<path ${F} d="M4.500 19.500L15.800 3l4.700 4.700L9 19.500z"/><path d="M3.500 20.500l3-3M5.800 15.200l3 3"/><path stroke="#0d1b21" stroke-width="1.2" d="M14 8l-1.500 3 2 .5-1.800 3"/>`,
+  charm: `<circle cx="12" cy="12.500" r="8.500"/><path ${F} d="M12 6.500c2.600 3.100 4.100 5.100 4.100 7.100a4.100 4.100 0 0 1-8.200 0c0-2 1.500-4 4.100-7.100z"/><path d="M12 2v2"/>`,
+  gate: `<path d="M5.500 21V10.500a6.500 6.500 0 0 1 13 0V21"/><path ${F} d="M12 8.200l3.700 4.800h-2.400v5.200h-2.600V13H8.300z"/>`,
   scope: `<circle cx="12" cy="12" r="7.500"/><path d="M12 2v5.500M12 16.500V22M2 12h5.500M16.500 12H22"/><circle ${F} cx="12" cy="12" r="1.700"/>`,
   gong: `<path d="M3 3h18M7.5 3l1.6 3.4M16.5 3l-1.6 3.4"/><circle ${F} cx="12" cy="13.6" r="7.9"/><circle cx="12" cy="13.6" r="3.5" stroke="#0d1b21" stroke-width="1.7"/>`,
   linked: `<path d="M2.6 16.5a9.4 9.4 0 0 1 18.8 0"/><circle ${F} cx="12" cy="13.6" r="2.7"/><circle ${F} cx="6.3" cy="17.3" r="2.1"/><circle ${F} cx="17.7" cy="17.3" r="2.1"/><path d="M2.6 21.4h18.8"/>`,
@@ -452,13 +463,16 @@ function updateHud(dt) {
   const ik = me.items.join(',');
   if (UI.last.ik !== ik) { UI.last.ik = ik; $('stItems').innerHTML = Array.from({ length: 6 }, (_, i) => me.items[i] ? `<div class="slot ii${ITEMS[me.items[i]].part ? ' part' : ''}" title="${esc(ITEMS[me.items[i]].name)}">${icon(ITEMS[me.items[i]].ic, ITEMS[me.items[i]].c)}</div>` : '<div class="slot"></div>').join(''); if (!$('shop').hidden) renderShop(); }
   // skills
+  if (UI.tp) tpDraw();
   if (UI.last.form !== me.form) { skillButtons(); UI.last.form = me.form; $('tip').hidden = true; }
   for (let i = 0; i < 4; i++) {
     const b = $(i < 3 ? 'bS' + i : 'bSp'), sp = i === 3, s = sp ? SPELLS[me.spell] : skDef(me, i), lv = sp ? 1 : me.sk[i];
     const re = sp || me.dead ? null : recastOf(me, i) || (chainHold(me, i) ? me.re[i] : null);       // its next cast is waiting (or, in a chain, about to be): the button is lit, shows what it will do and how long is left
-    const hold = !sp && i === 0 && me.camo ? hasBuff(me, 'camo') : null;       // under her cape: the button shows how long of that is left, and only then its cooldown
-    const cd = hold ? hold.t : re ? 0 : sp ? me.spellCd : me.cds[i], full = hold ? CAMO_T : sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
+    const ram = !sp && i === 2 && me.form && me.def.forms.beast && me.pv.sky ? { t: Math.max(0, me.pv.bt - G.t) } : null;       // the Stormhorn with its leap spent: the button shows how long he is the ram yet
+    const hold = ram || (!sp && i === 0 && me.camo ? hasBuff(me, 'camo') : null);       // under her cape: the button shows how long of that is left, and only then its cooldown
+    const cd = hold ? hold.t : re ? 0 : sp ? me.spellCd : me.cds[i], full = ram ? BEAST_T : hold ? CAMO_T : sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
     if (!sp && me.def.lethal) setCls(b, 'on', i === 0 ? !!hold : i === 2 && !!me.snipe, 'on' + i);
+    if (!sp && i === 2 && me.def.forms && me.def.forms.beast) setCls(b, 'on', !!ram, 'on' + i);
     const p = cd > 0 ? clamp(cd / full, 0, 1) : 0, pk = Math.round(p * 100);
     if (!sp && s.chain) { const st = re ? re.n - 1 : 0, key = st * 2 + (re ? 1 : 0); if (UI.last['ch' + i] !== key) { UI.last['ch' + i] = key; b.classList.toggle('st3', !!re && re.n === 3); const pp = b.lastElementChild.children; for (let j = 0; j < pp.length; j++) pp[j].className = j < st ? 'f' : j === st && re ? 'n' : ''; } }       // how many cuts are made, and which is next
     if (!sp) { setCls(b, 'armed', !!re, 'ar' + i); if (re) { const w = Math.round(clamp((re.until - G.t) / (re.span || (re.span = re.until - G.t)), 0, 1) * 50) / 50; if (UI.last['w' + i] !== w) { UI.last['w' + i] = w; b.style.setProperty('--w', w); } } }
@@ -650,9 +664,10 @@ const CATS = ['For you', 'Attack', 'Magic', 'Defense', 'Boots'];
    back, another item takes its place, and a new match starts without one. It is the player's own note: the sim knows nothing of it. */
 function prioItem(me) {       // the marked item, for as long as it is still to be had
   const k = UI.prio; if (!k) return null; const it = ITEMS[k];
-  if (!it || (!it.part && me.items.includes(k))) { UI.prio = null; return null; }
+  if (!it || (!it.part && heldOf(me, k) > (UI.prioN || 0))) { UI.prio = null; return null; }       // (one more of it than when it was marked: it has been had. Holding one already was no bar to marking it: another may be what is wanted)
   return k;
 }
+function heldOf(me, k) { let n = 0; for (const q of me.items) if (q === k) n++; return n; }
 function prioBlocked(me, k) { const it = ITEMS[k]; return !!it.boots && me.items.some(q => ITEMS[q].boots && !(it.from || []).includes(q)); }       // a second pair of boots is never to be had
 function stepTo(me, k) {       // the purchase towards item k that can be made now, or null
   if (canBuy(me, k)) return k;
@@ -670,17 +685,19 @@ function prioWait(me, k) {       // nothing of it can be bought yet: what the ch
 function prioToggle(k) {
   const me = G.player, it = ITEMS[k]; if (!me || !it || UI.state !== 'play') return;
   if (UI.prio === k) UI.prio = null;
-  else if ((!it.part && me.items.includes(k)) || prioBlocked(me, k)) { snd('deny'); return; }
-  else UI.prio = k;
+  else if (prioBlocked(me, k)) { snd('deny'); return; }
+  else { UI.prio = k; UI.prioN = heldOf(me, k); }
   snd('ui'); UI.last.qk = null;
   if (!$('shop').hidden) { const y = $('items').closest('.body').scrollTop; renderShop(); $('items').closest('.body').scrollTop = y; }
 }
-function bought(k) { if (k === UI.prio) UI.prio = null; UI.tap2 = null; }       // (a marked part is marked until it is bought once)
+const AGAIN_MS = 5000;       // how long the question stands
+function againArmed(k) { const a = UI.again; return !!a && a.k === k && performance.now() - a.t < AGAIN_MS; }
+function bought(k) { if (k === UI.prio) UI.prio = null; UI.tap2 = null; UI.again = null; }       // (a marked part is marked until it is bought once)
 function itemCard(k) {
   const it = ITEMS[k];
   const rc = it.from ? `<div class="rc">${it.from.map(c => `<button class="pt" data-k="${c}" aria-label="Buy ${esc(ITEMS[c].name)}"><span class="ii">${icon(ITEMS[c].ic, ITEMS[c].c)}</span><span>${esc(ITEMS[c].name)}</span><i></i></button>`).join('')}<small>+ ${it.fee} gold to forge</small></div>`
     : it.into ? `<div class="rc"><small>Builds into ${it.into.map(c => esc(ITEMS[c].name)).join(', ')}</small></div>` : '';
-  return `<div class="itw${it.part ? ' part' : ''}" data-k="${k}"><button class="it" data-k="${k}"><span class="ii">${icon(it.ic, it.c)}</span><b>${esc(it.name)}</b><span class="pr"></span><span class="st">${itemStatText(it).join(' · ')}${it.p ? `<em>${esc(it.p)}</em>` : ''}${it.act ? `<em class="act"><u>Press</u> ${esc(it.act.name)}: ${esc(it.act.desc)} ${it.act.cd}s cooldown.</em>` : ''}</span></button>${rc}<button class="pri" data-p="${k}" aria-pressed="false">${icon('star')}<span>Prioritize</span></button></div>`;
+  return `<div class="itw${it.part ? ' part' : ''}" data-k="${k}"><button class="it" data-k="${k}"><span class="ii">${icon(it.ic, it.c)}<span class="ow" hidden></span></span><b>${esc(it.name)}</b><span class="pr"></span><span class="st">${itemStatText(it).join(' · ')}${it.p ? `<em>${esc(it.p)}</em>` : ''}${it.act ? `<em class="act"><u>Press</u> ${esc(it.act.name)}: ${esc(it.act.desc)} ${it.act.cd}s cooldown.</em>` : ''}</span>${it.part ? '' : '<span class="ag" hidden></span>'}</button>${rc}<button class="pri" data-p="${k}" aria-pressed="false">${icon('star')}<span>Prioritize</span></button></div>`;
 }
 function renderShop() {
   const me = G.player;
@@ -696,13 +713,15 @@ function renderShop() {
 function syncShop() {
   const me = G.player, nb = wantItem(me), ns = wantStep(me), pk = prioItem(me); setTxt('shopGold', Math.floor(me.gold) + ' gold');
   document.querySelectorAll('#items .itw').forEach(w => {
-    const k = w.dataset.k, it = ITEMS[k], own = !it.part && me.items.includes(k), can = canBuy(me, k), price = itemPrice(me, k), b = w.firstChild, pr = b.querySelector('.pr');
-    w.classList.toggle('own', own); w.classList.toggle('can', can); w.classList.toggle('no', !can && !own); w.classList.toggle('rec', k === nb || k === ns); b.disabled = own; w.classList.toggle('prio', k === pk); { const q = w.querySelector('.pri'), on = k === pk; q.hidden = own; if (q.getAttribute('aria-pressed') !== String(on)) { q.setAttribute('aria-pressed', String(on)); q.lastChild.textContent = on ? 'Priority' : 'Prioritize'; } }
-    const txt = own ? 'Owned' : price < it.cost ? `<s>${it.cost}</s>${price}` : String(it.cost); if (pr.innerHTML !== txt) pr.innerHTML = txt;
-    if (it.from) { const have = me.items.slice(); w.querySelectorAll('.pt').forEach(c => { const ck = c.dataset.k, i = have.indexOf(ck), has = i >= 0 || own; if (i >= 0) have.splice(i, 1); c.classList.toggle('have', has); c.classList.toggle('can', !has && canBuy(me, ck)); c.classList.toggle('next', !has && ck === ns && k === nb); c.disabled = has; const t = has ? '✓' : String(ITEMS[ck].cost), e = c.lastChild; if (e.textContent !== t) e.textContent = t; }); }
+    const k = w.dataset.k, it = ITEMS[k], held = it.part ? 0 : heldOf(me, k), own = held > 0, done = own && !!it.boots, can = canBuy(me, k), price = itemPrice(me, k), b = w.firstChild, pr = b.querySelector('.pr');       // (own: a complete item of which one at least is in the bag; it can be bought again all the same)
+    w.classList.toggle('own', own); w.classList.toggle('done', done); w.classList.toggle('can', can); w.classList.toggle('no', !can && !done); w.classList.toggle('rec', k === nb || k === ns); b.disabled = done; w.classList.toggle('prio', k === pk); { const q = w.querySelector('.pri'), on = k === pk; q.hidden = done; if (q.getAttribute('aria-pressed') !== String(on)) { q.setAttribute('aria-pressed', String(on)); q.lastChild.textContent = on ? 'Priority' : 'Prioritize'; } }
+    const txt = done ? 'Owned' : price < it.cost ? `<s>${it.cost}</s>${price}` : String(it.cost); if (pr.innerHTML !== txt) pr.innerHTML = txt;
+    { const ow = b.querySelector('.ow'), t = own && !done ? '\u00d7' + held : ''; if (ow.textContent !== t) ow.textContent = t; ow.hidden = !t; if (t) ow.setAttribute('aria-label', 'You have ' + held); }
+    { const ag = b.querySelector('.ag'); if (ag) { const arm = againArmed(k), t = arm ? (can ? 'You have ' + (held === 1 ? 'one' : held) + '. Press again to buy another: its numbers add up; its passive, Move Speed and penetration count once.' : '') : ''; if (ag.textContent !== t) ag.textContent = t; ag.hidden = !t; w.classList.toggle('again', !!t); } }
+    if (it.from) { const have = me.items.slice(); w.querySelectorAll('.pt').forEach(c => { const ck = c.dataset.k, i = have.indexOf(ck), has = i >= 0 || done; if (i >= 0) have.splice(i, 1); c.classList.toggle('have', has); c.classList.toggle('can', !has && canBuy(me, ck)); c.classList.toggle('next', !has && ck === ns && k === nb); c.disabled = has; const t = has ? '✓' : String(ITEMS[ck].cost), e = c.lastChild; if (e.textContent !== t) e.textContent = t; }); }
   });
 }
-function openModal(id) { for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (m !== id) $(m).hidden = true; $(id).hidden = false; if (id === 'prac') renderPrac(); if (id === 'shop') renderShop(); if (id === 'board') $('boardT').innerHTML = boardHtml(false); if (id === 'pause') { const me = UI.state === 'play' ? G.player : null, net = !!NET.M; UI.paused = true; $('pauseH').textContent = net ? 'Menu' : 'Paused'; $('btnResume').textContent = net ? 'Back to the match' : 'Resume'; $('pauseNet').hidden = !net; $('btnLastRecap').hidden = !(me && me.recap); $('pauseSkWrap').hidden = !me; $('rowAimCam').hidden = !me; $('btnQuit').textContent = me ? 'Leave match' : 'Stop watching'; $('pauseWd').hidden = !(UI.state === 'watch' && !UI.pb); wdShow(); $('panNote').textContent = me ? 'How far the view travels when you drag the battlefield. Drag towards what you want to see; let go to return.' : 'How far the view travels when you drag the battlefield. Drag towards what you want to see.'; if (me) $('pauseSk').innerHTML = skillsHtml(me.def, i => Math.max(1, me.sk[i])); $('btnSound').textContent = UI.mute ? 'Sound off' : 'Sound on'; $('btnGfx').textContent = 'Graphics: ' + GFX_NAMES[V.q]; $('btnCam').textContent = 'Camera: ' + camName(); showCamPrefs(); } clearInput(id !== 'pause'); }
+function openModal(id) { for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (m !== id) $(m).hidden = true; $(id).hidden = false; if (id === 'prac') renderPrac(); if (id === 'shop') { UI.again = null; renderShop(); } if (id === 'board') $('boardT').innerHTML = boardHtml(false); if (id === 'pause') { const me = UI.state === 'play' ? G.player : null, net = !!NET.M; UI.paused = true; $('pauseH').textContent = net ? 'Menu' : 'Paused'; $('btnResume').textContent = net ? 'Back to the match' : 'Resume'; $('pauseNet').hidden = !net; $('btnLastRecap').hidden = !(me && me.recap); $('pauseSkWrap').hidden = !me; $('rowAimCam').hidden = !me; $('btnQuit').textContent = me ? 'Leave match' : 'Stop watching'; $('pauseWd').hidden = !(UI.state === 'watch' && !UI.pb); wdShow(); $('panNote').textContent = me ? 'How far the view travels when you drag the battlefield. Drag towards what you want to see; let go to return.' : 'How far the view travels when you drag the battlefield. Drag towards what you want to see.'; if (me) $('pauseSk').innerHTML = skillsHtml(me.def, i => Math.max(1, me.sk[i])); $('btnSound').textContent = UI.mute ? 'Sound off' : 'Sound on'; $('btnGfx').textContent = 'Graphics: ' + GFX_NAMES[V.q]; $('btnCam').textContent = 'Camera: ' + camName(); showCamPrefs(); } clearInput(id !== 'pause'); }
 function setPan(v, save) { UI.panK = clamp(Math.round(v / PAN_STEP) * PAN_STEP, PAN_MIN, PAN_MAX); showCamPrefs(); if (save) prefs(true); }
 function showCamPrefs() { const s = $('slPan'), v = +UI.panK.toFixed(2); s.style.setProperty('--f', ((UI.panK - PAN_MIN) / (PAN_MAX - PAN_MIN)).toFixed(4)); s.setAttribute('aria-valuenow', v); s.setAttribute('aria-valuetext', v + ' times'); $('outPan').textContent = v + '×'; $('btnPanDn').disabled = UI.panK <= PAN_MIN; $('btnPanUp').disabled = UI.panK >= PAN_MAX; const b = $('btnAimCam'); b.textContent = 'Aim camera: ' + (UI.aimCam ? 'On' : 'Off'); b.setAttribute('aria-pressed', String(UI.aimCam)); }
 function closeModal(id) { $(id).hidden = true; if (id === 'pause') UI.paused = false; }
@@ -803,7 +822,36 @@ function bindTaps() {
 
 /* ---------------- input ---------------- */
 /* drop whatever is being held. soft = a panel opened over the game (shop, scoreboard): only aiming is dropped, the hero keeps walking under the finger or key that holds it */
+/* Teleport is aimed on a map, not on the ground. Pressing it opens the map with every place he can arrive at marked on it (his side's
+   turrets, his crystal, his minions); a press on the map takes whichever of them is nearest it. The match goes on meanwhile. */
+function tpAnchors() { const me = G.player, out = []; for (const u of G.turrets) if (!u.dead && u.team === me.team) out.push(u); for (const u of G.crystals) if (!u.dead && u.team === me.team) out.push(u); for (const u of G.units) if (u.kind === 'minion' && !u.dead && u.team === me.team) out.push(u); return out; }
+function tpNear(x, y) {       // (a thumb is not a pointer: whatever of his is nearest within TP_TAP of the press, and a press inside a turret's ring is that turret though a minion walking past it is nearer)
+  let best = null, bd = TP_TAP, st = null, sd = 1e9;
+  for (const u of tpAnchors()) { const d = hyp(u.x - x, u.y - y); if (d < bd) { bd = d; best = u; } if (u.kind !== 'minion' && d < sd) { sd = d; st = u; } }
+  return st && sd <= (st.kind === 'crystal' ? 380 : 320) ? st : best;
+}
+const TP_TAP = 900;
+function tpOpen() { if (UI.paused || UI.ended || !G.player || G.player.dead) return; UI.tp = { hx: -1, hy: -1, say: '' }; $('tp').hidden = false; $('tip').hidden = true; UI.aimKey = -1; V.aim = null; tpDraw(); }
+function tpClose() { if (!UI.tp) return; UI.tp = null; $('tp').hidden = true; }
+function tpPoint(p) { const r = lrect($('tpMap')); return { x: clamp((p.x - r.left) / r.width, 0, 1) * W, y: clamp((p.y - r.top) / r.height, 0, 1) * W }; }
+function tpTake(p) { const w = tpPoint(p), a = tpNear(w.x, w.y); if (!a) { snd('deny'); return; } tpClose(); doCast(3, a.x, a.y); }
+function tpDraw() {
+  const cv = $('tpMap'), me = G.player; if (!UI.tp || !me || me.dead || UI.ended || UI.state !== 'play' || me.spellCd > 0 || SPELLS[me.spell].cast !== 'map') { tpClose(); return; }
+  const n = cv.width, g = cv.getContext('2d'), k = n / W, q = n / 160, T = me.team, t = performance.now() / 1000, hot = UI.tp.hx >= 0 ? tpNear(UI.tp.hx, UI.tp.hy) : null, c = SPELLS.teleport.c;
+  g.setTransform(1, 0, 0, 1, 0, 0); if (V.mmBg) g.drawImage(V.mmBg, 0, 0, n, n); else { g.fillStyle = '#12301f'; g.fillRect(0, 0, n, n); }
+  g.fillStyle = 'rgba(4,10,14,0.38)'; g.fillRect(0, 0, n, n);
+  for (const s of G.turrets) if (!s.dead && s.team !== T) { g.fillStyle = COL.enemy; g.fillRect(s.x * k - 2.2 * q, s.y * k - 2.2 * q, 4.4 * q, 4.4 * q); }
+  for (const h of G.heroes) if (!h.dead && h !== me && (h.team === T || h.vis[T])) { g.fillStyle = tcol(h.team, T); g.beginPath(); g.arc(h.x * k, h.y * k, 3 * q, 0, TAU); g.fill(); }
+  for (const u of tpAnchors()) {
+    const x = u.x * k, y = u.y * k, mn = u.kind === 'minion', r = (mn ? 1.9 : u.kind === 'crystal' ? 5.5 : 4.2) * q, on = u === hot;
+    if (!mn || on) { g.strokeStyle = on ? '#ffffff' : c; g.globalAlpha = on ? 1 : 0.6 + 0.3 * Math.sin(t * 4 + x); g.lineWidth = (on ? 2.6 : 1.5) * Math.max(1, q * 0.7); g.beginPath(); g.arc(x, y, r + (on ? 4.6 : 3) * q, 0, TAU); g.stroke(); g.globalAlpha = 1; }
+    g.fillStyle = on ? '#ffffff' : mn ? '#a9d4ff' : c; if (mn) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); } else g.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  g.fillStyle = COL.self; g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.beginPath(); g.arc(me.x * k, me.y * k, 4 * q, 0, TAU); g.fill(); g.stroke();
+  const say = hot ? 'Arrive at ' + (hot.kind === 'turret' ? 'this turret' : hot.kind === 'crystal' ? 'your crystal' : 'this minion') : 'Choose one of your turrets, your crystal or a minion'; if (UI.tp.say !== say) { UI.tp.say = say; $('tpSay').textContent = say; }
+}
 function clearInput(soft) {
+  tpClose();
   UI.aimKey = -1; UI.sk = null; UI.q = null; V.aim = null; $('cancel').hidden = true; $('cancel').classList.remove('hot'); if (soft) return;
   UI.nav = null; UI.keys = {}; UI.joy.id = null; UI.joy.x = UI.joy.y = 0; UI.mouseAtk = false; UI.atkPtr = 0; if (G && !G.pb) { G.input.atk = false; G.input.mx = G.input.my = 0; }       // (a recording's hands are its own)
   $('joy').classList.add('idle'); $('joyKnob').style.transform = ''; $('joy').style.left = $('joy').style.top = '';
@@ -867,7 +915,7 @@ function bindInput() {
     if (k === 'Enter' && chatOn() && !UI.ended && !RP.on && !e.repeat) { e.preventDefault(); chatType(e.shiftKey ? 1 : 0); return; }       // Enter: a line to the team (with Shift: to everyone)
     if (RP.on) { if (k === 'Escape' || k === ' ' || k === 'Enter') { e.preventDefault(); endReplay(); } return; }       // a replay only listens for "enough"
     if (k === 'Tab') { e.preventDefault(); if (!UI.boardHold && !UI.ended) { UI.boardHold = true; openModal('board'); } return; }
-    if (k === 'Escape') { if (UI.aimKey >= 0) { UI.aimKey = -1; V.aim = null; return; } for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (!$(m).hidden) { closeModal(m); return; } if (!UI.ended) openModal('pause'); return; }
+    if (k === 'Escape') { if (UI.tp) { tpClose(); return; } if (UI.aimKey >= 0) { UI.aimKey = -1; V.aim = null; return; } for (const m of ['shop', 'board', 'pause', 'prac', 'recap']) if (!$(m).hidden) { closeModal(m); return; } if (!UI.ended) openModal('pause'); return; }
     if (UI.ended) return;
     if (k === 'n' && !e.repeat) { if (!$('recap').hidden) closeModal('recap'); else if (G.player.recap) openRecap(); return; }
     if (k === 'p') { $('shop').hidden ? openModal('shop') : closeModal('shop'); return; }
@@ -876,7 +924,7 @@ function bindInput() {
     if (UI.touch) { UI.touch = false; document.body.classList.remove('touch'); }
     UI.keys[k] = true;
     const si = { q: 0, e: 1, r: 2, f: 3 }[k];
-    if (si != null) { if (!skillReady(si)) { if (!queueCast(si, true)) snd('deny'); return; } const s = skillOf(si); if (s.cast === 'self') doCast(si, G.player.x, G.player.y); else UI.aimKey = si; return; }
+    if (si != null) { if (!skillReady(si)) { if (!queueCast(si, true)) snd('deny'); return; } const s = skillOf(si); if (s.cast === 'self') doCast(si, G.player.x, G.player.y); else if (s.cast === 'map') { if (UI.tp) tpClose(); else tpOpen(); } else UI.aimKey = si; return; }
     if (k === '1' || k === '2' || k === '3') { if (act(A_LEVEL, +k - 1)) snd('level'); return; }
     if (k === 'b') { act(A_RECALL); return; }
     if (k === 'g') { doMend(); return; }
@@ -946,6 +994,7 @@ function bindInput() {
       down(p) {
         setTouch(p); if (UI.sk || UI.paused || UI.ended) return false;
         if (!skillReady(i)) { if (!queueCast(i, false)) snd('deny'); return false; }
+        if (skillOf(i).cast === 'map') { if (UI.tp) tpClose(); else tpOpen(); return false; }       // (Teleport: not aimed from the button; the map opens)
         UI.sk = { id: p.id, i, s: skillOf(i), x0: p.x, y0: p.y, drag: false, ux: 0, uy: 0, k: 0, cancel: false }; b.classList.add('on');
       },
       move(p) {
@@ -966,6 +1015,9 @@ function bindInput() {
   $('bMd').addEventListener('click', doMood);
   $('bIt').addEventListener('click', doItem); $('bIt').addEventListener('mouseenter', () => { if (!UI.touch && UI.state === 'play') showItemTip(); }); $('bIt').addEventListener('mouseleave', () => { $('tip').hidden = true; });
   $('bHl').addEventListener('click', doMend); $('bHl').addEventListener('mouseenter', () => { if (!UI.touch && UI.state === 'play') showMendTip(); }); $('bHl').addEventListener('mouseleave', () => { $('tip').hidden = true; });
+  press($('tpMap'), { down(p) { if (!UI.tp) return false; const w = tpPoint(p); UI.tp.hx = w.x; UI.tp.hy = w.y; }, move(p) { if (UI.tp) { const w = tpPoint(p); UI.tp.hx = w.x; UI.tp.hy = w.y; } }, up(p, cancelled) { if (UI.tp && !cancelled) tpTake(p); } });
+  $('tpMap').addEventListener('mousemove', e => { if (UI.tp && !UI.touch) { const w = tpPoint(lpt(e.clientX, e.clientY, {})); UI.tp.hx = w.x; UI.tp.hy = w.y; } });
+  $('tpNo').addEventListener('click', tpClose);
   // minimap peek
   const mw = $('mmWrap'); let mmId = null;
   const peek = p => { const r = lrect(mw), x = clamp((p.x - r.left) / r.width, 0, 1) * W, y = clamp((p.y - r.top) / r.height, 0, 1) * W;
@@ -1027,6 +1079,7 @@ function bindInput() {
   $('items').addEventListener('click', e => {
     const p = e.target.closest('button.pri'); if (p) { prioToggle(p.dataset.p); return; }
     const b = e.target.closest('.pt, .it'); if (!b) return; const k = b.dataset.k, card = b.classList.contains('it'), now = performance.now(), t2 = UI.tap2;
+    if (card && !ITEMS[k].part && G.player.items.includes(k) && canBuy(G.player, k) && !againArmed(k)) { UI.again = { k, t: now }; UI.tap2 = null; snd('ui'); syncShop(); return; }       // one is held already: the first press asks, the second buys
     if (act(A_BUY, k)) { bought(k); snd('gold'); const y = $('items').closest('.body').scrollTop; renderShop(); $('items').closest('.body').scrollTop = y; }
     else if (card && t2 && t2.k === k && now - t2.t < 480) { UI.tap2 = null; prioToggle(k); }       // pressed twice and not to be bought yet: it is put first (or taken back)
     else { UI.tap2 = card ? { k, t: now } : null; snd('deny'); }
