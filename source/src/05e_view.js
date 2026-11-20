@@ -167,11 +167,18 @@ function cometExtras(v, u, t, dt, ux, uz, c) {
     for (const q of r1.pts) { if (!q.prop || q.prop.t <= 0) continue; const x = q.x * S3, z = q.y * S3; if (n++ < 12) streak3(px, pz, x, z, 0.05, 0.16, n % 2 ? c : STAR2, 0.62, 0.55); px = x; pz = z; } } }
 }
 /* its recall: the chart widens, a shaft of starlight stands on him and stars spiral up it */
-function cometRecall(v, u, t, dt, on, c) {
-  const g = lazyFx(v, 'rc', () => { const q = new THREE.Group(), m = new THREE.Mesh(FG.plane, fxMat(c, 0.9, { map: GX.tex.starmap })), b = new THREE.Mesh(FG.cyl, fxMat(c, 0.3, { map: GX.tex.pillar })), r = new THREE.Mesh(FG.ringThin, fxMat(STAR2, 0.8)); m.position.y = 0.056; r.position.y = 0.06; q.add(m); q.add(b); q.add(r); return q; });
+function starherdExtras(v, u, t, dt, ux, uz, c) {       // the Starherd: a patch of the night sky turns under his feet (a wider one under the ram), star dust falls from him as he goes, and now and then one glints beside him
+  const m = lazyFx(v, 'shd', () => { const q = new THREE.Mesh(FG.plane, fxMat(c, 0.5, { map: GX.tex.starmap })); q.position.y = 0.05; return q; }), big = u.form ? 1.5 : 1;
+  m.visible = true; m.scale.set(2.3 * big, 1, 2.3 * big); m.rotation.y = -t * 0.5; m.position.y = 0.05 - (u.z || 0) * S3; m.material.opacity = 0.34 + Math.sin(t * 1.9) * 0.1;
+  if ((u.moving || u.leap || u.dash) && Math.random() < dt * (u.form ? 30 : 18)) FX.add.emit(ux + (Math.random() - .5) * 0.6 * big, 0.15 + Math.random() * (u.form ? 0.6 : 1.2), uz + (Math.random() - .5) * 0.6 * big, -(u.vx || 0) * S3 * 0.2, 0.3, -(u.vy || 0) * S3 * 0.2, 0.7, 0.13, 0.02, Math.random() < 0.3 ? '#ffffff' : Math.random() < 0.5 ? STAR_S : c, 0.9, -0.1, 0.6);
+  if (Math.random() < dt * 1.6) glint3(ux + (Math.random() - .5) * 1.1 * big, 0.5 + Math.random() * 1.6, uz + (Math.random() - .5) * 1.1 * big, 0.45 + Math.random() * 0.4, 0.4, '#ffffff');
+}
+function cometRecall(v, u, t, dt, on, c, c2) {       // (c2: the second colour of whichever skin of the stars this is)
+  c2 = c2 || STAR2;
+  const g = lazyFx(v, 'rc', () => { const q = new THREE.Group(), m = new THREE.Mesh(FG.plane, fxMat(c, 0.9, { map: GX.tex.starmap })), b = new THREE.Mesh(FG.cyl, fxMat(c, 0.3, { map: GX.tex.pillar })), r = new THREE.Mesh(FG.ringThin, fxMat(c2, 0.8)); m.position.y = 0.056; r.position.y = 0.06; q.add(m); q.add(b); q.add(r); return q; });
   g.visible = on; if (!on) return;
   const k = 1 - u.recallT / 6, C = g.children, ux = u.x * S3, uz = u.y * S3, r = 1.6 + k * 1.6; C[0].scale.set(r * 2, 1, r * 2); C[0].rotation.y = t * (0.8 + k * 3); C[1].scale.set(0.5 + k * 0.3, 4 + k * 5, 0.5 + k * 0.3); C[1].material.opacity = 0.12 + k * 0.45; C[2].scale.set(r * 0.9, 1, r * 0.9); C[2].rotation.y = -t * 2;
-  if (Math.random() < dt * (18 + k * 50)) { const a = t * 6 + Math.random() * 0.6, d = 0.7 - k * 0.3; FX.add.emit(ux + Math.cos(a) * d, 0.1, uz + Math.sin(a) * d, -Math.sin(a) * 1.6, 2.6 + k * 3, Math.cos(a) * 1.6, 0.8, 0.15, 0.02, Math.random() < 0.3 ? STAR2 : Math.random() < 0.5 ? '#ffffff' : c, 0.95, 0, 0.4); }
+  if (Math.random() < dt * (18 + k * 50)) { const a = t * 6 + Math.random() * 0.6, d = 0.7 - k * 0.3; FX.add.emit(ux + Math.cos(a) * d, 0.1, uz + Math.sin(a) * d, -Math.sin(a) * 1.6, 2.6 + k * 3, Math.cos(a) * 1.6, 0.8, 0.15, 0.02, Math.random() < 0.3 ? c2 : Math.random() < 0.5 ? '#ffffff' : c, 0.95, 0, 0.4); }
   if (Math.random() < dt * (2 + k * 7)) { const a = Math.random() * TAU, d = Math.random() * r; glint3(ux + Math.cos(a) * d, 0.3 + Math.random() * 2.6, uz + Math.sin(a) * d, 0.6 + Math.random() * 0.7, 0.3, '#ffffff'); }
 }
 /* its recall: no pillar of light. An eclipse gathers overhead and widens underfoot while everything bright nearby is drawn up into it. */
@@ -247,7 +254,7 @@ function heroExtras(v, u, t, dt) {
   if (ps && ps.moods) moodExtras(v, u, ps, t, dt, ux, uz);
   if (ps && ps.quiet) { const rdy = (u.pv.n || 0) >= ps.stacks && !u.snipe && !u.camo; if (rdy || v.lsG) { let h = v.lsG; if (!h) { h = v.lsG = halo(skinColor(u.key, u.skin, 2), 0.6, 0.9); h.position.set(0, 0.125, 0.37); v.b.wpnR.add(h); } h.visible = rdy; if (rdy) h.scale.setScalar(0.5 + 0.14 * Math.sin(t * 7)); } }       // a Long Shot ready: a light in the glass of her gun
   else if (ps && ps.stacks && (u.pv.n || 0) >= ps.stacks) { aura = ps.c; if (Math.random() < dt * 18) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.35, 0.9 + Math.random() * 0.5, uz + Math.sin(a) * 0.35, Math.cos(a) * 0.5, 0.9, Math.sin(a) * 0.5, 0.5, 0.14, 0.03, Math.random() < 0.4 ? '#ffffff' : ps.c, 0.95, 0, 1); } }       // a passive that is charged shows
-  if (skn.fx === 'E') eclipseExtras(v, u, t, dt, ux, uz, skn.sk[0]); else if (skn.fx === 'C') cometExtras(v, u, t, dt, ux, uz, skn.sk[0]);
+  if (skn.fx === 'E') eclipseExtras(v, u, t, dt, ux, uz, skn.sk[0]); else if (skn.fx === 'C') cometExtras(v, u, t, dt, ux, uz, skn.sk[0]); else if (skn.fx === 'S') starherdExtras(v, u, t, dt, ux, uz, skn.sk[0]);
   { const rg = hasBuff(u, 'rage'); if (rg || v.wg) rageWings(v, u, rg, t, dt, ux, uz); }
   for (const b of u.buffs) if (b.aura) { aura = b.ci != null ? skinColor(u.key, u.skin, b.ci) : b.aura; if (Math.random() < dt * 14) { const a = Math.random() * TAU; FX.add.emit(ux + Math.cos(a) * 0.5, 0.1, uz + Math.sin(a) * 0.5, 0, 1.7, 0, 0.7, 0.15, 0.03, aura, 0.9, 0, 0); } }
   const sa = SKINS[u.key][u.skin].aura; if (sa && Math.random() < dt * (u.moving ? 7 : 3)) FX.add.emit(ux + (Math.random() - .5) * 0.5, 0.2 + Math.random() * 1.3, uz + (Math.random() - .5) * 0.5, 0, 0.5, 0, 0.8, 0.12, 0.02, sa, 0.75, -0.1, 0);
@@ -261,6 +268,7 @@ function heroExtras(v, u, t, dt) {
   const rc = u.recallT > 0;
   if (skn.fx === 'E') { if (rc || v.rc) eclipseRecall(v, u, t, dt, rc, skn.sk[0]); }
   else if (skn.fx === 'C') { if (rc || v.rc) cometRecall(v, u, t, dt, rc, skn.sk[0]); }
+  else if (skn.fx === 'S') { if (rc || v.rc) cometRecall(v, u, t, dt, rc, skn.sk[0], STAR_S); }
   else if (rc || v.rc) {
     const hc = RECALL_C[u.key] || '#9fd8ff';
     const g = lazyFx(v, 'rc', () => { const q = new THREE.Group(), a = new THREE.Mesh(FG.ring, fxMat(hc, 0.85)), b = new THREE.Mesh(FG.cyl, fxMat(hc, 0.3, { map: GX.tex.pillar })), d = new THREE.Mesh(FG.plane, fxMat(hc, 0.8, { map: GX.tex.rune })); a.position.y = 0.06; b.scale.set(0.62, 3.4, 0.62); d.position.y = 0.055; d.scale.set(2.3, 1, 2.3); q.add(a); q.add(b); q.add(d); return q; });
@@ -323,7 +331,7 @@ function syncViews(t, dt) {
         if (fading && quick && v.deadT > f0 + fd) v.o.visible = false; else if (!v.o.visible) v.o.visible = true; }       // the Eclipse skin is gone by the time its eclipse bursts
       v.ring.visible = !u.dead;
       if (st.moving && !v.hover && !u.leap && Math.random() < dt * 7) FX.alpha.emit(u.x * S3 + (Math.random() - .5) * 0.3, 0.06, u.y * S3 + (Math.random() - .5) * 0.3, 0, 0.35, 0, 0.45, 0.14, 0.4, '#d8cfb4', 0.3, -0.2, 1);
-      if (!u.dead) heroExtras(v, u, t, dt); else { if (v.wg) { v.wg.g.visible = false; v.wgAge = -1; } if (v.auraM) v.auraM.visible = false; if (v.tw) v.tw.visible = false; if (v.bub) v.bub.visible = false; if (v.rc) v.rc.visible = false; if (v.rt) v.rt.visible = false; if (v.ecl) v.ecl.visible = false; if (v.cmt) v.cmt.visible = false; }
+      if (!u.dead) heroExtras(v, u, t, dt); else { if (v.wg) { v.wg.g.visible = false; v.wgAge = -1; } if (v.auraM) v.auraM.visible = false; if (v.tw) v.tw.visible = false; if (v.bub) v.bub.visible = false; if (v.rc) v.rc.visible = false; if (v.rt) v.rt.visible = false; if (v.ecl) v.ecl.visible = false; if (v.cmt) v.cmt.visible = false; if (v.shd) v.shd.visible = false; }
     } else {
       animUnit(v, u, st, t, dt);
       const ak = u.air ? Math.sin(Math.min(1, u.air.t / u.air.dur) * Math.PI) : 0; if (ak || v.airK) { v.airK = ak; v.o.rotation.x = -0.7 * ak; v.o.rotation.z = (v.seed > 3 ? 0.4 : -0.4) * ak; }       // thrown into the air, it tumbles

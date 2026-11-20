@@ -1296,6 +1296,11 @@ const SKINS = {
       sk: ['#bfeaff', '#e8f8ff', '#8fc8ff'], parts: ['gem'], aura: '#bfeaff' },
     { name: 'Greenmoor Drover', look: { body: '#3f5a3c', trim: '#d9b45a', hair: '#2a1c14', glow: '#a8f08a', fur: '#cdbf9a', fleece: '#8f9a80', horn: '#e9f5c9', hide: '#2e3a2a', pants: '#2f2a22', boot: '#1f1a14' },
       sk: ['#a8f08a', '#e3ffc9', '#6fd86a'], parts: ['visor'], aura: '#a8f08a' },
+    /* epic: a drover of the night sky. His sheepskin is the dark between the stars with stars caught in it and the Ram's own few
+       pinned across his chest; the ram he becomes is that constellation walking, gold-horned; and what is thunder in the other
+       three is starlight here: its own effect for every skill, for his blows and his recall (fx 'S'). */
+    { name: 'Starherd Drover', epic: true, look: { body: '#1b2150', trim: '#f2d27a', hair: '#e9eeff', glow: '#ffe9a8', wglow: '#fff3c4', fur: '#2b3478', fleece: '#232c6c', horn: '#f2d27a', hide: '#11163c', pants: '#12163a', boot: '#0b0e26', acc: '#9fb4ff', stars: 1 },
+      sk: ['#ffe9a8', '#fff6d8', '#9fb4ff'], parts: ['starherd'], aura: '#ffe9a8', fx: 'S' },
   ],
 };
 const _looks = {};

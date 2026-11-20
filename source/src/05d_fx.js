@@ -386,6 +386,11 @@ function skyline3(x, z, hex, w, dur, dx, dz) {       // a line of light from hig
   a.scale.set(w * 0.35, w * 0.35, len); b.scale.set(w, w, len); g.add(a); g.add(b); g.position.set((sx + x) / 2, sy / 2, (sz + z) / 2); g.lookAt(x, 0, z); g.renderOrder = 5;
   fxAdd(g, dur, k => { const f = 1 - k; a.material.opacity = f; b.material.opacity = 0.7 * f * f; const q = 0.4 + 0.6 * f; a.scale.x = a.scale.y = w * 0.35 * q; b.scale.x = b.scale.y = w * (1 + k * 1.5); });
 }
+/* ---- Halvar's Starherd skin (fx 'S'): where the others have thunder, this one has starlight ---- */
+const STAR_S = '#9fb4ff';       // the night's blue beside its gold
+function dustS(x, y, z, n, hex, speed, life) {       // star dust in the skin's own three colours
+  for (let i = 0; i < n; i++) { const a = Math.random() * TAU, v = speed * (0.3 + Math.random() * 0.7); FX.add.emit(x, y + (Math.random() - .5) * 0.4, z, Math.cos(a) * v, 0.4 + Math.random() * 1.6, Math.sin(a) * v, (life || 0.6) * (0.6 + Math.random() * 0.7), 0.17, 0.02, i % 3 === 0 ? '#ffffff' : i % 3 === 1 ? STAR_S : hex, 1, 0.9, 1.8); }
+}
 function ghostTrail(v, hex, x0, z0, x1, z1, n) { if (!v) return; for (let i = 0; i < n; i++) { const k = (i + 0.5) / n; ghost3(v, i % 2 ? STAR2 : hex, 0.28 + k * 0.3, 0.22 + k * 0.3, lerp(x0, x1, k), lerp(z0, z1, k)); } }
 function impactC(x, z, c, r, big) {       // where a star comes down
   skyline3(x, z, c, big ? 0.5 : 0.28, big ? 0.42 : 0.3); flash3(x, 0.8, z, r * 2.6, 0.3, '#ffffff'); flash3(x, 0.8, z, r * 3.4, 0.4, c); ring3(x, z, 0.2, r * 1.15, 0.4, c, 1); ring3(x, z, 0.2, r * 0.8, 0.3, '#ffffff', 0.8); later(0.08, () => ring3(x, z, 0.3, r * 1.5, 0.5, STAR2, 0.6, true));
@@ -769,6 +774,28 @@ const SKFX = {
     pillar3(x, z, 1.5, 6.5, 0.6, c, 0.7); ring3(x, z, 0.4, 3.4, 0.5, c, 0.9); ring3(x, z, 0.3, 2.2, 0.36, '#ffffff', 0.8, true); flash3(x, 1.4, z, 5.5, 0.3, '#ffffff'); scorch3(x, z, 1.5, 2.5);
     for (let i = 0; i < 7; i++) { const a = i / 7 * TAU + Math.random() * 0.5, r = 0.5 + Math.random() * 1.6; later(i * 0.03, () => bolt3(x + Math.cos(a) * r * 0.3, 7, z + Math.sin(a) * r * 0.3, x + Math.cos(a) * r, 0.05, z + Math.sin(a) * r, i % 2 ? '#ffffff' : c, 0.09, 0.22, 0.14, 8)); }
     smoke(x, 0.3, z, 10, '#cfc8e0', 1.0, 0.8, 1.0); sparks(x, 1.0, z, 22, c, 5.5, 0.18, 0.6, 1.4, 4); FX.shake = Math.max(FX.shake, 0.3); },
+  /* the Starherd's own: */
+  halvar0S(e, x, z, c) { ring3(x, z, 0.3, 2.0, 0.34, c, 0.8, true); starmap3(x, z, 1.5, 0.6, c, 5); flash3(x, 1.0, z, 2.0, 0.18, c); glint3(x, 1.3, z, 1.8, 0.3, '#ffffff'); twinkle(x, 1.1, z, 1.4, 6, c); dustS(x, 1.0, z, 10, c, 2.4, 0.5); },       // Echoes: three of him out of one patch of sky
+  halvar1S(e, x, z, c) { const a = e.ang, ca = Math.cos(a), sa = Math.sin(a), d = FIST_D * S3; vring3(x + ca * 0.4, 1.0, z + sa * 0.4, a, 0.25, 0.9, 0.22, c, 0.8); streak3(x, z, x + ca * d, z + sa * d, 0.5, 0.24, c, 0.9, 0.6); for (let i = 1; i <= 3; i++) later(i * 0.035, () => glint3(x + ca * d * i / 3.4, 1.0 + (i % 2) * 0.3, z + sa * d * i / 3.4, 0.8, 0.26, i % 2 ? '#ffffff' : c)); },       // Stormknuckle: a falling star, level
+  halvar1hS(e, x, z, c) { const a = e.ang, ca = Math.cos(a), sa = Math.sin(a); flash3(x, 1.1, z, 3.4, 0.2, '#ffffff'); flash3(x, 1.1, z, 2.2, 0.26, c); ring3(x, z, 0.3, 1.9, 0.3, c, 0.9); vring3(x, 1.1, z, a, 0.3, 1.5, 0.24, '#ffffff', 0.8);
+    sunburst3(x, z, 1.9, 9, c, 0.32, 0.1, 0.12); glint3(x, 1.2, z, 2.8, 0.34, '#ffffff'); twinkle(x, 1.2, z, 1.2, 5, c); starmap3(x, z, 1.2, 0.5, STAR_S, -5);
+    streak3(x, z, x + ca * FIST_PUSH * S3, z + sa * FIST_PUSH * S3, 0.6, 0.25, '#ffffff', 0.6, 0.5); dustS(x, 1.1, z, 16, c, 4.6, 0.6); FX.shake = Math.max(FX.shake, 0.2); },
+  halvar2S(e, x, z, c) {       // the Ram comes down out of the sky: a line of light to where he stands, and the star-map opens under him
+    skyline3(x, z, c, 0.55, 0.5, 2.2, -1.6); pillar3(x, z, 1.3, 6.5, 0.6, c, 0.5); starmap3(x, z, 3.0, 1.2, c, 3, { r0: 0.6 }); ring3(x, z, 0.4, 3.4, 0.5, c, 0.9); ring3(x, z, 0.3, 2.2, 0.36, '#ffffff', 0.8, true); later(0.1, () => ring3(x, z, 0.5, 4.0, 0.6, STAR_S, 0.5, true));
+    flash3(x, 1.4, z, 5.5, 0.3, '#ffffff'); glint3(x, 1.8, z, 4.2, 0.5, '#ffffff'); sunburst3(x, z, 3.0, 12, c, 0.5, 0.14, 0.12); twinkle(x, 1.6, z, 2.2, 12, c); dustS(x, 1.0, z, 30, c, 5.2, 0.9); FX.shake = Math.max(FX.shake, 0.3); },
+  halvar0bS(e, x, z, c) { const a = e.ang, ca = Math.cos(a), sa = Math.sin(a), d = CHARGE_D * S3; vring3(x + ca * 0.5, 1.1, z + sa * 0.5, a, 0.4, 1.4, 0.28, c, 0.7); streak3(x, z, x + ca * d, z + sa * d, 1.1, 0.42, c, 0.08, 0.45); streak3(x, z, x + ca * d, z + sa * d, 0.4, 0.5, STAR_S, 0.1, 0.4); for (let i = 1; i <= 5; i++) later(i * 0.05, () => glint3(x + ca * d * i / 5.5 + (Math.random() - .5) * 0.6, 0.5 + Math.random() * 1.2, z + sa * d * i / 5.5 + (Math.random() - .5) * 0.6, 0.7 + Math.random() * 0.5, 0.3, i % 2 ? '#ffffff' : c)); dustS(x, 0.4, z, 8, c, 2.4, 0.5); },       // Headlong
+  halvar0hS(e, x, z, c) { flash3(x, 1.0, z, 2.2, 0.18, '#ffffff'); glint3(x, 1.1, z, 1.6, 0.28, '#ffffff'); dustS(x, 1.0, z, 9, c, 3.8, 0.45); ring3(x, z, 0.2, 1.1, 0.24, c, 0.8, true); FX.shake = Math.max(FX.shake, 0.12); },
+  halvar1bS(e, x, z, c) {       // Thunderbleat: the bellow goes out as a fan of starlight
+    const a = e.ang, r = e.r * S3, h = e.a, ca = Math.cos(a), sa = Math.sin(a);
+    slash3(x, z, a, h, r, 0.36, c, 0.08, { op: 0.3, flat: 1 }); later(0.04, () => slash3(x, z, a, h, r * 1.03, 0.3, '#ffffff', 0.1, { thin: 1, op: 0.3, edge: 0.8 })); later(0.1, () => slash3(x, z, a, h, r * 0.7, 0.3, STAR_S, 0.1, { thin: 1, op: 0.25, edge: 0.6 }));
+    for (let i = 0; i < 3; i++) later(i * 0.07, () => vring3(x + ca * (0.6 + i * 1.1), 1.3, z + sa * (0.6 + i * 1.1), a, 0.4 + i * 0.3, 1.2 + i * 0.6, 0.3, i ? c : '#ffffff', 0.7));
+    for (let i = 0; i < 9; i++) { const q = a + (Math.random() - 0.5) * 2 * h, d = r * (0.3 + Math.random() * 0.65); later(0.04 + d / r * 0.16, () => glint3(x + Math.cos(q) * d, 0.5 + Math.random() * 1.3, z + Math.sin(q) * d, 0.7 + Math.random() * 0.7, 0.3, i % 3 ? c : '#ffffff')); }
+    FX.shake = Math.max(FX.shake, 0.14); },
+  halvar2jS(e, x, z, c) { const tx = e.x1 * S3, tz = e.y1 * S3, R = SKY_AOE * S3; ring3(x, z, 0.4, 1.8, 0.3, c, 0.7); dustS(x, 0.4, z, 12, c, 3, 0.6); starmap3(tx, tz, R, 0.6, c, 4, { r0: R * 0.8 }); ring3(tx, tz, R, R * 0.25, 0.55, c, 0.75, true); ring3(tx, tz, R, R, 0.55, c, 0.4, true); },       // Skybreaker: up among them
+  halvar2lS(e, x, z, c) {       // and down, as a star comes down
+    const r = e.r * S3; skyline3(x, z, c, 0.5, 0.4); flash3(x, 1.0, z, r * 2.6, 0.3, '#ffffff'); flash3(x, 0.8, z, r * 3.2, 0.4, c); ring3(x, z, r * 0.2, r * 1.05, 0.42, c, 0.95); ring3(x, z, r * 0.1, r * 0.8, 0.3, '#ffffff', 0.8, true); later(0.08, () => ring3(x, z, 0.3, r * 1.3, 0.5, STAR_S, 0.55, true));
+    sunburst3(x, z, r * 1.3, 16, c, 0.42, 0.16, 0.12); sunburst3(x, z, r * 0.8, 9, '#ffffff', 0.3, 0.09, 0.14); starmap3(x, z, r * 1.05, 0.9, c, 5); pillar3(x, z, r * 0.4, 5, 0.45, c, 0.55); decal3(GX.tex.crack, x, z, r * 1.0, 1.6, c, 0.8, { r0: r * 0.6, gk: 0.1, fout: 0.6 }); scorch3(x, z, r * 0.7, 3);
+    dustS(x, 0.6, z, 34, c, 5.5, 0.8); twinkle(x, 1.2, z, r, 8, c); debris(x, 0.3, z, 10, '#3a3f6a', 4.2, 0.22, 0.9); FX.shake = Math.max(FX.shake, 0.4); },
   halvar0b(e, x, z, c) { const a = e.ang, ca = Math.cos(a), sa = Math.sin(a), d = CHARGE_D * S3; vring3(x + ca * 0.5, 1.1, z + sa * 0.5, a, 0.4, 1.4, 0.28, c, 0.7); streak3(x, z, x + ca * d, z + sa * d, 1.1, 0.4, c, 0.08, 0.45); smoke(x, 0.2, z, 6, '#d8cfb4', 0.7, 0.5, 0.6); debris(x, 0.2, z, 6, '#7a6a52', 2.6, 0.18, 0.6); },       // Headlong
   halvar0h(e, x, z, c) { flash3(x, 1.0, z, 2.2, 0.18, '#ffffff'); sparks(x, 1.0, z, 9, c, 4.2, 0.15, 0.4, 1.3); ring3(x, z, 0.2, 1.1, 0.24, c, 0.8, true); FX.shake = Math.max(FX.shake, 0.12); },
   halvar1b(e, x, z, c) {       // Thunderbleat: the bellow goes out before him, and the storm with it

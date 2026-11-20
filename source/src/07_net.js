@@ -17,7 +17,7 @@
    NET.ok: 0 not asked yet, 1 connected, -1 this view cannot connect. chan: the table (null: not at one). P: the pages at the table,
    as read. hs: this page hosts. go: what the host started. M: the match in progress, as the turn exchange holds it (ncNew).
    ============================================================ */
-const NETV = 8;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
+const NETV = 9;       // (what the pages say to one another, as a number: pages of different numbers do not sit at one table)
 const NET_AWAY = 6000;        // ms the page of a seat may be missing from the table during a match before the seat counts as gone (connections are refreshed now and then, and that is no leaving)
 const NET_GO_MS = 15000;      // ms the host keeps saying how a match started
 const NET_BYTES = 3900;       // the most a page may keep in a room is 4 KiB

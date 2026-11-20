@@ -491,6 +491,14 @@ function buildRam(L) {
   for (const k of [-1, 1]) { gp('rhead', new THREE.SphereGeometry(0.04, 6, 5), k * 0.215, 0.09, 0.34, 0.24); gp('rhead', new THREE.TorusGeometry(0.36, 0.026, 4, 14, Math.PI * 1.2), k * 0.535, 0.02, -0.1, 0).rotation.set(0, HP2, -Math.PI * 0.6, 'XYZ'); }
   gp('rbody', new THREE.OctahedronGeometry(0.11, 0), 0, -0.1, 0.84, 0.75).scale.set(0.8, 1.25, 0.55);
   for (const n of ['rFLs', 'rFRs', 'rBLs', 'rBRs']) gp(n, new THREE.TorusGeometry(0.165, 0.02, 4, 10), 0, -0.34, 0, 0).rotation.x = HP2;
+  if (L.stars) {       // the Starherd's ram: stars caught all through the fleece, and along each flank the four of the Ram joined by a line of light
+    const st = (bn, x, y, z, r, hex, hs) => { const m = new THREE.Mesh(new THREE.OctahedronGeometry(r, 0), glowMat(hex)); m.position.set(x, y, z); B[bn].add(m); if (hs) { const h = halo(hex, hs, 0.7); h.position.set(x, y, z); B[bn].add(h); } return m; }, a2 = L.acc || glow;
+    for (let i = 0; i < 16; i++) { const a = i * 2.399963, v = (i + 0.5) / 16, th = 0.25 + v * 1.25, px = Math.sin(th) * Math.cos(a) * 0.56 * 0.98, py = 0.14 + Math.cos(th) * 0.56 * 0.74, pz = -0.05 + Math.sin(th) * Math.sin(a) * 0.56 * 1.5; st('rbody', px * 1.04, py + 0.02, pz * 1.02, i % 4 === 0 ? 0.03 : 0.018, i % 4 === 0 ? '#ffffff' : i % 4 === 2 ? a2 : glow, i % 4 === 0 ? 0.22 : 0); }
+    for (const k of [-1, 1]) { const pts = [[-0.5, 0.02], [-0.16, 0.14], [0.2, 0.2], [0.52, 0.4]], X = z => k * (0.56 * 0.98 * Math.sqrt(Math.max(0.05, 1 - Math.pow((z + 0.05) / 0.84, 2))) + 0.015);
+      pts.forEach((q, i) => st('rbody', X(q[0]) * (1 - Math.abs(q[1] - 0.14) * 0.5), q[1], q[0], i === 2 ? 0.045 : 0.03, i === 2 ? '#ffffff' : glow, i === 2 ? 0.34 : 0.14));
+      for (let i = 0; i < 3; i++) { const p0 = pts[i], p1 = pts[i + 1], x0 = X(p0[0]) * (1 - Math.abs(p0[1] - 0.14) * 0.5), x1 = X(p1[0]) * (1 - Math.abs(p1[1] - 0.14) * 0.5), dz = p1[0] - p0[0], dy = p1[1] - p0[1], dx = x1 - x0, m = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.008, 1), glowMat(a2)); m.scale.z = Math.hypot(dx, dy, dz); m.position.set((x0 + x1) / 2, (p0[1] + p1[1]) / 2, (p0[0] + p1[0]) / 2); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(dx, dy, dz).normalize()); B.rbody.add(m); } }
+    st('rhead', 0, 0.36, 0.04, 0.05, '#ffffff', 0.5).scale.set(0.6, 1.5, 0.6);       // one bright one riding between the horns
+  }
   return root;
 }
 function ramInstance(key, skin, mat) {
@@ -596,6 +604,14 @@ const SKIN_PARTS = {
     for (let i = 0; i < pts.length - 1; i++) { const p0 = pts[i], p1 = pts[i + 1], dx = p1[0] - p0[0], dy = p1[1] - p0[1], m = glowPart(R, 'spine', new THREE.BoxGeometry(0.008, Math.hypot(dx, dy), 0.004), c, (p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2, 0.164 * b, 0); m.rotation.z = Math.atan2(-dx, dy); }
     glowPart(R, 'spine', new THREE.OctahedronGeometry(0.06, 0), a2, -0.31 * b, 0.62, 0, 0.45);
     for (const s of ['L', 'R']) { R.P('fore' + s).cyl(0.078 * b, 0.072 * b, 0.12, shade(L.body, 0.2), { y: -0.14, c2: c, sh: 0.4 }, 8); R.P('shin' + s).cyl(0.105 * b, 0.1 * b, 0.03, c, { y: -0.03 }, 8); }
+  },
+  starherd(R, L) {       // the Ram's stars across his chest, joined by lines of light; more of them caught in the fleece on his shoulders and back; a sickle moon for a clasp at his throat
+    const c = L.trim, a2 = L.acc || c, b = R.b, zf = 0.158 * b + 0.03, pts = [[-0.15, 0.2], [-0.04, 0.27], [0.08, 0.3], [0.17, 0.42]];
+    pts.forEach((q, i) => glowPart(R, 'spine', new THREE.OctahedronGeometry(i === 2 ? 0.036 : 0.024, 0), i === 2 ? '#ffffff' : c, q[0] * b, q[1], zf, i === 2 ? 0.36 : 0));
+    for (let i = 0; i < pts.length - 1; i++) { const p0 = pts[i], p1 = pts[i + 1], dx = (p1[0] - p0[0]) * b, dy = p1[1] - p0[1], m = glowPart(R, 'spine', new THREE.BoxGeometry(0.008, Math.hypot(dx, dy), 0.004), a2, (p0[0] + p1[0]) / 2 * b, (p0[1] + p1[1]) / 2, zf - 0.004, 0); m.rotation.z = Math.atan2(-dx, dy); }
+    for (const [x, y, z, k] of [[-0.27, 0.56, 0.06, 1], [0.29, 0.53, -0.04, 0], [0.24, 0.6, 0.08, 0], [-0.12, 0.44, -0.2, 0], [0.1, 0.3, -0.21, 1], [-0.04, 0.2, -0.2, 0], [0.16, 0.5, -0.17, 0], [-0.2, 0.3, -0.16, 0]]) glowPart(R, 'spine', new THREE.OctahedronGeometry(k ? 0.024 : 0.016, 0), k ? '#ffffff' : c, x * b, y, z * b - (z < 0 ? 0.03 : 0), k ? 0.2 : 0);
+    const m = glowPart(R, 'spine', new THREE.TorusGeometry(0.055, 0.014, 4, 12, Math.PI * 1.25), c, 0, 0.5, 0.17 * b + 0.05, 0.3); m.rotation.z = 2.2;
+    for (const s of ['L', 'R']) R.P('shin' + s).cyl(0.118 * b, 0.108 * b, 0.02, c, { y: -0.075 }, 8);
   },
   ruff(R, L) { R.P('spine').tor(0.2, 0.075, '#f4f7fa', { y: 0.5, rx: HP2, c2: '#ffffff' }, 6, 12); for (const k of ['L', 'R']) R.P('fore' + k).tor(0.075 * R.b, 0.035, '#f4f7fa', { y: -0.2, rx: HP2 }, 5, 8); },
 };

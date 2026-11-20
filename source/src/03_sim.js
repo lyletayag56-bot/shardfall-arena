@@ -1397,7 +1397,7 @@ const KIT_V = 24, KIT_0 = 19;       // which state of the heroes' skills a match
 const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8, A_MOOD = 9;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1, '2b64e130': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1, '2b64e130': 1, 'ed914bb2': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }
