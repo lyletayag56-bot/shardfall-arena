@@ -439,7 +439,7 @@ const HERO_BUILD = {
     glowPart(R, 'wpnR', new THREE.CylinderGeometry(0.031, 0.031, 0.012, 10), glow, 0, 0.125, 0.345, 0).rotation.x = HP2;
     return { style: 'rifle' };
   },
-  odile(R, L) {       // a duellist out of the glassworks: a high-collared coat with tails, her hair pinned up with a sliver of glass, one polished pauldron, a round looking glass slung on her back, and a long thin blade of rose glass
+  odile(R, L) {       // a duellist out of the glassworks: a high-collared coat with tails, her hair pinned up with a sliver of glass, one polished pauldron, a round looking glass slung on her back, and a long blade of rose glass that she holds in both hands
     baseBody(R, { body: L.body, trim: L.trim, skin: L.skin, sleeve: L.body, fore: shade(L.body, -0.22), glove: '#20242c', pants: L.pants, boot: L.boot });
     const T = R.P('spine'), H = R.P('head'), Hp = R.P('hips'), b = R.b, glow = L.glow, mir = L.mirror || '#dfe8f5', zf = 0.158 * b, zb = -0.17 * b;
     T.tor(0.118, 0.034, shade(L.body, 0.1), { y: 0.535, rx: HP2 }, 5, 12);                                    // the collar, standing
@@ -459,10 +459,13 @@ const HERO_BUILD = {
     H.sph(0.125, L.hair, { y: 0.57, z: -0.19 }).tor(0.1, 0.02, L.trim, { y: 0.52, z: -0.16, rx: 0.9 }, 4, 10);      // the knot high at the back, bound in silver
     glowPart(R, 'head', new THREE.CylinderGeometry(0.011, 0.004, 0.42, 5), glow, 0, 0.58, -0.19, 0).rotation.z = 1.15;      // the sliver of glass through it
     const W = R.P('wpnR');
-    W.cyl(0.021, 0.021, 0.17, '#20242c', {}, 6).sph(0.036, L.trim, { y: -0.1 }, 6, 5).tor(0.075, 0.013, L.trim, { y: 0.09, rx: HP2 }, 5, 14).box(0.022, 0.2, 0.012, L.trim, { x: 0.07, y: 0.0, rz: 0.2 });      // hilt, pommel, a ring for a guard and a bar to cover the knuckles
-    W.box(0.046, 1.0, 0.012, L.blade || '#ffd9ea', { y: 0.6, c2: '#ffffff', sh: 1 }).cone(0.033, 0.17, L.blade || '#ffd9ea', { y: 1.185, sz: 0.28, ry: Math.PI / 4 }, 4);      // the blade: long, thin, of glass
-    glowPart(R, 'wpnR', new THREE.BoxGeometry(0.01, 1.02, 0.018), glow, 0, 0.61, 0, 0);                       // the light held in it
-    return { style: 'fence' };
+    W.cyl(0.022, 0.024, 0.38, '#20242c', { y: -0.1 }, 6).cyl(0.028, 0.028, 0.03, L.trim, { y: -0.2 }, 6).sph(0.04, L.trim, { y: -0.31, sy: 1.25 }, 6, 5);      // a grip long enough for both her hands, bound once in silver, and its pommel
+    W.box(0.3, 0.03, 0.04, L.trim, { y: 0.1 }).tor(0.062, 0.012, L.trim, { y: 0.1, rx: HP2 }, 5, 14);      // the guard: a straight bar, and the ring it has always had
+    for (const k of [-1, 1]) W.box(0.06, 0.03, 0.04, L.trim, { x: k * 0.165, y: 0.118, rz: k * 0.55 });      // (the ends of the bar turned up toward the blade)
+    W.box(0.056, 1.06, 0.012, L.blade || '#ffd9ea', { y: 0.66, c2: '#ffffff', sh: 1 }).cone(0.04, 0.17, L.blade || '#ffd9ea', { y: 1.275, sz: 0.24, ry: Math.PI / 4 }, 4);      // the blade: long, slender, of glass
+    glowPart(R, 'wpnR', new THREE.BoxGeometry(0.012, 1.1, 0.018), glow, 0, 0.67, 0, 0);                       // the light held in it,
+    glowPart(R, 'wpnR', new THREE.OctahedronGeometry(0.03, 0), glow, 0, -0.31, 0, 0.2);                       // and a bead of it in the pommel
+    return { style: 'long' };
   },
   halvar(R, L) {       // a drover of the high passes: a sheepskin over a wool tunic belted with copper, a roll of fleece at the neck, bare arms, forearms wrapped to the knuckles in hide with a band of horn across each fist, a kilt of hide over his breeches, fleece at the tops of his boots; russet hair cropped at the sides with a ridge of it over the top; and in his breastbone the shard the ram sleeps in
     const b = R.b, zf = 0.158 * b, wool = L.body, fur = L.fur || '#e9e2d0', hide = L.hide || '#3a4256', cop = L.trim, horn = L.horn || '#d8cfe8', glow = L.wglow || L.glow || '#b9a8ff', leather = '#4a3528';
@@ -844,7 +847,7 @@ const STANCE = {   // idle arm pose: [armL.x, foreL.x, armL.z, armR.x, foreR.x, 
   bow: [-0.4, -0.55, 0.12, 0.06, -0.35, -0.12],
   hurl: [0.1, -0.5, 0.18, -0.3, -0.85, -0.16],
   brawl: [-0.5, -1.55, 0.2, -0.5, -1.55, -0.2],       // fists up before his chin
-  fence: [0.55, -1.35, 0.32, -0.95, -0.55, -0.1],       // a fencer's guard: the blade out before her, the other hand behind her back
+  long: [0.08, -0.35, 0.14, -0.45, -0.95, -0.12],       // (what Odile's arms do with only one hand on her sword: thrown, stunned, fallen. Otherwise the sword leads them: longStep)
   rifle: [-1.02, -0.36, -0.6, -0.5, -0.83, -0.05],       // the long gun at the low ready: in the right hand, the left under its fore-end
 };
 function tri(u, a, b, c) {       // stance -> wind-up -> strike (lands at 0.6) -> recover
@@ -898,6 +901,11 @@ const CLIPS = {
   hurlE:    { d: 0.52, spin: 1, hop: 0.3, aRx: [0, -0.3, 0.5, -0.3, 0.7, -1.55, 1, -1.3], aRz: [0, -1.45, 0.5, -1.45, 0.7, 0.25], fRx: [0, -0.15], aLx: [0, 0.4], aLz: [0, 1.3, 0.6, 1.3, 1, 0.5], hipRx: [0, 0.18], lLx: [0, -0.5], sLx: [0, 0.9] },
   riftE:    { d: 0.62, roll: 1, lift: 1.4, aRx: [0, -2.95, 0.6, -2.95, 0.8, -0.6], aLx: [0, -2.95, 0.6, -2.95, 0.8, -0.6], fRx: [0, -0.3], fLx: [0, -0.3], lLx: [0, -1.4, 0.7, -1.4, 1, 0], lRx: [0, -1.4, 0.7, -1.4, 1, 0], sLx: [0, 1.8, 0.7, 1.8, 1, 0.4], sRx: [0, 1.8, 0.7, 1.8, 1, 0.4] },
   eclipseE: { d: 1.05, hop: 1.0, spin: 2, aRx: [0, -0.15, 0.5, -0.15, 0.62, -2.95, 0.74, -0.45, 1, -0.5], aLx: [0, -0.15, 0.5, -0.15, 0.62, -2.95, 0.74, -0.45, 1, -0.5], aRz: [0, -1.55, 0.5, -1.55, 0.62, -0.3], aLz: [0, 1.55, 0.5, 1.55, 0.62, 0.3], fRx: [0, -0.1], fLx: [0, -0.1], headRx: [0, -0.55, 0.55, -0.55, 0.72, 0.35, 1, 0], lLx: [0, -0.55], lRx: [0, 0.3], sLx: [0, 1.1], sRx: [0, 0.5], hipRx: [0, -0.2, 0.55, -0.2, 0.72, 0.5, 1, 0.1] },
+  /* Odile's: what her body does (her sword, and so her arms, are led by longStep). A step into a thrust; drawn up to her full height
+     behind the upright blade; and up off her knee with the turn of a rising cut */
+  lthrust: { d: 0.4, hipRx: [0, 0.14, 0.3, 0.2, 0.52, 0.5, 1, 0.3], spRy: [0, -0.25, 0.3, -0.3, 0.52, 0.22, 1, 0.1], lLx: [0, 0.1, 0.3, 0.16, 0.52, -0.85, 1, -0.6], sLx: [0, 0, 0.3, 0.1, 0.52, 0.6], lRx: [0, 0, 0.52, 0.5], hipY: [0, -0.03, 0.52, -0.12, 1, -0.06], headRx: [0, -0.1] },
+  lsalute: { d: 0.9, hop: 0.07, headRx: [0, -0.18, 0.5, -0.26, 0.8, 0.05, 1, 0], hipRx: [0, -0.06, 0.5, -0.1, 0.78, 0.12, 1, 0], hipY: [0, 0.02, 0.5, 0.04, 0.78, -0.05, 1, 0], spRy: [0, 0, 0.55, 0, 0.76, -0.4, 1, 0] },
+  lrise: { d: 0.44, hipRx: [0, 0.26, 0.46, 0.02, 1, 0], hipY: [0, -0.06, 0.46, 0.04, 1, 0], spRy: [0, 0.5, 0.2, 0.55, 0.46, -0.45, 1, 0], headRx: [0, 0.15, 0.46, -0.12, 1, 0] },
 };
 const CLIP_CH = ['aLx', 'fLx', 'aLz', 'aRx', 'fRx', 'aRz', 'lLx', 'lRx', 'sLx', 'sRx', 'hipRx', 'spRy', 'headRx', 'headRy'];
 /* which clip each hero plays for skill 1, skill 2 and the ultimate ([name, seconds] overrides the length); entries 3..5 are for
@@ -907,7 +915,7 @@ const HERO_CLIPS = { bram: ['rush', 'guard', 'leap', null, 'heave'], thorn: ['th
   kiri: ['toss', 'bolt', 'roar', null, null, null, 'vault', 'lunge', 'roar'],       // 6..8: the Tiger's leap, rush and the turn back
   lyra: ['bolt', 'channel', 'invoke'], zephyr: ['bolt', 'channel', 'beam'], orin: ['ward', 'throw', 'lobL'], mira: ['shot', 'toss', 'focus'], sera: ['channel', 'bolt', 'invoke'], miel: ['send', 'ward', 'queen'], hesta: ['rush', 'gong', 'raise'], sorrel: ['fade', 'lobL', 'aim', null, null, 'recoil'],
   halvar: ['raise', 'lunge', 'roar', null, null, null, null, null, null],
-  odile: ['lunge', null, 'raise', null, 'lunge'] };       // (1: Anneal is a pose she holds, not a motion: s.kneel; 4: Rise)       // (6..8 are the ram's: it has motions of its own, see animRam)       // (sorrel 5: each round of the four)
+  odile: ['lthrust', null, 'lsalute', null, 'lrise'] };       // (1: Anneal is a pose she holds, not a motion: s.kneel; 4: Rise. What her sword does in each is in longStep)       // (6..8 are the ram's: it has motions of its own, see animRam)       // (sorrel 5: each round of the four)
 function KF(u, a) { if (u <= a[0]) return a[1]; for (let i = 2; i < a.length; i += 2) if (u <= a[i]) return lerp(a[i - 1], a[i + 1], smooth((u - a[i - 2]) / (a[i] - a[i - 2]))); return a[a.length - 1]; }
 /* which mask is over the face: the worn one sits on the face, the other is slung behind the head */
 function kiriMasks(B, f) {
@@ -923,7 +931,7 @@ function applyForm(v, f) {
   if (B.gearA) B.gearA.visible = !f; for (const n of ['gearL', 'gearR', 'tails']) if (B[n] && v.key === 'kiri') B[n].visible = !!f;
 }
 function startClip(v, i) {
-  const set = (SKINS[v.key][v.skin] || {}).clips || HERO_CLIPS[v.key], spec = set && (set[i] !== undefined ? set[i] : set[i % 3]); v.clipI = i % 3; if (!spec) { v.clip = null; return; }
+  const set = (SKINS[v.key][v.skin] || {}).clips || HERO_CLIPS[v.key], spec = set && (set[i] !== undefined ? set[i] : set[i % 3]); v.clipI = i % 3; v.clipX = i; if (!spec) { v.clip = null; return; }
   const arr = Array.isArray(spec); v.clip = CLIPS[arr ? spec[0] : spec]; v.clipD = arr ? spec[1] : v.clip.d; v.clipU = 0;
 }
 const _p = {};
@@ -1011,6 +1019,8 @@ const RECALL = {
     const u = smooth(seg01(k, 0.8, 0.92)), d = 1 - u; kneel(p, d);
     p.aRx = lerp(-2.7, -0.95, d); p.fRx = lerp(-0.15, -0.75, d); p.aRz = lerp(-0.2, -0.3, d); p.aLx = lerp(-0.4, -1.05, d); p.fLx = lerp(-0.3, -0.75 + Math.sin(T * 2.2) * 0.07, d); p.aLz = lerp(0.3, 0.42, d);
     p.headRy = Math.sin(T * 1.5) * 0.55 * d; p.headRx = lerp(-0.42, -0.12 + Math.sin(T * 3) * 0.1, d); p.hipRx = lerp(-0.06, 0.1, d); },
+  odile(p, R, T, k) {      // the blade upright before her in both hands, turned slowly so that the light runs along it (longStep); at the last her face lifts to it
+    p.headRx = lerp(0.12, -0.3, smooth(seg01(k, 0.8, 0.95))); p.hipRx = -0.03; R.y = 0.015 + Math.sin(T * 1.5) * 0.01; },
   sorrel(p, R, T, k) {     // the long watch: on one knee with the gun across it, her head turning along the skyline; then up, and the gun raised to the sky
     const u = smooth(seg01(k, 0.8, 0.92)), d = 1 - u; kneel(p, d);
     p.aRx = lerp(-2.75, -0.75, d); p.fRx = lerp(-0.1, -0.7, d); p.aRz = lerp(-0.1, 0.25, d); p.aLx = lerp(-0.3, -1.05, d); p.fLx = lerp(-0.3, -0.85, d); p.aLz = lerp(0.25, -0.5, d);
@@ -1021,6 +1031,102 @@ const RECALL = {
     p.aRx = lerp(-1.25 + beat * 0.2, -0.3, u); p.aRz = lerp(-1.0 + beat * 1.45, -1.1, u); p.fRx = lerp(-0.75 + beat * 0.35, -0.5, u);
     p.headRx = lerp(0.22, -0.45, u); p.hipRx = lerp(0.06, -0.1, u); R.y = beat * 0.02; },
 };
+/* ---------- Odile's long blade: a sword held in two hands ----------
+   Her arms do not carry the sword: the sword leads her arms. Each frame it is given a place and a heading in the space of her chest
+   (a LONG pose: where the right hand is, which way the blade points, which way its edge leads, and where along it the left hand
+   holds), both arms are bent to reach it, and the blade is turned in the right hand to its heading. In that space +x is her left,
+   +y up and +z before her; her shoulders are at (+-0.24, 0.46, 0) and a hand reaches 0.54 from its shoulder.
+   v.lg: c, where the sword is now; g, how much of all this holds (none of it while she is thrown, stunned or fallen: then she has
+   it in one hand, as STANCE.long); fk, her arms as they would be without it; out, seconds left of the end of the cut she steps
+   out of the glass with. */
+const LONG = {
+  //        the right hand         the blade points        its edge leads         the left hand (along the blade from the right; -0.16: on the grip, nearer the pommel)
+  guard:   [ 0.02, 0.18, 0.32,     0.05, 0.71, 0.70,       0.0, -0.7, 0.71,       -0.16],       // before her, the point at the height of a face
+  carry:   [-0.10, 0.30, 0.26,    -0.45, 0.85, -0.27,      0.5, 0.0, -0.85,       -0.16],       // on the move: at her right shoulder, the blade up and back
+  w1:      [-0.20, 0.60, 0.16,    -0.28, 0.80, -0.53,      0.3, -0.3, -0.9,       -0.16],       // gathered high on her right, the blade back over her shoulder,
+  m1:      [-0.04, 0.42, 0.34,     0.08, 0.55, 0.83,       0.2, -0.8, 0.55,       -0.16],
+  s1:      [ 0.06, 0.14, 0.30,     0.42, -0.30, 0.86,      0.45, -0.85, -0.25,    -0.16],       // and cut down across to her low left
+  w2:      [ 0.10, 0.14, 0.22,     0.55, -0.25, -0.80,     -0.6, -0.3, -0.75,     -0.16],       // gathered low on her left, the blade behind her,
+  m2:      [ 0.02, 0.20, 0.34,     0.30, -0.15, 0.94,      -0.5, 0.6, 0.6,        -0.16],
+  s2:      [-0.12, 0.40, 0.34,    -0.50, 0.62, 0.60,       -0.6, 0.5, -0.6,       -0.16],       // and cut up across to her high right
+  draw:    [ 0.02, 0.36, 0.34,     0.0, -0.05, 1.0,        0.0, -1.0, 0.0,        -0.16],       // drawn back to her chest, the point at them,
+  thrust:  [ 0.0, 0.34, 0.43,      0.0, -0.07, 1.0,        0.0, -1.0, 0.0,        -0.16],       // and sent out
+  salute:  [ 0.0, 0.79, 0.34,      0.0, 1.0, 0.03,         1.0, 0.0, 0.0,         -0.16],       // upright before her face
+  sweep:   [-0.14, 0.18, 0.28,    -0.75, -0.35, 0.56,      -0.5, 0.2, -0.8,       -0.16],       // and swept down to her right
+  upright: [ 0.0, 0.42, 0.34,      0.0, 1.0, 0.0,          1.0, 0.0, 0.0,         -0.16],
+  out:     [ 0.10, 0.20, 0.26,     0.85, -0.15, 0.50,      0.5, 0.1, -0.85,       -0.16],       // the end of a cut across
+  level:   [-0.28, 0.30, 0.31,     0.97, 0.12, 0.20,       0.0, 0.6, 0.8,          0.44],       // laid level before her, her left hand under the flat of it
+};
+const _lgT = new Float64Array(10), _lgB = new Float64Array(10), _lgA = new Float64Array(10), _lgM = new THREE.Matrix4(), _lgQ = new THREE.Quaternion(), _lgQ2 = new THREE.Quaternion(), _lgQ0 = new THREE.Quaternion().setFromEuler(new THREE.Euler(HP2, 0, 0));
+function lgSet(T, P) { for (let i = 0; i < 10; i++) T[i] = P[i]; }
+function lgMix(T, P, w) { if (w <= 0) return; for (let i = 0; i < 10; i++) T[i] += (P[i] - T[i]) * w; }
+function lgBez(T, W, M, S, u) { const a = (1 - u) * (1 - u), b = 2 * u * (1 - u), c = u * u; for (let i = 0; i < 10; i++) T[i] = a * W[i] + b * (2 * M[i] - (W[i] + S[i]) / 2) + c * S[i]; }       // from W to S by way of M
+function lgCut(T, base, W, M, S, A) {       // a cut over an attack's 0..1: gathered by 0.36, loosed at 0.42, home at 0.6 (when the blow lands), held, and back
+  if (A < 0.42) { lgSet(T, base); lgMix(T, W, smooth(A / 0.36)); }
+  else if (A < 0.6) { const u = (A - 0.42) / 0.18; lgBez(T, W, M, S, u * (0.3 + 0.7 * u)); }
+  else { lgSet(T, S); if (A > 0.72) lgMix(T, base, smooth((A - 0.72) / 0.28)); }
+}
+/* bend an arm so that what is l2 beyond its elbow comes to (tx, ty, tz) in the space of her chest, the elbow toward the pole
+   (px, py, pz); w: how much of that, over what the arm was doing */
+function armReach(arm, fore, tx, ty, tz, px, py, pz, l2, w) {
+  const l1 = 0.27, S = arm.position; let ax = tx - S.x, ay = ty - S.y, az = tz - S.z, d = Math.sqrt(ax * ax + ay * ay + az * az);
+  const dm = l1 + l2 - 0.003, dn = Math.abs(l1 - l2) + 0.03; if (d < 1e-5) { ax = 0; ay = -1; az = 0; d = 1; }
+  const dd = d > dm ? dm : d < dn ? dn : d, ux = ax / d, uy = ay / d, uz = az / d;
+  const cb = (l1 * l1 + dd * dd - l2 * l2) / (2 * l1 * dd), sb = Math.sqrt(Math.max(0, 1 - cb * cb));
+  const pd = px * ux + py * uy + pz * uz; let qx = px - pd * ux, qy = py - pd * uy, qz = pz - pd * uz, ql = Math.sqrt(qx * qx + qy * qy + qz * qz);
+  if (ql < 1e-4) { qx = uz; qy = 0; qz = -ux; ql = Math.sqrt(qx * qx + qz * qz); if (ql < 1e-4) { qx = 1; qz = 0; ql = 1; } }       // (the pole is along the arm: any way across it)
+  qx /= ql; qy /= ql; qz /= ql;
+  const ex = cb * ux + sb * qx, ey = cb * uy + sb * qy, ez = cb * uz + sb * qz;       // from the shoulder to the elbow,
+  const fx = (dd * ux - l1 * ex) / l2, fy = (dd * uy - l1 * ey) / l2, fz = (dd * uz - l1 * ez) / l2, cq = Math.max(-1, Math.min(1, fx * ex + fy * ey + fz * ez)), bend = Math.acos(cq);       // and from the elbow on
+  let zx = fx - cq * ex, zy = fy - cq * ey, zz = fz - cq * ez, zl = Math.sqrt(zx * zx + zy * zy + zz * zz); if (zl < 1e-4) { zx = -qx; zy = -qy; zz = -qz; zl = 1; } zx /= zl; zy /= zl; zz /= zl;
+  const yx = -ex, yy = -ey, yz = -ez, xx = yy * zz - yz * zy, xy = yz * zx - yx * zz, xz = yx * zy - yy * zx;
+  _lgM.set(xx, yx, zx, 0, xy, yy, zy, 0, xz, yz, zz, 0, 0, 0, 0, 1); _lgQ.setFromRotationMatrix(_lgM);
+  if (w >= 1) { arm.quaternion.copy(_lgQ); fore.rotation.set(-bend, 0, 0); } else { arm.quaternion.slerp(_lgQ, w); fore.rotation.x += (-bend - fore.rotation.x) * w; }
+}
+function longSolve(v, g) {       // her arms and her blade, from where the sword is (v.lg.c)
+  const B = v.b, c = v.lg.c; if (g <= 0) { B.wpnR.quaternion.copy(_lgQ0); return; }
+  let dx = c[3], dy = c[4], dz = c[5], l = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1; dx /= l; dy /= l; dz /= l;
+  armReach(B.armR, B.foreR, c[0], c[1], c[2], -0.55, -0.75, -0.35, 0.27, g);
+  const lh = c[9]; armReach(B.armL, B.foreL, c[0] + dx * lh, c[1] + dy * lh - (lh > 0 ? 0.04 : 0), c[2] + dz * lh, 0.55, -0.75, -0.35, 0.29, g);       // (a hand that is on the blade is under it)
+  let ex = c[6], ey = c[7], ez = c[8]; const ed = ex * dx + ey * dy + ez * dz; ex -= ed * dx; ey -= ed * dy; ez -= ed * dz; l = Math.sqrt(ex * ex + ey * ey + ez * ez);
+  if (l < 1e-4) { ex = dy; ey = -dx; ez = 0; l = Math.sqrt(ex * ex + ey * ey); if (l < 1e-4) { ex = 1; ey = 0; l = 1; } } ex /= l; ey /= l; ez /= l;
+  const zx = ey * dz - ez * dy, zy = ez * dx - ex * dz, zz = ex * dy - ey * dx;
+  _lgM.set(ex, dx, zx, 0, ey, dy, zy, 0, ez, dz, zz, 0, 0, 0, 0, 1); _lgQ2.setFromRotationMatrix(_lgM);
+  _lgQ.copy(B.armR.quaternion).multiply(B.foreR.quaternion).invert().multiply(_lgQ2);       // the blade's heading, as the right hand has to hold it
+  if (g >= 1) B.wpnR.quaternion.copy(_lgQ); else B.wpnR.quaternion.copy(_lgQ0).slerp(_lgQ, g);
+}
+function longStep(v, s, t, dt, A, C, cu, k) {
+  const B = v.b, L = v.lg || (v.lg = { c: Float64Array.from(LONG.guard), g: 1, fk: [0, 0, 0, 0, 0, 0], out: 0 }), F = L.fk, T = _lgT, base = _lgB, P = _lgA;
+  F[0] = B.armL.rotation.x; F[1] = B.armL.rotation.z; F[2] = B.foreL.rotation.x; F[3] = B.armR.rotation.x; F[4] = B.armR.rotation.z; F[5] = B.foreR.rotation.x;
+  const rk = smooth(v.runK), w = v.walk, sd = v.seed || 0;
+  lgSet(base, LONG.guard); lgMix(base, LONG.carry, rk);
+  base[1] += Math.sin(t * 2.2 + sd) * 0.006 * (1 - rk) + Math.abs(Math.cos(w)) * 0.025 * rk; base[3] += Math.sin(t * 1.3 + sd) * 0.03 * (1 - rk) + Math.sin(w) * 0.07 * rk; base[4] += Math.sin(t * 1.7 + sd) * 0.02 * (1 - rk); base[5] += Math.cos(w) * 0.05 * rk;       // the point is never quite still, and the blade sways with her stride
+  lgSet(T, base);
+  if (s.kneel > 0) lgMix(T, LONG.level, smooth(s.kneel));
+  if (A >= 0) { if (v.alt) lgCut(T, base, LONG.w2, LONG.m2, LONG.s2, A); else lgCut(T, base, LONG.w1, LONG.m1, LONG.s1, A); }
+  if (C) {
+    const x = v.clipX, wc = Math.min(1, cu / 0.08) * (1 - smooth(seg01(cu, 0.8, 1))); let on = true;
+    if (x === 0) { if (cu < 0.3) { lgSet(P, base); lgMix(P, LONG.draw, smooth(cu / 0.22)); } else { lgSet(P, LONG.draw); lgMix(P, LONG.thrust, smooth((cu - 0.3) / 0.2)); } }       // Glasswalk: drawn back, and the point sent at them
+    else if (x === 2) { if (cu < 0.55) { lgSet(P, base); lgMix(P, LONG.salute, smooth(cu / 0.2)); } else { lgSet(P, LONG.salute); lgMix(P, LONG.sweep, smooth((cu - 0.55) / 0.19)); } }       // Quicksilver: the blade upright before her face, then swept down to her side
+    else if (x === 4) { if (cu < 0.2) { lgSet(P, LONG.level); lgMix(P, LONG.w2, smooth(cu / 0.16)); } else if (cu < 0.46) { const u = (cu - 0.2) / 0.26; lgBez(P, LONG.w2, LONG.m2, LONG.s2, u * (0.3 + 0.7 * u)); } else lgSet(P, LONG.s2); }       // Rise: off her knee with a cut up across
+    else on = false;
+    if (on) lgMix(T, P, wc);
+  }
+  if (L.out > 0) { L.out -= dt; lgMix(T, LONG.out, smooth(Math.min(1, L.out / 0.2))); }
+  if (s.recall > 0) { lgSet(P, LONG.upright); P[6] = Math.cos(t * 0.8); P[7] = 0; P[8] = Math.sin(t * 0.8); lgMix(T, P, smooth(Math.min(1, s.recall / 0.04))); }
+  const free = !!s.stun || s.air > 0 || s.dead > 0; L.g += ((free ? 0 : 1) - L.g) * Math.min(1, dt * (free ? 14 : 7)); if (L.g < 0.003) L.g = 0; else if (L.g > 0.997) L.g = 1;
+  const c = L.c, kk = L.out > 0 ? Math.max(k, Math.min(1, dt * 38)) : k; for (let i = 0; i < 10; i++) c[i] += (T[i] - c[i]) * kk;
+  longSolve(v, L.g);
+}
+/* for one who is not being drawn just now (in the glass), set at once into the end of a cut: which = 0 down across to her left,
+   1 up across to her right, 2 the thrust. So that the shape of her seen at each cut is of her making it. */
+function longSnap(v, which) {
+  if (v.style !== 'long') return; const B = v.b, L = v.lg || (v.lg = { c: Float64Array.from(LONG.guard), g: 1, fk: [0, 0, 0, 0, 0, 0], out: 0 });
+  lgSet(L.c, which === 2 ? LONG.thrust : which ? LONG.s2 : LONG.s1); L.g = 1;
+  B.hips.rotation.x = which === 1 ? 0.06 : 0.36; B.hips.position.y = v.hipY - (which === 1 ? 0 : 0.09); B.spine.rotation.y = which === 2 ? 0.2 : which ? -0.5 : 0.6; B.head.rotation.set(-0.08, -B.spine.rotation.y * 0.7, 0);
+  B.legL.rotation.x = which === 1 ? 0.4 : -0.65; B.shinL.rotation.x = which === 1 ? 0.1 : 0.45; B.legR.rotation.x = which === 1 ? -0.55 : 0.45; B.shinR.rotation.x = which === 1 ? 0.35 : 0.1;
+  B.body.rotation.set(0, 0, 0); B.body.position.set(0, 0, 0); longSolve(v, 1);
+}
 function animHero(v, s, t, dt) {
   const B = v.b, st = STANCE[v.style], p = _p;
   v.runK += ((s.moving ? 1 : 0) - v.runK) * Math.min(1, dt * 10);
@@ -1030,6 +1136,7 @@ function animHero(v, s, t, dt) {
   p.lLx = -sw * 0.8 * lk; p.lRx = sw * 0.8 * lk; p.sLx = Math.max(0, cw) * lk; p.sRx = Math.max(0, -cw) * lk;
   p.hipY = v.hipY + Math.abs(cw) * 0.045 * rk + Math.sin(t * 2.2 + v.seed) * 0.012; p.hipRx = 0.13 * rk; p.spRy = sw * 0.12 * rk; p.headRx = 0; p.headRy = 0;
   if (v.style === 'claw') { p.hipRx += 0.2; p.headRx = -0.16; }       // the Tiger stalks: leaning in, chin up
+  if (v.style === 'long') { const q = 1 - rk; p.lLx -= 0.24 * q; p.sLx += 0.12 * q; p.lRx += 0.2 * q; p.sRx += 0.16 * q; p.hipY -= 0.03 * q; p.spRy += 0.14 * q; }       // Odile stands to her guard: one foot before the other, her knees a little bent, her left shoulder leading
   let headRz = 0, bodyRx = 0, bodyY = 0, spin = 0, orb = 0, atkSpin = -1, flare = 0;       // flare: a gust in the clothes from what the body is doing, on top of the wind of moving
   const light = v.style === 'bow' || v.style === 'smash' || v.style === 'hurl' ? 0.35 : v.style === 'rifle' ? 0.12 : 1;
   p.aLx += sw * 0.55 * rk * light; p.aRx += -sw * 0.45 * rk * (v.style === 'bow' ? 1 : 0.4);
@@ -1045,9 +1152,9 @@ function animHero(v, s, t, dt) {
         if (v.alt) { p.aLx = tri(A, p.aLx, 0.35, -1.45); p.fLx = tri(A, p.fLx, -1.7, -0.1); p.spRy = tri(A, p.spRy, 0.45, -0.5); }
         else { p.aRx = tri(A, p.aRx, 0.35, -1.45); p.fRx = tri(A, p.fRx, -1.7, -0.1); p.spRy = tri(A, p.spRy, -0.45, 0.5); }
         p.hipRx += tri(A, 0, 0, 0.18); break;
-      case 'fence':       // by turns a thrust, the arm shot straight out behind the point, and a cut back across
-        if (v.alt) { p.aRx = tri(A, p.aRx, -0.75, -1.55); p.fRx = tri(A, p.fRx, -1.5, -0.03); p.aRz = tri(A, p.aRz, -0.1, 0.06); p.spRy = tri(A, p.spRy, -0.4, 0.55); p.hipRx += tri(A, 0, -0.04, 0.4); p.lLx = tri(A, p.lLx, 0, -0.7); p.lRx = tri(A, p.lRx, 0, 0.45); }
-        else { p.aRx = tri(A, p.aRx, -2.2, -0.6); p.fRx = tri(A, p.fRx, -1.0, -0.15); p.aRz = tri(A, p.aRz, 0.75, -0.65); p.spRy = tri(A, p.spRy, 0.55, -0.6); p.hipRx += tri(A, 0, -0.05, 0.2); }
+      case 'long':       // by turns a cut down across from high on her right and a cut up across from low on her left. The sword leads (longStep); this is what her body does behind it: the turn of her chest, the step under the cut
+        if (v.alt) { p.spRy = tri(A, p.spRy, 0.6, -0.5); p.hipRx += tri(A, 0, 0.26, -0.04); p.hipY += tri(A, 0, -0.09, 0.03); p.lRx = tri(A, p.lRx, 0.12, -0.55); p.sRx = tri(A, p.sRx, 0.1, 0.35); p.lLx = tri(A, p.lLx, 0, 0.4); }
+        else { p.spRy = tri(A, p.spRy, -0.55, 0.6); p.hipRx += tri(A, 0, -0.1, 0.34); p.hipY += tri(A, 0, 0.03, -0.08); p.lLx = tri(A, p.lLx, 0.12, -0.6); p.sLx = tri(A, p.sLx, 0.1, 0.4); p.lRx = tri(A, p.lRx, 0, 0.42); }
         break;
       case 'claw':       // a swipe of one set of claws, then the other
       case 'fans':       // a wide flick of one fan, then the other
@@ -1093,7 +1200,7 @@ function animHero(v, s, t, dt) {
     flare = Math.max(flare, 0.55 * w);
   }
   if (A >= 0) flare = Math.max(flare, 0.3 * Math.sin(Math.min(1, A) * Math.PI));
-  if (s.kneel > 0) {       // on one knee (Odile's Anneal): the blade set point down before her, her head bowed over it
+  if (s.kneel > 0) {       // on one knee (Odile's Anneal), her head bowed over the blade she holds level before her (the blade: longStep)
     const k = smooth(s.kneel); p.hipY = lerp(p.hipY, 0.47, k) + Math.sin(t * 2.4) * 0.008 * k; p.hipRx = lerp(p.hipRx, 0.12, k); p.spRy = lerp(p.spRy, 0, k);
     p.lLx = lerp(p.lLx, -1.5, k); p.sLx = lerp(p.sLx, 1.5, k); p.lRx = lerp(p.lRx, 0.12, k); p.sRx = lerp(p.sRx, 1.6, k);
     p.aRx = lerp(p.aRx, -1.05, k); p.fRx = lerp(p.fRx, -0.75, k); p.aRz = lerp(p.aRz, 0.12, k); p.aLx = lerp(p.aLx, -0.55, k); p.fLx = lerp(p.fLx, -1.25, k); p.aLz = lerp(p.aLz, -0.2, k); p.headRx = lerp(p.headRx, 0.32, k);
@@ -1117,10 +1224,12 @@ function animHero(v, s, t, dt) {
   if (s.dead > 0 && v.style === 'reap') { const d = smooth(Math.min(1, s.dead * 1.5)); bodyY = 0.95 * d; spin = 1; p.aLz = 1.5; p.aRz = -1.5; p.aLx = p.aRx = -0.2; p.fLx = p.fRx = -0.1; p.headRx = -0.7 * d; p.lLx = 0.2; p.lRx = -0.15; p.sLx = p.sRx = 0.6; }       // it does not fall: it is lifted, turning, arms wide, into its own eclipse
   else if (s.dead > 0) { const d = smooth(Math.min(1, s.dead * 2.2)); airRx = 0; bodyRx = -1.5 * d; bodyY = 0.14 * d; p.aLz = lerp(p.aLz, 1.2, d); p.aRz = lerp(p.aRz, -1.2, d); p.aLx = p.aRx = 0; p.lLx = -0.2 * d; p.lRx = 0.15 * d; p.hipY = v.hipY; }
   const k = Math.min(1, dt * (A >= 0 || C || s.dash || s.leap ? 38 : 16)), set = (o, ax, val) => { o.rotation[ax] += (val - o.rotation[ax]) * k; };
+  if (v.lg) { const F = v.lg.fk; B.armL.rotation.set(F[0], 0, F[1]); B.foreL.rotation.set(F[2], 0, 0); B.armR.rotation.set(F[3], 0, F[4]); B.foreR.rotation.set(F[5], 0, 0); }       // (Odile: her arms as they would be without her sword to lead them, before it does)
   set(B.armL, 'x', p.aLx); set(B.foreL, 'x', p.fLx); set(B.armL, 'z', p.aLz); set(B.armR, 'x', p.aRx); set(B.foreR, 'x', p.fRx); set(B.armR, 'z', p.aRz);
   set(B.legL, 'x', p.lLx); set(B.legR, 'x', p.lRx); set(B.shinL, 'x', p.sLx); set(B.shinR, 'x', p.sRx);
   B.hips.position.y += (p.hipY - B.hips.position.y) * k; set(B.hips, 'x', p.hipRx); set(B.spine, 'y', p.spRy);
   set(B.head, 'x', p.headRx); set(B.head, 'y', p.headRy - p.spRy * 0.7); set(B.head, 'z', headRz);
+  if (v.style === 'long') longStep(v, s, t, dt, A, C, cu, k);
   if (C && C.roll) { const a = TAU * C.roll * cu, h = 0.8, ca = Math.cos(a); B.body.rotation.x = a; B.body.position.y = h - h * ca + (0.21 + (C.lift || 0) * 0.5) * (1 - ca); B.body.position.z = -h * Math.sin(a); }      // somersault about the hips, lifted so the head (and whatever it wears) clears the ground
   else {
     if (B.body.rotation.x > Math.PI) B.body.rotation.x -= TAU;

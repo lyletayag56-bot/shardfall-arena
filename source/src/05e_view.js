@@ -291,7 +291,7 @@ function odileExtras(v, u, t, dt, ux, uz) {
     aura = c1;
   }
   const ke = hasBuff(u, 'keen');
-  if (ke || v.keenH) { let h = v.keenH; if (!h) { h = v.keenH = new THREE.Group(); for (const y of [0.3, 0.65, 1.0]) { const q = halo(c0, 0.5, 0.85); q.position.set(0, y, 0); h.add(q); } v.b.wpnR.add(h); }
+  if (ke || v.keenH) { let h = v.keenH; if (!h) { h = v.keenH = new THREE.Group(); for (const y of [0.35, 0.72, 1.08]) { const q = halo(c0, 0.5, 0.85); q.position.set(0, y, 0); h.add(q); } v.b.wpnR.add(h); }
     h.visible = !!ke; if (ke) { const s = (0.8 + 0.2 * Math.sin(t * 11)) * Math.min(1, ke.t / 0.4); for (const q of h.children) { q.scale.setScalar(0.5 * s); q.material.color.copy(lin(c0)); }
       if (Math.random() < dt * 16) { v.b.wpnR.getWorldPosition(_ov); FX.add.emit(_ov.x + (Math.random() - .5) * 0.3, _ov.y + 0.2 + Math.random() * 0.8, _ov.z + (Math.random() - .5) * 0.3, (Math.random() - .5) * 0.8, 0.6, (Math.random() - .5) * 0.8, 0.4, 0.11, 0.02, Math.random() < 0.5 ? '#ffffff' : c0, 0.95, 1.5, 0.8); } } }
   const qk = hasBuff(u, 'quick');
@@ -346,6 +346,7 @@ function syncViews(t, dt) {
       v.rcK = st.recall; if (st.recall) { v.rcX = u.x; v.rcY = u.y; } if (v.arrT > 0) { v.arrT += dt / 0.6; if (v.arrT >= 1) v.arrT = 0; } st.arrive = v.arrT || 0;
       animHero(v, st, t, dt); if (v.rb && v.form) animRam(v, u, st, t, dt);
       if (v.style === 'rifle') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) rifleFlash(v, u); v.a0 = st.atk; }
+      if (v.style === 'long') { if (st.atk >= 0.42 && v.a0 >= 0 && v.a0 < 0.42 && !cut) { const sw = 0.3 * v.clipDur + 0.03, kn = !!hasBuff(u, 'keen'); bladeTrail(v, skinColor(u.key, u.skin, 0), sw, 0.2, { op: kn ? 0.6 : 0.42 }); bladeTrail(v, '#ffffff', sw, 0.12, { y0: kn ? 1.1 : 1.24, op: kn ? 0.7 : 0.45 }); } v.a0 = st.atk; }       // the path of her blade through each cut (and of its keen edge, when it has one)
       if (v.style === 'hurl') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) slash3(u.x * S3 + Math.cos(u.face) * 0.25, u.y * S3 + Math.sin(u.face) * 0.25, u.face, 0.62, 1.05, 0.15, u.look.glow || u.look.trim, 1.25, { thin: 1, op: 0.5, edge: 0.7 }); v.a0 = st.atk; }       // the sweep of the throwing arm as the leaf leaves it
       { const im = !u.dead && immuneOf(u); if (im && im.shell && !(u.flash > 0)) { v.mat.emissive.copy(lin(im.shell)).multiplyScalar(0.16 + 0.05 * Math.sin(t * 6)); v.glow = 1; } else if (u.flash > 0 && !u.dead) { v.mat.emissive.setScalar(0.13); v.glow = 1; } else if (v.glow !== 0) { v.mat.emissive.setScalar(0); v.glow = 0; } }
       { const quick = v.style === 'reap' || SKINS[u.key][u.skin].fx === 'C', f0 = quick ? 0.55 : 1.7, fd = quick ? 0.25 : 0.6, fading = u.dead && v.deadT > f0;
@@ -705,7 +706,7 @@ function showcaseInit() {
 function showcaseSet(key, skin) {
   skin |= 0; if (!GX.ok || (SHOW.key === key && SHOW.skin === skin)) return;
   if (SHOW.v) { SHOW.root.remove(SHOW.v.o); SHOW.v.mat.dispose(); if (SHOW.v.wg) { wingsDrop(SHOW.v.wg); SHOW.v.wg = null; } }
-  SHOW.key = key; SHOW.skin = skin; SHOW.v = heroInstance(key, skin); SHOW.root.add(SHOW.v.o); SHOW.t = 0; SHOW.ph = -1; SHOW.v.clipT = 9;
+  SHOW.key = key; SHOW.skin = skin; SHOW.v = heroInstance(key, skin); SHOW.root.add(SHOW.v.o); SHOW.t = 0; SHOW.ph = -1; SHOW.kn = 0; SHOW.v.clipT = 9;
   const L = heroLook(key, skin); SHOW.glow.material = halo(L.glow || L.trim, 1, 0.5).material; SHOW.scene.background = new THREE.Color(shade(L.body, -0.72));
 }
 function showcaseRender(dt) {
@@ -715,7 +716,7 @@ function showcaseRender(dt) {
   const ph = Math.floor((t % 7.2) / 1.2);      // attack, the three skill moves, then a short walk
   if (ph !== SHOW.ph) { SHOW.ph = ph; SHOW.sub = 0; if (ph === 0) { v.clipT = 0; v.clipDur = 0.62; v.alt ^= 1; } else if (ph <= 3) startClip(v, ph - 1); }
   if (ph === 1 && HEROES[v.key].skills[0].chain) { const sub = Math.min(2, Math.floor((t % 1.2) / 0.4)); if (sub !== SHOW.sub) { SHOW.sub = sub; startClip(v, sub === 1 ? 3 : 9); } }       // a chain of three: all three, one after the other
-  v.clipT += dt; _st.moving = ph >= 4; _st.speed = 2.5; _st.atk = v.clipT < v.clipDur ? v.clipT / v.clipDur : -1; _st.cast = 0; _st.dash = _st.leap = _st.spin = _st.stun = _st.recall = false; _st.air = 0; _st.dead = 0; _st.kneel = 0; _st.spin = ph === 3 && !v.clip && (t % 1.2) < 0.9 && HERO_CLIPS[v.key][2] === null;
+  v.clipT += dt; _st.moving = ph >= 4; _st.speed = 2.5; _st.atk = v.clipT < v.clipDur ? v.clipT / v.clipDur : -1; _st.cast = 0; _st.dash = _st.leap = _st.spin = _st.stun = _st.recall = false; _st.air = 0; _st.dead = 0; SHOW.kn = (SHOW.kn || 0) + ((ph === 2 && HEROES[v.key].kneel && (t % 1.2) < 0.95 ? 1 : 0) - (SHOW.kn || 0)) * Math.min(1, dt * 9); _st.kneel = SHOW.kn > 0.003 ? SHOW.kn : 0; _st.spin = ph === 3 && !v.clip && (t % 1.2) < 0.9 && HERO_CLIPS[v.key][2] === null;
   animHero(v, _st, t, dt); v.o.rotation.y = -0.35 + Math.sin(t * 0.55) * 0.55;
   if (HEROES[v.key].wings) {       // an ultimate that gives wings: they open for its turn and a little beyond
     const q = (t % 7.2) - 3.6, on = q >= 0 && q < 2.1;

@@ -285,13 +285,42 @@ function spikes3(x, z, r, n, hex, h, dur, o) {
   const e = fxAdd(g, dur, k => { const up = k < 0.1 ? easeOut(k / 0.1) : k > 0.7 ? 1 - (k - 0.7) / 0.3 : 1; for (const m of g.children) m.scale.set(m.userData.w, Math.max(0.001, m.userData.h * up), m.userData.w); });
   e.mat = mat;
 }
-function ghost3(v, hex, dur, op, px, pz, hidden) {      // afterimage of a hero in its current pose (hidden: of one who is not being drawn just now)
+function ghost3(v, hex, dur, op, px, pz, hidden, mirror) {      // afterimage of a hero in its current pose (hidden: of one who is not being drawn just now; mirror: as a glass before it would show it)
   if (!v || !v.o || (!v.root.visible && !hidden) || FX.list.length > 140) return;
   const g = v.o.clone(true), mat = fxMat(hex, op || 0.5, { side: THREE.FrontSide }), kill = [];
   g.traverse(x => { if (x.isSprite || x.userData.dz || (x.isMesh && x.material.map)) kill.push(x); else if (x.isMesh) { x.material = mat; x.castShadow = false; x.userData.own = 0; x.userData.ownGeo = 0; } });       // glows and textured planes are not part of the silhouette
   for (const s of kill) s.parent.remove(s);
-  g.position.copy(v.root.position); if (px != null) { g.position.x = px; g.position.z = pz; }
+  g.position.copy(v.root.position); if (px != null) { g.position.x = px; g.position.z = pz; } if (mirror) { g.rotation.y += Math.PI; g.scale.x *= -1; }
   const e = fxAdd(g, dur, k => { mat.opacity = (op || 0.5) * (1 - k); }); e.mat = mat;
+}
+/* The path of a blade through the air, drawn as it is swung. For `swing` seconds the blade of v (what its right hand holds, from y0
+   to y1 along it) is followed a frame at a time, and the strip between the places it has been fades out behind it over `fade`.
+   A quick cut crosses most of a half circle in three or four frames: the places between two frames are filled in, the blade's
+   heading turned evenly from the one to the other, so that the strip is an arc and not a few flat panes. */
+const _bt = new THREE.Vector3();
+function bladeTrail(v, hex, swing, fade, o) {
+  if (!v || !v.b || !v.b.wpnR || !v.root.visible || FX.list.length > 150) return;
+  const N = 72, SUB = 5, y0 = (o && o.y0) || 0.95, y1 = (o && o.y1) || 1.34, op = (o && o.op) || 0.42, W = v.b.wpnR, c = lin(hex), age = new Float32Array(N), pos = new Float32Array(N * 6), col = new Float32Array(N * 6), idx = [];
+  for (let i = 0; i < N - 1; i++) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2);
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.setIndex(idx);
+  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+  m.frustumCulled = false; m.renderOrder = 4; m.userData.ownGeo = 1; let n = 0, has = false, px = 0, py = 0, pz = 0, qx = 0, qy = 0, qz = 0;       // (p, q: where the blade's lower point was a frame ago, and its heading)
+  const put = (bx, by, bz, dx, dy, dz, len, a) => { if (n === N) { pos.copyWithin(0, 6); age.copyWithin(0, 1); n--; } const i = n * 6; pos[i] = bx; pos[i + 1] = by; pos[i + 2] = bz; pos[i + 3] = bx + dx * len; pos[i + 4] = by + dy * len; pos[i + 5] = bz + dz * len; age[n++] = a; };
+  fxAdd(m, swing + fade, (k, e) => {
+    const dt = FX.dt || 0.016; for (let i = 0; i < n; i++) age[i] += dt;
+    if (e.t <= swing && v.root.visible) {       // one more place the blade has been
+      W.updateWorldMatrix(true, false); W.localToWorld(_bt.set(0, y0, 0)); const bx = _bt.x, by = _bt.y, bz = _bt.z; W.localToWorld(_bt.set(0, y1, 0));
+      let dx = _bt.x - bx, dy = _bt.y - by, dz = _bt.z - bz; const len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1; dx /= len; dy /= len; dz /= len;
+      if (has) for (let j = 1; j < SUB; j++) { const f = j / SUB, ix = qx + (dx - qx) * f, iy = qy + (dy - qy) * f, iz = qz + (dz - qz) * f, il = Math.sqrt(ix * ix + iy * iy + iz * iz) || 1; put(px + (bx - px) * f, py + (by - py) * f, pz + (bz - pz) * f, ix / il, iy / il, iz / il, len, dt * (1 - f)); }
+      put(bx, by, bz, dx, dy, dz, len, 0); has = true; px = bx; py = by; pz = bz; qx = dx; qy = dy; qz = dz;
+    }
+    for (let i = 0; i < N; i++) {
+      const j = i < n ? i : n - 1; if (j < 0) break; if (i >= n) for (let q = 0; q < 6; q++) pos[i * 6 + q] = pos[j * 6 + q];
+      const a = Math.max(0, 1 - age[j] / fade), a2 = a * a * op;       // brightest at the point, and where the blade has only just been; nothing at all toward the hands
+      col[i * 6] = col[i * 6 + 1] = col[i * 6 + 2] = 0; col[i * 6 + 3] = c.r * a2; col[i * 6 + 4] = c.g * a2; col[i * 6 + 5] = c.b * a2;
+    }
+    geo.attributes.position.needsUpdate = true; geo.attributes.color.needsUpdate = true;
+  });
 }
 function chainStrip(hex, add) { const m = new THREE.Mesh(crossStrip(), fxMat(hex, 1, { map: GX.tex.chain, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending })); m.userData.ownGeo = 1; m.renderOrder = 4; return m; }
 function chainSet(m, ax, az, bx, bz, y, th) {
@@ -769,15 +798,18 @@ const SKFX = {
     if (e.ix > 0) trail3(x0, z0, x, z, 0.26 * k, 0.22, c, 1.0, 0.55);
     cut3(x, 1.05, z, 3.2 * k, rot, c, 0.26, 0.36 * k); cut3(x, 1.05, z, 2.7 * k, rot, '#ffffff', 0.2, 0.16 * k);
     flash3(x, 1.0, z, 1.9 * k, 0.14, c); shards3(x, 1.0, z, e.again ? 3 : 7, c, 3.6, 0.4); glint3(x - ca * 0.8, 1.25, z - sa * 0.8, 1.1 * k, 0.2, '#ffffff');
-    if (v) ghost3(v, c, 0.24, 0.5, x - ca * 0.95, z - sa * 0.95, true);
+    if (v) { if (!v.root.visible) { longSnap(v, e.again ? 2 : e.ix % 2); v.face = HP2 - a; v.o.rotation.y = v.face; } ghost3(v, c, 0.26, 0.55, x - ca * 0.95, z - sa * 0.95, true); }       // (the shape of her making this cut, turned to them: nobody sees her just now, so she can be set to it)
     FX.shake = Math.max(FX.shake, 0.08 * k); },
-  odile0x(e, x, z, c) { ring3(x, z, 0.2, 1.3, 0.26, c, 0.8, true); flash3(x, 1.0, z, 1.8, 0.14, '#ffffff'); shards3(x, 0.9, z, 6, c, 2.6, 0.35); glint3(x, 1.3, z, 1.3, 0.22, '#ffffff'); },       // out of it again
+  odile0x(e, x, z, c) { ring3(x, z, 0.2, 1.3, 0.26, c, 0.8, true); flash3(x, 1.0, z, 1.8, 0.14, '#ffffff'); shards3(x, 0.9, z, 6, c, 2.6, 0.35); glint3(x, 1.3, z, 1.3, 0.22, '#ffffff');       // out of it again, at the end of a cut across
+    const v = V.views.get(e.id); if (v && v.lg) { longSnap(v, 1); v.lg.out = 0.36; later(0.02, () => { bladeTrail(v, c, 0.2, 0.22); bladeTrail(v, '#ffffff', 0.2, 0.13, { y0: 1.24, op: 0.5 }); }); } },
   odile1(e, x, z, c) { ring3(x, z, 1.7, 0.5, 0.5, c, 0.6, true); later(0.12, () => ring3(x, z, 0.3, 1.2, 0.4, '#ffffff', 0.45, true)); glint3(x, 0.4, z, 1.0, 0.3, '#ffffff'); },       // Anneal: down on one knee (what rises round her while she kneels is drawn with her: annealExtras)
-  odile1x(e, x, z, c) { flash3(x, 1.2, z, 2.0, 0.18, '#ffffff'); ring3(x, z, 0.3, 1.5, 0.3, c, 0.8); glint3(x, 1.7, z, 1.9, 0.3, '#ffffff'); sparks(x, 1.2, z, 9, c, 3, 0.12, 0.35, 1); },       // up, with a keen edge
+  odile1x(e, x, z, c) { flash3(x, 1.2, z, 2.0, 0.18, '#ffffff'); ring3(x, z, 0.3, 1.5, 0.3, c, 0.8); glint3(x, 1.7, z, 1.9, 0.3, '#ffffff'); sparks(x, 1.2, z, 9, c, 3, 0.12, 0.35, 1);       // up, with a keen edge
+    const v = V.views.get(e.id); if (v && v.lg) later(0.1, () => { if (v.clip && v.clipX === 4) { bladeTrail(v, c, 0.13, 0.24); bladeTrail(v, '#ffffff', 0.13, 0.14, { y0: 1.24, op: 0.5 }); } }); },       // (pressed to rise: the path of the cut she comes up with)
   odile2(e, x, z, c) {       // Quicksilver: a ring bursts from her and bright lines run out along the ground
     ring3(x, z, 0.4, 2.6, 0.4, c, 0.9); ring3(x, z, 0.3, 1.8, 0.3, '#ffffff', 0.7, true); flash3(x, 1.2, z, 3.4, 0.24, '#ffffff'); pillar3(x, z, 0.9, 3.2, 0.45, c, 0.45);
     for (let i = 0; i < 7; i++) { const a = i * TAU / 7 + 0.3; streak3(x + Math.cos(a) * 0.5, z + Math.sin(a) * 0.5, x + Math.cos(a) * 2.7, z + Math.sin(a) * 2.7, 0.22, 0.32, i % 2 ? '#ffffff' : c, 0.3, 0.6); }
-    shards3(x, 1.2, z, 8, '#ffffff', 4, 0.45); FX.shake = Math.max(FX.shake, 0.16); },
+    shards3(x, 1.2, z, 8, '#ffffff', 4, 0.45); FX.shake = Math.max(FX.shake, 0.16);
+    const v = V.views.get(e.id); if (v && v.lg) { later(0.2, () => { if (v.root.visible) { v.b.wpnR.updateWorldMatrix(true, false); v.b.wpnR.localToWorld(_bt.set(0, 1.3, 0)); glint3(_bt.x, _bt.y, _bt.z, 1.5, 0.3, '#ffffff'); } }); later(0.5, () => { bladeTrail(v, c, 0.19, 0.26); bladeTrail(v, '#ffffff', 0.19, 0.14, { y0: 1.24, op: 0.5 }); }); } },       // (the light at the point of the blade held upright, and the path of the sweep that ends it)
   halvar0(e, x, z, c) {       // Echoes: the air beside him tears, and there are three of him
     ring3(x, z, 0.3, 2.0, 0.34, c, 0.8, true); flash3(x, 1.0, z, 2.2, 0.18, c);
     for (let i = 0; i < 4; i++) { const a = Math.random() * TAU, r = 0.6 + Math.random() * 0.8; bolt3(x, 1.0, z, x + Math.cos(a) * r, 0.2 + Math.random() * 1.4, z + Math.sin(a) * r, c, 0.05, 0.16, 0.25, 4); } },
@@ -984,7 +1016,7 @@ function ingestFx() {
       case 'beastOff': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#b9a8ff'; ring3(x, z, 2.2, 0.4, 0.4, hc, 0.7, true); smoke(x, 0.5, z, 10, '#cfc8e0', 1.0, 0.7, 0.9); flash3(x, 1.2, z, 2.6, 0.22, '#ffffff'); break; }
       case 'twin': {       // Second Image: her reflection's blow, from the other side of whoever she is at
         const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 0) : '#ff8fc0', ax = e.ax * S3, az = e.ay * S3, v = V.views.get(e.id), rot = (Math.random() - .5) * 1.6;
-        if (v) ghost3(v, '#ffffff', 0.3, 0.6, 2 * x - ax, 2 * z - az); cut3(x, 1.1, z, 2.6, rot, '#ffffff', 0.2, 0.22); cut3(x, 1.1, z, 3.0, rot, hc, 0.26, 0.36); flash3(x, 1.0, z, 1.5, 0.14, hc); shards3(x, 1.0, z, 4, hc, 3, 0.35); glint3(2 * x - ax, 1.3, 2 * z - az, 1.2, 0.24, '#ffffff'); break; }
+        if (v) ghost3(v, '#ffffff', 0.3, 0.6, 2 * x - ax, 2 * z - az, false, true); cut3(x, 1.1, z, 2.6, rot, '#ffffff', 0.2, 0.22); cut3(x, 1.1, z, 3.0, rot, hc, 0.26, 0.36); flash3(x, 1.0, z, 1.5, 0.14, hc); shards3(x, 1.0, z, 4, hc, 3, 0.35); glint3(2 * x - ax, 1.3, 2 * z - az, 1.2, 0.24, '#ffffff'); break; }
       case 'quickMore': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#ffd0e4'; ring3(x, z, 0.4, 2.0, 0.35, hc, 0.8); flash3(x, 1.2, z, 2.2, 0.2, '#ffffff'); if (h && h === V.me) text3(x, 3.0, z, '+' + e.v + 's', hc, false, 1.0); break; }
       case 'cleave': { const h = heroById(e.id), hc = h ? skinColor(h.key, h.skin, 2) : '#b9a8ff'; slash3(x, z, e.ang, BEAST_ARC, (BEAST_RANGE + 110) * S3, 0.18, hc, 0.9, { op: 0.4 }); break; }
       case 'squall': { const sc = ITEMS.squallsong.c; ring3(x, z, 0.2, 1.3, 0.28, sc, 0.8, true);       // Squallsong: the squall leaps from its target to whoever else it takes in
