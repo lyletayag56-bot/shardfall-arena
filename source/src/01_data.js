@@ -424,7 +424,7 @@ function retriDmg(h) { return 600 + 70 * h.level; }
    GW_FIRST to the first cut, GW_GAP between cuts, GW_OUT after the last. A cut finds somebody not cut yet within GW_HOP of the last
    one cut; with nobody new in reach, the first of them again (or whoever of those cut is nearest, if the first is gone), for GW_SAME of it. Minions and monsters take GW_PVE times as much.
    AN: Anneal, the kneel. KEEN: the edge it leaves. QS: Quicksilver. TWIN: Second Image, the passive. */
-const GW_RANGE = 560, GW_PICK = 300, GW_HOP = 470, GW_N = 4, GW_FIRST = 0.14, GW_GAP = 0.19, GW_OUT = 0.14, GW_SAME = 0.25, GW_PVE = 1.5,
+const GW_RANGE = 560, GW_PICK = 300, GW_HOP = 470, GW_N = 4, GW_FIRST = 0.14, GW_GAP = 0.19, GW_OUT = 0.14, GW_SAME = 0.25, GW_PVE = 1.5, GW_ARM = 0.12,
   AN_T = 4, AN_TICK = 0.5, AN_DR = 0.55, AN_DR_T = 0.28, AN_READY = 0.35, KEEN_T = 5,
   QS_T = 7, QS_MORE = 7, QS_CUT = 0.7, TWIN_N = 4, TWIN_K = 0.5, TWIN_GAP = 0.13, TWIN_HOLD = 4;
 const gwBase = lv => L(lv, 150, 34), GW_AD = 0.85;
@@ -1107,9 +1107,12 @@ const HEROES = {
     skills: [
       { name: 'Glasswalk', ic: 'facets', c: '#ff8fc0', max: 6, cd: [14, 11], cost: [55, 80], range: GW_RANGE, cast: 'point', noRoot: true,
         ind: { t: 'circle', r: 130 }, ai: { t: 'target', any: true, wave: true },
-        desc: lv => `Step into the glass at an enemy (the one nearest where it is aimed, or nearest her). For most of a second nothing can touch her while she cuts up to ${GW_N} enemies standing near one another, one after the other, for ${gwBase(lv)} (+${Math.round(GW_AD * 100)}% Attack) each, half as much again to minions and monsters. With nobody new in reach the cut goes to the first of them again, for a quarter of that. She steps out beside the first. Each of her basic attacks takes 1s off its cooldown.`,
+        desc: lv => `Step into the glass at an enemy (the one nearest where it is aimed, or nearest her). For most of a second nothing can touch her while she cuts up to ${GW_N} enemies standing near one another, one after the other, for ${gwBase(lv)} (+${Math.round(GW_AD * 100)}% Attack) each, half as much again to minions and monsters. With nobody new in reach the cut goes to the first of them again, for a quarter of that. She steps out beside the first, or, if the skill is pressed again while she is in the glass, back where she went in. Each of her basic attacks takes 1s off its cooldown.`,
         needs(h, tx, ty) { return !!gwPick(h, tx, ty, 80); },       // (asked before a press is sent, in a networked match: a little more reach than the cast will have, for the steps she takes meanwhile)
-        fn(h, lv, tx, ty) { const t = gwPick(h, tx, ty); if (!t) return false; gwStart(h, t, lv); } },
+        fn(h, lv, tx, ty) { const t = gwPick(h, tx, ty); if (!t) return false; gwStart(h, t, lv); },
+        two: { name: 'Turn Back', ic: 'back', c: '#ff8fc0', cast: 'self', quiet: true, hush: true, ind: { t: 'self', r: 0 }, ai: { t: 'none' },       // (quiet: a choice made, not a cast)
+          desc: lv => `Pressed while she is in the glass: she will step out where she went in, not beside the enemy. Pressed once more: beside the enemy after all.`,
+          fn(h) { return gwTurn(h); } } },
       { name: 'Anneal', ic: 'kneel', c: '#e9f0ff', max: 6, cd: [20, 15], cost: [60, 85], range: 0, cast: 'self',
         ind: { t: 'self', r: 0 }, ai: { t: 'kneel' },
         desc: lv => `Kneel for up to ${AN_T}s. She mends ${anHeal(lv)} health a second, more the worse she is hurt (twice that at death's door), and takes ${Math.round(AN_DR * 100)}% less damage (${Math.round(AN_DR_T * 100)}% less from turrets). Moving, attacking, casting or pressing it again ends it. When it ends her edge is keen for ${KEEN_T}s: her basic attacks deal ${keenBase(lv)} (+${Math.round(KEEN_AD * 100)}% of her bonus Attack) true damage on top. While she kneels, Quicksilver and a keen edge do not run down, and each second counts as an attack for Second Image.`,

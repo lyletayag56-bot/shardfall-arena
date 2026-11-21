@@ -542,7 +542,12 @@ function animRam(v, u, s, t, dt) {
   const rk = v.rRun, w = v.rWalk || 0, sw = Math.sin(w), cw = Math.cos(w);
   let by = 1.02 + Math.abs(cw) * 0.07 * rk + Math.sin(t * 1.8 + v.seed) * 0.012, bz = 0, bx = 0.05 * sw * rk, neck = -0.1 + 0.05 * Math.sin(t * 1.3 + v.seed), head = 0.12 - 0.08 * sw * rk, hy = Math.sin(t * 0.7 + v.seed) * 0.14 * (1 - rk), fl = sw * 0.75 * rk, bl = -sw * 0.75 * rk, tuck = 0;
   const A = s.atk;
-  if (A >= 0) { const q = tri(A, 0, -1, 1); bz += q > 0 ? q * 0.36 : q * 0.15; neck += q > 0 ? q * 0.5 : q * 0.34; head += q > 0 ? q * 0.6 : q * 0.2; bx += q > 0 ? q * 0.1 : q * 0.08; }       // a butt: back on his haunches, then the whole of him forward behind his horns
+  if (A >= 0) { const q = tri(A, 0, -1, 1), av = v.av || 0;       // a butt: back on his haunches, then the whole of him forward behind his horns; a hook of the horns from one side across to the other; and up on his hind legs to come down on them
+    if (av === 1) { bz += q > 0 ? q * 0.22 : q * 0.1; neck += 0.35 * Math.abs(q); head += 0.3 * Math.abs(q); hy = -q * 0.85; bx += Math.abs(q) * 0.06; }
+    else if (av === 2) { const up = q < 0 ? -q : 0, dn = q > 0 ? q : 0; bx += -0.55 * up + 0.22 * dn; by += 0.2 * up - 0.05 * dn; fl += -0.9 * up + 0.25 * dn; neck += -0.2 * up + 0.5 * dn; head += 0.45 * dn; bz += 0.3 * dn; }
+    else { bz += q > 0 ? q * 0.36 : q * 0.15; neck += q > 0 ? q * 0.5 : q * 0.34; head += q > 0 ? q * 0.6 : q * 0.2; bx += q > 0 ? q * 0.1 : q * 0.08; } }
+  let pawF = 0; if (v.idW > 0 && !on) { const T = v.idle - IDLE_AT, u = (T % 6) / 6, gz = v.idW * win(u, 0.08, 0.5, 0.08), pw = v.idW * win(u, 0.58, 0.95, 0.05);       // standing idle: his head down to the ground as if to graze, a shake of it, and a forefoot scraped back along the ground
+    neck += 0.75 * gz; head += 0.5 * gz; hy += gz * 0.5 * Math.sin(T * 14) * win(u, 0.3, 0.46, 0.03); pawF = pw * (0.5 + 0.5 * Math.sin(seg01(u, 0.6, 0.93) * Math.PI * 6)); neck += 0.3 * pw; head += 0.2 * pw; }
   if (s.dash) { neck += 0.55; head += 0.5; bx += 0.12; }       // the charge: head down, horns first
   if (s.leap) { const k = clamp(u.leap ? u.leap.t / u.leap.dur : 1, 0, 1); bx += lerp(-0.6, 0.8, smooth(k)); tuck = Math.sin(k * Math.PI) * 0.8; neck += lerp(-0.3, 0.6, k); head += lerp(-0.2, 0.55, k); }
   if (v.rClip > 0) { v.rClip -= dt / 0.62; const k = 1 - Math.max(0, v.rClip), q = Math.sin(Math.min(1, k * 1.5) * Math.PI);       // the bellow: up off his forefeet, head thrown out
@@ -552,7 +557,7 @@ function animRam(v, u, s, t, dt) {
   if (s.recall > 0) { by -= 0.32; tuck = Math.max(tuck, 0.85); neck += 0.3; head += 0.3; }
   B.rbody.position.set(0, by, bz); B.rbody.rotation.x = bx; B.rneck.rotation.x = neck; B.rhead.rotation.set(head, hy, 0);
   const leg = (n, a) => { const f = n[1] === 'F' ? 1 : -1; B[n].rotation.x = a * (1 - tuck) - 0.9 * tuck * f; B[n + 's'].rotation.x = f * (Math.max(0, -a * f) * 0.9 * (1 - tuck) + 1.5 * tuck); };
-  leg('rFL', fl); leg('rFR', fl * 0.8 + 0.14 * cw * rk); leg('rBL', bl); leg('rBR', bl * 0.8 - 0.14 * cw * rk);
+  leg('rFL', fl - pawF * 0.75); leg('rFR', fl * 0.8 + 0.14 * cw * rk); leg('rBL', bl); leg('rBR', bl * 0.8 - 0.14 * cw * rk);
   B.rtail.rotation.x = -0.5 + Math.sin(t * 3 + v.seed) * 0.2 + rk * 0.5;
   if (v.ramK > 0 && v.ramK < 1) { v.ramK = Math.min(1, v.ramK + dt / 0.3); const e = v.ramK; v.o.scale.setScalar(v.sc * (v.big || 1) * RAM_SC * (0.55 + 0.45 * e + 0.22 * Math.sin(e * Math.PI))); }       // he swells into it
 }
@@ -1056,6 +1061,8 @@ const LONG = {
   upright: [ 0.0, 0.42, 0.34,      0.0, 1.0, 0.0,          1.0, 0.0, 0.0,         -0.16],
   out:     [ 0.10, 0.20, 0.26,     0.85, -0.15, 0.50,      0.5, 0.1, -0.85,       -0.16],       // the end of a cut across
   level:   [-0.28, 0.30, 0.31,     0.97, 0.12, 0.20,       0.0, 0.6, 0.8,          0.44],       // laid level before her, her left hand under the flat of it
+  rest:    [-0.06, 0.32, 0.24,    -0.38, 0.50, -0.78,      0.4, 0.3, -0.85,       -0.16],       // laid back on her right shoulder
+  look:    [-0.26, 0.60, 0.37,     0.98, 0.10, 0.12,       0.0, 0.3, 0.95,         0.42],       // held level before her eyes, to look in the flat of it
 };
 const _lgT = new Float64Array(10), _lgB = new Float64Array(10), _lgA = new Float64Array(10), _lgM = new THREE.Matrix4(), _lgQ = new THREE.Quaternion(), _lgQ2 = new THREE.Quaternion(), _lgQ0 = new THREE.Quaternion().setFromEuler(new THREE.Euler(HP2, 0, 0));
 function lgSet(T, P) { for (let i = 0; i < 10; i++) T[i] = P[i]; }
@@ -1103,7 +1110,9 @@ function longStep(v, s, t, dt, A, C, cu, k) {
   base[1] += Math.sin(t * 2.2 + sd) * 0.006 * (1 - rk) + Math.abs(Math.cos(w)) * 0.025 * rk; base[3] += Math.sin(t * 1.3 + sd) * 0.03 * (1 - rk) + Math.sin(w) * 0.07 * rk; base[4] += Math.sin(t * 1.7 + sd) * 0.02 * (1 - rk); base[5] += Math.cos(w) * 0.05 * rk;       // the point is never quite still, and the blade sways with her stride
   lgSet(T, base);
   if (s.kneel > 0) lgMix(T, LONG.level, smooth(s.kneel));
-  if (A >= 0) { if (v.alt) lgCut(T, base, LONG.w2, LONG.m2, LONG.s2, A); else lgCut(T, base, LONG.w1, LONG.m1, LONG.s1, A); }
+  if (v.idW > 0) { const lk = win(((v.idle - IDLE_AT) % 7.4) / 7.4, 0.5, 0.92, 0.07); lgMix(T, LONG.rest, v.idW * (1 - lk)); lgMix(T, LONG.look, v.idW * lk); }       // standing idle: the blade on her shoulder, and now and then before her eyes
+  if (A >= 0) { const av = v.av || 0; if (av === 2) { if (A < 0.42) { lgSet(T, base); lgMix(T, LONG.draw, smooth(A / 0.36)); } else if (A < 0.6) { const u = (A - 0.42) / 0.18; lgSet(T, LONG.draw); lgMix(T, LONG.thrust, u * (0.3 + 0.7 * u)); } else { lgSet(T, LONG.thrust); if (A > 0.72) lgMix(T, base, smooth((A - 0.72) / 0.28)); } }       // the third of her string: drawn back, and the point sent in
+    else if (av === 1) lgCut(T, base, LONG.w2, LONG.m2, LONG.s2, A); else lgCut(T, base, LONG.w1, LONG.m1, LONG.s1, A); }
   if (C) {
     const x = v.clipX, wc = Math.min(1, cu / 0.08) * (1 - smooth(seg01(cu, 0.8, 1))); let on = true;
     if (x === 0) { if (cu < 0.3) { lgSet(P, base); lgMix(P, LONG.draw, smooth(cu / 0.22)); } else { lgSet(P, LONG.draw); lgMix(P, LONG.thrust, smooth((cu - 0.3) / 0.2)); } }       // Glasswalk: drawn back, and the point sent at them
@@ -1127,6 +1136,98 @@ function longSnap(v, which) {
   B.legL.rotation.x = which === 1 ? 0.4 : -0.65; B.shinL.rotation.x = which === 1 ? 0.1 : 0.45; B.legR.rotation.x = which === 1 ? -0.55 : 0.45; B.shinR.rotation.x = which === 1 ? 0.35 : 0.1;
   B.body.rotation.set(0, 0, 0); B.body.position.set(0, 0, 0); longSolve(v, 1);
 }
+/* ---------- Idle: what each hero does with time on its hands ----------
+   A hero that has had nothing asked of it for IDLE_AT seconds eases into its own way of standing about, and out of it the moment
+   it moves, attacks or casts. Each is a loop: a way of standing, and a thing done every few seconds. fn(p, Q, T, I, v): p the
+   pose to change, by weight I (0..1); T seconds into it; Q what does not fit in a pose (y, rx: the body lifted, tipped; hz: the
+   head on one side; spin: the body turning, rad/s; wp: what the right hand holds turned in the hand, wps: or kept turning, rad/s,
+   wys: or spun about its own length; wo: or let up out of the hand; orb: Zephyr's, sent round him). */
+const IDLE_AT = 0.9, _iq = { y: 0, rx: 0, hz: 0, spin: 0, wp: 0, wps: 0, wys: 0, wo: 0, orb: 0 };
+const win = (u, a, b, e) => u <= a || u >= b ? 0 : smooth(Math.min(1, (u - a) / e)) * smooth(Math.min(1, (b - u) / e));       // 1 between a and b of a loop's 0..1, eased over e at either end
+/* how high the hips must be for the lower foot (or, kneeling, the knee) to be on the ground, from how the legs of pose p are bent
+   and how far the hips are tipped: a thigh of 0.36 and a shin and boot of 0.42 (0.78 standing straight) */
+const _legDepth = (p, tx, sx) => { const a = p.hipRx + tx, b = a + sx; return 0.36 * Math.cos(a) + Math.max(0.42 * Math.cos(b), 0.09); };
+const footed = p => Math.max(_legDepth(p, p.lLx, p.sLx), _legDepth(p, p.lRx, p.sRx));
+const IDLE = {
+  bram(p, Q, T, I) {       // bored of standing guard: a great stretch, shield and mace lifted wide over his head and his back arched; then he rolls his head from one shoulder to the other, and settles
+    const u = (T % 7) / 7, st = I * win(u, 0.1, 0.5, 0.11), roll = I * win(u, 0.58, 0.96, 0.06), r = Math.sin(seg01(u, 0.6, 0.94) * TAU);
+    p.aLx = lerp(p.aLx, -2.75, st); p.fLx = lerp(p.fLx, -0.3, st); p.aLz = lerp(p.aLz, 0.8, st); p.aRx = lerp(p.aRx, -2.75, st); p.fRx = lerp(p.fRx, -0.3, st); p.aRz = lerp(p.aRz, -0.8, st);
+    p.hipRx -= 0.2 * st; p.headRx = -0.32 * st + 0.1 * roll; Q.y = 0.035 * st; Q.hz = 0.4 * roll * r; p.spRy += 0.1 * roll * r; p.aLx += 0.12 * roll; p.aRx += 0.12 * roll; p.hipY -= 0.02 * I; },
+  thorn(p, Q, T, I) {       // a fist on his hip, and the hook going round and round on its chain at his side; now and then he stops it and lets it go again
+    const u = (T % 7) / 7, hold = win(u, 0.78, 0.95, 0.05);
+    p.aRx = lerp(p.aRx, -0.3, I); p.fRx = lerp(p.fRx, -0.7 - 0.55 * hold, I); p.aRz = lerp(p.aRz, -0.9, I); Q.wps = 5.6 * I * (1 - hold);
+    p.aLx = lerp(p.aLx, 0.3, I); p.fLx = lerp(p.fLx, -1.5, I); p.aLz = lerp(p.aLz, 0.5, I); p.headRx = 0.1 * I; p.headRy = -0.3 * I * (1 - hold); p.hipRx += 0.05 * I; },
+  kaela(p, Q, T, I) {       // her sword laid back on her shoulder, a hand on her hip, a foot tapping; and when she tires of waiting, a turn of the blade through the air
+    const u = (T % 7.5) / 7.5, fl = I * win(u, 0.62, 0.9, 0.06), r = I - fl, a = seg01(u, 0.66, 0.86) * TAU;
+    p.aRx = lerp(p.aRx, -0.55, r); p.fRx = lerp(p.fRx, -2.15, r); p.aRz = lerp(p.aRz, -0.25, r); Q.wp = -0.3 * r + 1.5 * fl * Math.sin(a * 2);
+    p.aLx = lerp(p.aLx, 0.25, I); p.fLx = lerp(p.fLx, -1.5, I); p.aLz = lerp(p.aLz, 0.55, I);
+    p.lRx -= 0.14 * I; p.sRx += 0.16 * r * Math.max(0, Math.sin(T * 7)); Q.hz = 0.1 * r;
+    p.aRx = lerp(p.aRx, -1.25 + 0.3 * Math.sin(a * 2), fl); p.fRx = lerp(p.fRx, -0.5, fl); p.aRz = lerp(p.aRz, 0.5 * Math.sin(a), fl); },
+  rook(p, Q, T, I) {       // the hammer's head set on the ground before him and both hands on the end of its haft; he hefts it and lets it drop again
+    const u = (T % 6.8) / 6.8, up = win(u, 0.68, 0.92, 0.08) * Math.sin(seg01(u, 0.7, 0.9) * Math.PI);
+    p.aRx = lerp(p.aRx, -0.95 - 0.5 * up, I); p.aLx = lerp(p.aLx, -0.95 - 0.5 * up, I); p.fRx = lerp(p.fRx, -0.35, I); p.fLx = lerp(p.fLx, -0.35, I); p.aRz = lerp(p.aRz, 0.3, I); p.aLz = lerp(p.aLz, -0.3, I);
+    Q.wp = I * 2.87; p.hipRx += I * (0.14 - 0.12 * up); p.hipY += I * (-0.03 + 0.05 * up); p.headRy = I * 0.35 * Math.sin(T * 0.7) * (1 - up); },
+  vex(p, Q, T, I) {       // down on his haunches, a knife turned over and over in his fingers; and a look over each shoulder
+    const u = (T % 6) / 6, sp = I * win(u, 0.14, 0.52, 0.05), look = I * win(u, 0.6, 0.96, 0.05), lk = Math.sin(seg01(u, 0.62, 0.94) * TAU);
+    p.hipRx += 0.2 * I; p.lLx -= 1.1 * I; p.sLx += 1.5 * I; p.lRx -= 0.95 * I; p.sRx += 1.45 * I; p.hipY += footed(p) - 0.78;       // (knees forward, his feet under him)
+    p.aRx = lerp(p.aRx, -0.9, sp); p.fRx = lerp(p.fRx, -1.2, sp); Q.wps = 14 * sp; p.headRy = look * 0.9 * lk; p.spRy += look * 0.25 * lk; },
+  tavi(p, Q, T, I) {       // never still: from foot to foot like a runner before the start, and a ring set spinning round his hand
+    const b = Math.sin(T * 6.2), u = (T % 5) / 5, sp = I * win(u, 0.4, 0.88, 0.06);
+    p.hipY += I * Math.abs(b) * 0.035; p.lLx -= I * 0.32 * Math.max(0, b); p.sLx += I * 0.5 * Math.max(0, b); p.lRx -= I * 0.32 * Math.max(0, -b); p.sRx += I * 0.5 * Math.max(0, -b);
+    p.aLx += I * 0.25 * b; p.aRx -= I * 0.25 * b; p.aRx = lerp(p.aRx, -1.1, sp); p.fRx = lerp(p.fRx, -1.0, sp); p.aRz = lerp(p.aRz, -0.7, sp); Q.wps = 16 * sp; p.headRy = I * 0.3 * Math.sin(T * 1.1); },
+  kiri(p, Q, T, I, v) {       // the Heron stands on one leg and opens her arms like wings, and lets them down, looking about as a bird does, all at once; the Tiger sways low from foot to foot, then goes down on its haunches and rakes the ground with one set of claws and the other, and shakes its head
+    if (v.form) { const u = (T % 6.5) / 6.5, rk = I * win(u, 0.1, 0.62, 0.08), a = seg01(u, 0.16, 0.58) * TAU * 2.5, sh = I * win(u, 0.72, 0.96, 0.03), sw = (I - rk) * Math.sin(T * 1.6), fx = Math.sin(T * 5) * 0.25 * (I - rk);
+      p.hipRx += 0.12 * I + 0.36 * rk; p.lLx -= 1.38 * rk + 0.25 * Math.max(0, sw); p.lRx -= 1.38 * rk + 0.25 * Math.max(0, -sw); p.sLx += 0.3 * I + 0.9 * rk; p.sRx += 0.3 * I + 0.9 * rk; p.hipY += footed(p) - 0.78; p.spRy += 0.3 * sw + 0.14 * rk * Math.sin(a);
+      p.aLx = lerp(p.aLx, -1.2 + 0.5 * Math.sin(a), rk); p.fLx = lerp(p.fLx, -0.45 - 0.45 * Math.max(0, Math.cos(a)), rk) + fx; p.aRx = lerp(p.aRx, -1.2 - 0.5 * Math.sin(a), rk); p.fRx = lerp(p.fRx, -0.45 - 0.45 * Math.max(0, -Math.cos(a)), rk) - fx; p.headRx -= 0.12 * rk;
+      Q.hz = sh * Math.sin(T * 30) * 0.35; p.spRy += sh * Math.sin(T * 30 + 1) * 0.12; return; }
+    const st = Math.floor(((T % 8) / 8) * 4), wg = 0.5 - 0.5 * Math.cos(T * TAU / 4);       // (wg: her arms opened, 0..1, every four seconds)
+    p.lRx = lerp(p.lRx, -1.35, I); p.sRx = lerp(p.sRx, 2.0, I); p.hipY += I * (0.02 + 0.03 * wg); p.hipRx += I * 0.03 * Math.sin(T * 1.2); Q.hz = I * 0.08 * Math.sin(T * 1.2);
+    p.aLx = lerp(p.aLx, -0.12, I); p.fLx = lerp(p.fLx, -0.45 + 0.3 * wg, I); p.aLz = lerp(p.aLz, 0.22 + 1.12 * wg, I); p.aRx = lerp(p.aRx, -0.12, I); p.fRx = lerp(p.fRx, -0.45 + 0.3 * wg, I); p.aRz = lerp(p.aRz, -0.22 - 1.12 * wg, I);
+    p.headRy = I * (st === 0 ? 0.6 : st === 1 ? -0.5 : st === 2 ? 0.15 : -0.7); },
+  lyra(p, Q, T, I) {       // her staff stood upright beside her and her free hand held open before her, which she studies; then she turns the staff so that its crescent comes round
+    const u = (T % 8) / 8, tw = win(u, 0.6, 0.94, 0.06), r = I * (1 - tw);
+    p.aRx = lerp(p.aRx, -0.1, I); p.fRx = lerp(p.fRx, -0.2, I); p.aRz = lerp(p.aRz, -0.3, I); Q.wp = -1.27 * I; Q.wys = 5 * I * tw;
+    p.aLx = lerp(p.aLx, -0.75, r); p.fLx = lerp(p.fLx, -1.35, r); p.aLz = lerp(p.aLz, -0.15, r); p.headRx = 0.28 * r; p.headRy = 0.3 * r - 0.5 * I * tw; Q.hz = 0.06 * I; p.hipRx += 0.04 * I; },
+  zephyr(p, Q, T, I) {       // sits on the air with his legs folded and his hands together in his lap, turning slowly, while the orb goes round him
+    p.lLx = lerp(p.lLx, -1.45, I); p.sLx = lerp(p.sLx, 2.1, I); p.lRx = lerp(p.lRx, -1.3, I); p.sRx = lerp(p.sRx, 2.25, I);
+    p.aLx = lerp(p.aLx, -0.4, I); p.fLx = lerp(p.fLx, -1.2, I); p.aLz = lerp(p.aLz, -0.35, I); p.aRx = lerp(p.aRx, -0.4, I); p.fRx = lerp(p.fRx, -1.2, I); p.aRz = lerp(p.aRz, 0.35, I);
+    p.hipY += I * (0.1 + Math.sin(T * 1.3) * 0.05); Q.spin = 0.55 * I; Q.orb = I; p.headRx = -0.08 * I; },
+  orin(p, Q, T, I) {       // tosses the iron leaf up end over end and takes it out of the air again; then tries its edge with his thumb
+    const u = (T % 5.6) / 5.6, f = seg01(u, 0.14, 0.48), toss = I * win(u, 0.1, 0.52, 0.04), edge = I * win(u, 0.6, 0.94, 0.06);
+    p.aRx = lerp(p.aRx, -1.15 - 0.2 * Math.sin(f * Math.PI), toss); p.fRx = lerp(p.fRx, -0.6, toss); Q.wo = 0.6 * toss * Math.sin(f * Math.PI); Q.wp = toss * f * TAU; p.headRx = -0.25 * toss * Math.sin(f * Math.PI);
+    p.aRx = lerp(p.aRx, -0.9, edge); p.fRx = lerp(p.fRx, -1.35, edge); p.aRz = lerp(p.aRz, 0.3, edge); p.aLx = lerp(p.aLx, -0.95, edge); p.fLx = lerp(p.fLx, -1.3, edge); p.aLz = lerp(p.aLz, -0.3, edge); p.headRx += 0.3 * edge; },
+  mira(p, Q, T, I) {       // her bow lowered, she shades her eyes and searches the distance one way and then the other; then tries the string
+    const u = (T % 7.6) / 7.6, look = I * win(u, 0.08, 0.56, 0.06), lk = Math.sin(seg01(u, 0.1, 0.54) * TAU), pl = I * win(u, 0.66, 0.95, 0.05), tw = Math.max(0, Math.sin(seg01(u, 0.7, 0.92) * Math.PI * 3));
+    p.aRx = lerp(p.aRx, -2.25, look); p.fRx = lerp(p.fRx, -1.9, look); p.aRz = lerp(p.aRz, 0.35, look); p.headRy = look * 0.75 * lk; p.spRy += look * 0.3 * lk; p.headRx = -0.06 * look;
+    p.aLx = lerp(p.aLx, -1.1, pl); p.fLx = lerp(p.fLx, -0.5, pl); p.aRx = lerp(p.aRx, -1.0, pl); p.fRx = lerp(p.fRx, -1.25 - 0.5 * tw, pl); p.aRz = lerp(p.aRz, 0.15, pl); p.headRx += 0.2 * pl; },
+  sera(p, Q, T, I) {       // her hands folded on her wand before her and her head bowed; she rises a little, lifts her face and the wand to the light, and comes down again
+    const up = win((T % 8.4) / 8.4, 0.55, 0.94, 0.1);
+    p.aRx = lerp(p.aRx, -0.95 - 1.75 * up, I); p.fRx = lerp(p.fRx, -1.35 + 1.2 * up, I); p.aRz = lerp(p.aRz, 0.42 - 0.3 * up, I);
+    p.aLx = lerp(p.aLx, -0.95 - 0.25 * up, I); p.fLx = lerp(p.fLx, -1.35 + 0.5 * up, I); p.aLz = lerp(p.aLz, -0.42 + 0.9 * up, I);
+    p.headRx = I * (0.28 - 0.6 * up); Q.y = I * (0.03 + 0.06 * up + Math.sin(T * 1.5) * 0.012); },
+  miel(p, Q, T, I) {       // lifts the skep on its crook to look in at her bees; then waves one of them off the brim of her hat
+    const u = (T % 7.2) / 7.2, lk = I * win(u, 0.08, 0.54, 0.07), wv = I * win(u, 0.62, 0.94, 0.05), w = Math.sin(seg01(u, 0.64, 0.92) * Math.PI * 5);
+    p.aRx = lerp(p.aRx, -1.35, lk); p.fRx = lerp(p.fRx, -0.95, lk); p.aRz = lerp(p.aRz, 0.25, lk); p.headRx = -0.12 * lk; p.headRy = -0.3 * lk; Q.hz = 0.12 * lk;
+    p.aLx = lerp(p.aLx, -2.5, wv); p.fLx = lerp(p.fLx, -1.3 + 0.35 * w, wv); p.aLz = lerp(p.aLz, 0.25 + 0.2 * w, wv); p.headRx += 0.1 * wv; },
+  hesta(p, Q, T, I) {       // holds her gong out at arm's length, draws the beater back and gives it one soft stroke; then stands listening to it, her head on one side, the beater hanging at her side and the gong still swaying on her arm
+    const u = (T % 7) / 7, g = I * win(u, 0.08, 0.92, 0.07), dr = g * smooth(seg01(u, 0.15, 0.29)), hit = g * smooth(seg01(u, 0.29, 0.35)), low = g * smooth(seg01(u, 0.44, 0.58)), tt = (u - 0.35) * 7, wob = tt > 0 ? Math.sin(tt * 11) * Math.exp(-tt * 1.5) : 0, ls = g * win(u, 0.36, 0.92, 0.08);
+    p.aLx = lerp(p.aLx, -1.4, g); p.fLx = lerp(p.fLx, -0.3 + 0.16 * wob, g); p.aLz = lerp(p.aLz, 0.32 + 0.07 * wob, g);
+    p.aRx = lerp(p.aRx, -1.0, dr); p.fRx = lerp(p.fRx, -1.0, dr); p.aRz = lerp(p.aRz, -1.05, dr);       // drawn back, out to her right
+    p.aRx = lerp(p.aRx, -1.3, hit); p.fRx = lerp(p.fRx, -0.4, hit); p.aRz = lerp(p.aRz, 0.5, hit);       // across, to the gong
+    p.aRx = lerp(p.aRx, 0.06, low); p.fRx = lerp(p.fRx, -0.25, low); p.aRz = lerp(p.aRz, -0.16, low);       // and let hang
+    p.spRy += -0.3 * dr * (1 - hit / (g || 1)) + 0.32 * hit * (1 - low / (g || 1)); Q.hz = -0.3 * ls; p.headRy = 0.3 * ls; p.hipY += 0.015 * I; p.hipRx -= 0.03 * I; },
+  sorrel(p, Q, T, I) {       // the long gun sloped back on her shoulder; she pushes her cap up with her free hand and takes a long look round under it
+    const u = (T % 8) / 8, cap = win(u, 0.5, 0.94, 0.06), lk = Math.sin(seg01(u, 0.56, 0.92) * TAU);
+    p.aRx = lerp(p.aRx, -0.6, I); p.fRx = lerp(p.fRx, -2.6, I); p.aRz = lerp(p.aRz, -0.12, I);
+    p.aLx = lerp(p.aLx, 0.1 - 2.45 * cap, I); p.fLx = lerp(p.fLx, -0.3 - 1.5 * cap, I); p.aLz = lerp(p.aLz, 0.15 - 0.45 * cap, I);
+    p.headRy = I * cap * 0.8 * lk; p.spRy += I * cap * 0.25 * lk; p.headRx = -0.05 * I * cap; p.hipRx -= 0.03 * I; },
+  halvar(p, Q, T, I) {       // drives one fist into the other palm, twice; then lowers his head and paws the ground with a boot, like one of his own rams
+    const u = (T % 6.2) / 6.2, pd = I * win(u, 0.1, 0.46, 0.05), pn = Math.max(0, Math.sin(seg01(u, 0.14, 0.44) * TAU)), paw = I * win(u, 0.58, 0.94, 0.05), sc = Math.sin(seg01(u, 0.6, 0.92) * Math.PI * 3);
+    p.aRx = lerp(p.aRx, -0.95, pd); p.fRx = lerp(p.fRx, -1.25 - 0.35 * pn, pd); p.aRz = lerp(p.aRz, 0.25 + 0.3 * pn, pd); p.aLx = lerp(p.aLx, -0.95, pd); p.fLx = lerp(p.fLx, -1.3, pd); p.aLz = lerp(p.aLz, -0.45, pd);
+    p.lRx = lerp(p.lRx, -0.35 + 0.45 * sc, paw); p.sRx = lerp(p.sRx, 0.5 + 0.35 * sc, paw); p.hipRx += paw * 0.22; p.headRx = paw * 0.3; p.aLx = lerp(p.aLx, 0.1, paw); p.aRx = lerp(p.aRx, 0.1, paw); p.fLx = lerp(p.fLx, -0.5, paw); p.fRx = lerp(p.fRx, -0.5, paw); },
+  odile(p, Q, T, I) {       // her blade laid back on her shoulder; and now and then held level before her eyes, to look at herself in the flat of it (her sword, and so her arms: longStep). Here, the rest of her
+    const lk = win((T % 7.4) / 7.4, 0.5, 0.92, 0.07); p.headRx = I * (0.02 + 0.2 * lk); p.headRy = I * (0.25 - 0.4 * lk); p.spRy -= 0.1 * I * (1 - lk); p.hipY += 0.02 * I; },
+};
 function animHero(v, s, t, dt) {
   const B = v.b, st = STANCE[v.style], p = _p;
   v.runK += ((s.moving ? 1 : 0) - v.runK) * Math.min(1, dt * 10);
@@ -1141,42 +1242,90 @@ function animHero(v, s, t, dt) {
   const light = v.style === 'bow' || v.style === 'smash' || v.style === 'hurl' ? 0.35 : v.style === 'rifle' ? 0.12 : 1;
   p.aLx += sw * 0.55 * rk * light; p.aRx += -sw * 0.45 * rk * (v.style === 'bow' ? 1 : 0.4);
   if (v.hover) { p.hipY += v.hover + Math.sin(t * 2.4 + v.seed) * 0.05; p.lLx = 0.12 + rk * 0.25; p.lRx = -0.1 + rk * 0.3; p.sLx = 0.4; p.sRx = 0.55; }
-  const A = s.atk;
+  /* at rest: nothing asked of it for a moment, and from then on what this hero does with time on its hands (IDLE) */
+  const rest = !s.moving && !(s.atk >= 0) && !v.clip && !(s.cast > 0) && !s.stun && !(s.air > 0) && !(s.dead > 0) && !(s.recall > 0) && !(s.kneel > 0) && !s.dash && !s.leap && !(s.arrive > 0) && !s.spin && !s.busy;
+  v.idle = rest ? (v.idle || 0) + dt : 0;
+  const I = v.idle > IDLE_AT ? smooth(Math.min(1, (v.idle - IDLE_AT) / 0.7)) : 0, Q = _iq; v.idW = I; Q.y = Q.rx = Q.hz = Q.spin = Q.wp = Q.wps = Q.wys = Q.wo = Q.orb = 0;
+  if (I > 0) { const fn = IDLE[v.key]; if (fn) fn(p, Q, v.idle - IDLE_AT, I, v); headRz += Q.hz; bodyY += Q.y; bodyRx += Q.rx; }
+  /* an attack: the first, second or third of this hero's string (v.av), each a different motion over the same timing (gathered by
+     0.42, landing at 0.6) */
+  const A = s.atk, av = v.av || 0;
   if (A >= 0) {
     switch (v.style) {
-      case 'slash': p.aRx = tri(A, p.aRx, -2.75, -0.35); p.fRx = tri(A, p.fRx, -1.2, -0.12); p.aRz = tri(A, p.aRz, -0.55, 0.45); p.spRy = tri(A, p.spRy, -0.55, 0.6); p.hipRx += tri(A, 0, -0.08, 0.22); break;
-      case 'smash': p.aRx = tri(A, p.aRx, -3.0, -0.6); p.fRx = tri(A, p.fRx, -0.7, -0.1); p.spRy = tri(A, p.spRy, -0.3, 0.25); p.hipRx += tri(A, 0, -0.15, 0.3); break;
-      case 'smash2': p.aRx = tri(A, p.aRx, -3.0, -0.85); p.aLx = tri(A, p.aLx, -3.0, -0.95); p.fRx = tri(A, p.fRx, -0.6, -0.15); p.fLx = tri(A, p.fLx, -0.6, -0.15); p.hipRx += tri(A, 0, -0.22, 0.45); p.hipY += tri(A, 0, 0.05, -0.1); break;
-      case 'brawl':       // a straight left, then a straight right
-      case 'dual':
-        if (v.alt) { p.aLx = tri(A, p.aLx, 0.35, -1.45); p.fLx = tri(A, p.fLx, -1.7, -0.1); p.spRy = tri(A, p.spRy, 0.45, -0.5); }
+      case 'slash':       // a cut down across; a backhand cut back the other way; and a third that is the hero's own (Thorn turns right round with his hook out on its chain, anyone else cuts up from below)
+        if (av === 1) { p.aRx = tri(A, p.aRx, -1.75, -1.2); p.fRx = tri(A, p.fRx, -1.5, -0.1); p.aRz = tri(A, p.aRz, 0.95, -0.75); p.spRy = tri(A, p.spRy, 0.65, -0.6); p.hipRx += tri(A, 0, 0.05, 0.2); }
+        else if (av === 2 && v.key === 'thorn') { atkSpin = A; p.aRx = tri(A, p.aRx, -0.9, -1.25); p.fRx = tri(A, p.fRx, -0.6, -0.08); p.aRz = tri(A, p.aRz, -0.9, -1.35); p.aLz = tri(A, p.aLz, 0.5, 0.9); p.hipRx += tri(A, 0, 0.05, 0.16); }
+        else if (av === 2) { p.aRx = tri(A, p.aRx, 0.75, -2.5); p.fRx = tri(A, p.fRx, -0.5, -0.25); p.aRz = tri(A, p.aRz, -0.3, 0.2); p.spRy = tri(A, p.spRy, -0.6, 0.45); p.hipRx += tri(A, 0, 0.28, -0.12); p.hipY += tri(A, 0, -0.08, 0.05); }
+        else { p.aRx = tri(A, p.aRx, -2.75, -0.35); p.fRx = tri(A, p.fRx, -1.2, -0.12); p.aRz = tri(A, p.aRz, -0.55, 0.45); p.spRy = tri(A, p.spRy, -0.55, 0.6); p.hipRx += tri(A, 0, -0.08, 0.22); }
+        break;
+      case 'smash':       // down from overhead; across from the right; and a third of the hero's own (Bram puts his shoulder behind his shield, Hesta brings the beater up from below)
+        if (av === 1) { p.aRx = tri(A, p.aRx, -1.1, -1.25); p.fRx = tri(A, p.fRx, -0.9, -0.1); p.aRz = tri(A, p.aRz, -1.15, 0.7); p.spRy = tri(A, p.spRy, -0.7, 0.65); p.hipRx += tri(A, 0, 0, 0.22); }
+        else if (av === 2 && v.key === 'bram') { p.aLx = tri(A, p.aLx, -0.5, -1.45); p.fLx = tri(A, p.fLx, -1.6, -0.35); p.aLz = tri(A, p.aLz, -0.1, -0.3); p.spRy = tri(A, p.spRy, 0.5, -0.6); p.hipRx += tri(A, 0, -0.05, 0.3); p.lLx = tri(A, p.lLx, 0.1, -0.5); p.lRx = tri(A, p.lRx, 0, 0.35); }
+        else if (av === 2) { p.aRx = tri(A, p.aRx, 0.7, -2.3); p.fRx = tri(A, p.fRx, -0.4, -0.3); p.spRy = tri(A, p.spRy, -0.5, 0.4); p.hipRx += tri(A, 0, 0.25, -0.1); p.hipY += tri(A, 0, -0.07, 0.04); }
+        else { p.aRx = tri(A, p.aRx, -3.0, -0.6); p.fRx = tri(A, p.fRx, -0.7, -0.1); p.spRy = tri(A, p.spRy, -0.3, 0.25); p.hipRx += tri(A, 0, -0.15, 0.3); }
+        break;
+      case 'smash2':       // the great hammer: down from overhead; swept round from the right, his whole body behind it; and swung up from behind his heel
+        if (av === 1) { p.aRx = tri(A, p.aRx, -1.2, -1.15); p.aLx = tri(A, p.aLx, -1.3, -1.05); p.fRx = tri(A, p.fRx, -0.9, -0.2); p.fLx = tri(A, p.fLx, -1.1, -0.3); p.aRz = tri(A, p.aRz, -0.75, 0.85); p.aLz = tri(A, p.aLz, -1.0, 0.35); p.spRy = tri(A, p.spRy, -0.85, 0.8); p.hipRx += tri(A, 0, 0.05, 0.25); p.hipY += tri(A, 0, -0.03, -0.08); }
+        else if (av === 2) { p.aRx = tri(A, p.aRx, 0.45, -2.35); p.aLx = tri(A, p.aLx, 0.3, -2.3); p.fRx = tri(A, p.fRx, -0.5, -0.25); p.fLx = tri(A, p.fLx, -0.7, -0.3); p.spRy = tri(A, p.spRy, -0.45, 0.3); p.hipRx += tri(A, 0, 0.35, -0.15); p.hipY += tri(A, 0, -0.1, 0.05); }
+        else { p.aRx = tri(A, p.aRx, -3.0, -0.85); p.aLx = tri(A, p.aLx, -3.0, -0.95); p.fRx = tri(A, p.fRx, -0.6, -0.15); p.fLx = tri(A, p.fLx, -0.6, -0.15); p.hipRx += tri(A, 0, -0.22, 0.45); p.hipY += tri(A, 0, 0.05, -0.1); }
+        break;
+      case 'brawl':       // a straight left, a straight right, and then the drover's own: his head, like one of his rams
+        if (av === 2) { p.hipRx += tri(A, 0, -0.3, 0.48); p.headRx = tri(A, 0, -0.35, 0.5); p.aRx = tri(A, p.aRx, 0.5, 0.75); p.aLx = tri(A, p.aLx, 0.5, 0.75); p.fRx = tri(A, p.fRx, -1.2, -0.5); p.fLx = tri(A, p.fLx, -1.2, -0.5); p.aRz = tri(A, p.aRz, -0.3, -0.5); p.aLz = tri(A, p.aLz, 0.3, 0.5); p.hipY += tri(A, 0, 0.03, -0.07); p.lLx = tri(A, p.lLx, 0.1, -0.45); p.lRx = tri(A, p.lRx, 0, 0.35); break; }
+      case 'dual':       // a stab with the right, a stab with the left, and both blades drawn across from wide
+        if (av === 2) { p.aRx = tri(A, p.aRx, -1.0, -1.15); p.aLx = tri(A, p.aLx, -1.0, -1.15); p.fRx = tri(A, p.fRx, -0.5, -0.2); p.fLx = tri(A, p.fLx, -0.5, -0.2); p.aRz = tri(A, p.aRz, -1.25, 0.75); p.aLz = tri(A, p.aLz, 1.25, -0.75); p.hipRx += tri(A, 0, -0.1, 0.3); p.hipY += tri(A, 0, 0.04, -0.06); break; }
+        if (av === 1) { p.aLx = tri(A, p.aLx, 0.35, -1.45); p.fLx = tri(A, p.fLx, -1.7, -0.1); p.spRy = tri(A, p.spRy, 0.45, -0.5); }
         else { p.aRx = tri(A, p.aRx, 0.35, -1.45); p.fRx = tri(A, p.fRx, -1.7, -0.1); p.spRy = tri(A, p.spRy, -0.45, 0.5); }
         p.hipRx += tri(A, 0, 0, 0.18); break;
-      case 'long':       // by turns a cut down across from high on her right and a cut up across from low on her left. The sword leads (longStep); this is what her body does behind it: the turn of her chest, the step under the cut
-        if (v.alt) { p.spRy = tri(A, p.spRy, 0.6, -0.5); p.hipRx += tri(A, 0, 0.26, -0.04); p.hipY += tri(A, 0, -0.09, 0.03); p.lRx = tri(A, p.lRx, 0.12, -0.55); p.sRx = tri(A, p.sRx, 0.1, 0.35); p.lLx = tri(A, p.lLx, 0, 0.4); }
+      case 'long':       // Odile: a cut down across from high on her right, a cut up across from low on her left, and a thrust. The sword leads (longStep); this is what her body does behind it: the turn of her chest, the step under the cut
+        if (av === 2) { p.spRy = tri(A, p.spRy, -0.3, 0.22); p.hipRx += tri(A, 0, 0.12, 0.45); p.hipY += tri(A, 0, -0.03, -0.1); p.lLx = tri(A, p.lLx, 0.15, -0.85); p.sLx = tri(A, p.sLx, 0.1, 0.55); p.lRx = tri(A, p.lRx, 0, 0.5); }
+        else if (av === 1) { p.spRy = tri(A, p.spRy, 0.6, -0.5); p.hipRx += tri(A, 0, 0.26, -0.04); p.hipY += tri(A, 0, -0.09, 0.03); p.lRx = tri(A, p.lRx, 0.12, -0.55); p.sRx = tri(A, p.sRx, 0.1, 0.35); p.lLx = tri(A, p.lLx, 0, 0.4); }
         else { p.spRy = tri(A, p.spRy, -0.55, 0.6); p.hipRx += tri(A, 0, -0.1, 0.34); p.hipY += tri(A, 0, 0.03, -0.08); p.lLx = tri(A, p.lLx, 0.12, -0.6); p.sLx = tri(A, p.sLx, 0.1, 0.4); p.lRx = tri(A, p.lRx, 0, 0.42); }
         break;
-      case 'claw':       // a swipe of one set of claws, then the other
-      case 'fans':       // a wide flick of one fan, then the other
-        if (v.alt) { p.aLx = tri(A, p.aLx, -1.9, -0.55); p.fLx = tri(A, p.fLx, -1.55, -0.12); p.aLz = tri(A, p.aLz, 0.95, -0.45); p.spRy = tri(A, p.spRy, 0.6, -0.65); }
+      case 'claw':       // the Tiger: one set of claws, the other, and both brought down together from over its head
+        if (av === 2) { p.aRx = tri(A, p.aRx, -2.7, -0.7); p.aLx = tri(A, p.aLx, -2.7, -0.7); p.fRx = tri(A, p.fRx, -0.9, -0.2); p.fLx = tri(A, p.fLx, -0.9, -0.2); p.aRz = tri(A, p.aRz, -0.35, 0.2); p.aLz = tri(A, p.aLz, 0.35, -0.2); p.hipRx += tri(A, 0, -0.25, 0.42); p.hipY += tri(A, 0, 0.06, -0.12); break; }
+      case 'fans':       // a wide flick of one ring, then the other, and then a turn on his heel with both of them out
+        if (av === 2 && v.style === 'fans') { atkSpin = A; p.aRx = tri(A, p.aRx, -1.2, -1.3); p.aLx = tri(A, p.aLx, -1.2, -1.3); p.aRz = tri(A, p.aRz, -1.1, -1.45); p.aLz = tri(A, p.aLz, 1.1, 1.45); p.fRx = p.fLx = -0.12; break; }
+        if (av === 1) { p.aLx = tri(A, p.aLx, -1.9, -0.55); p.fLx = tri(A, p.fLx, -1.55, -0.12); p.aLz = tri(A, p.aLz, 0.95, -0.45); p.spRy = tri(A, p.spRy, 0.6, -0.65); }
         else { p.aRx = tri(A, p.aRx, -1.9, -0.55); p.fRx = tri(A, p.fRx, -1.55, -0.12); p.aRz = tri(A, p.aRz, -0.95, 0.45); p.spRy = tri(A, p.spRy, -0.6, 0.65); }
         p.hipRx += tri(A, 0, -0.06, 0.2); break;
-      case 'reap':       // by turns a full turn with both blades out, and a rising two-handed cut that lifts off the ground
-        if (v.alt) { atkSpin = A; p.aRx = tri(A, p.aRx, -0.3, -1.3); p.aLx = tri(A, p.aLx, -0.3, -1.3); p.aRz = tri(A, p.aRz, -1.5, -0.2); p.aLz = tri(A, p.aLz, 1.5, 0.2); p.fRx = p.fLx = -0.1; }
+      case 'reap':       // a full turn with both blades out; a rising two-handed cut that lifts off the ground; and the two blades closed on them from either side
+        if (av === 0) { atkSpin = A; p.aRx = tri(A, p.aRx, -0.3, -1.3); p.aLx = tri(A, p.aLx, -0.3, -1.3); p.aRz = tri(A, p.aRz, -1.5, -0.2); p.aLz = tri(A, p.aLz, 1.5, 0.2); p.fRx = p.fLx = -0.1; }
+        else if (av === 2) { p.aRx = tri(A, p.aRx, -1.1, -1.2); p.aLx = tri(A, p.aLx, -1.1, -1.2); p.aRz = tri(A, p.aRz, -1.5, 0.8); p.aLz = tri(A, p.aLz, 1.5, -0.8); p.fRx = p.fLx = -0.15; bodyY += Math.sin(Math.min(1, A / 0.75) * Math.PI) * 0.15; p.hipRx += tri(A, 0, -0.15, 0.3); }
         else { p.aRx = tri(A, p.aRx, 0.5, -2.7); p.aLx = tri(A, p.aLx, 0.5, -2.7); p.aRz = tri(A, p.aRz, 0.4, -0.5); p.aLz = tri(A, p.aLz, -0.4, 0.5); p.fRx = tri(A, p.fRx, -1.2, -0.15); p.fLx = tri(A, p.fLx, -1.2, -0.15); bodyY += Math.sin(Math.min(1, A / 0.75) * Math.PI) * 0.3; p.hipRx += tri(A, 0, 0.3, -0.25); }
         break;
-      case 'bow': {
-        const e = smooth(seg01(A, 0, 0.22)) * (1 - smooth(seg01(A, 0.8, 1))), q = A < 0.6 ? smooth(seg01(A, 0.12, 0.55)) : 1 - smooth(seg01(A, 0.6, 0.66));
-        p.aLx = lerp(p.aLx, -1.52, e); p.fLx = lerp(p.fLx, -0.06, e); p.aLz = lerp(p.aLz, -0.1, e); p.aRx = lerp(p.aRx, -1.25, e); p.fRx = lerp(p.fRx, lerp(-0.7, -2.2, q), e); p.aRz = lerp(p.aRz, -0.25, e); p.spRy = lerp(p.spRy, -0.3, e); p.headRy = 0.25 * e; break;
+      case 'bow': {       // standing to it; down on one knee for it; and a high one, leaning back
+        const e = smooth(seg01(A, 0, 0.22)) * (1 - smooth(seg01(A, 0.8, 1))), q = A < 0.6 ? smooth(seg01(A, 0.12, 0.55)) : 1 - smooth(seg01(A, 0.6, 0.66)), hi = av === 2 ? 0.3 : 0;
+        p.aLx = lerp(p.aLx, -1.52 - hi, e); p.fLx = lerp(p.fLx, -0.06, e); p.aLz = lerp(p.aLz, -0.1, e); p.aRx = lerp(p.aRx, -1.25 - hi, e); p.fRx = lerp(p.fRx, lerp(-0.7, -2.2, q), e); p.aRz = lerp(p.aRz, -0.25, e); p.spRy = lerp(p.spRy, -0.3, e); p.headRy = 0.25 * e;
+        if (av === 1) { const kn = e * clamp((v.clipDur - 0.24) / 0.2, 0.35, 1);       // (as far down as there is time for: a quick shot is only a dip)
+          p.lLx = lerp(p.lLx, -1.45, kn); p.sLx = lerp(p.sLx, 1.55, kn); p.lRx = lerp(p.lRx, 0.2, kn); p.sRx = lerp(p.sRx, 1.45, kn); p.hipY += footed(p) - 0.78; p.spRy = lerp(p.spRy, -0.52, e); p.aLz = lerp(p.aLz, 0.14, e); }
+        else if (av === 2) { p.hipRx -= 0.2 * e; p.headRx = -0.14 * e; p.lRx = lerp(p.lRx, 0.3, e); p.lLx = lerp(p.lLx, -0.2, e); }
+        break;
       }
-      case 'rifle': {       // the long gun brought up to the shoulder; it kicks as the shot leaves (at 0.6) and settles
+      case 'rifle': {       // the long gun brought up to the shoulder; fired from the hip; and from one knee. It kicks as the shot leaves (at 0.6) and settles
         const e = smooth(seg01(A, 0, 0.3)) * (1 - smooth(seg01(A, 0.84, 1))), kick = A >= 0.6 ? 1 - smooth(seg01(A, 0.6, 0.8)) : 0;
-        p.aRx = lerp(p.aRx, -1.44 - 0.2 * kick, e); p.fRx = lerp(p.fRx, -0.1, e); p.aRz = lerp(p.aRz, 0.1, e); p.aLx = lerp(p.aLx, -1.32 - 0.12 * kick, e); p.fLx = lerp(p.fLx, -0.28, e); p.aLz = lerp(p.aLz, -0.55, e); p.headRy = 0.25 * e; p.headRx = 0.06 * e - 0.1 * kick * e; p.hipRx -= 0.07 * kick * e; break;
+        if (av === 1) { p.aRx = lerp(p.aRx, 0.25 - 0.12 * kick, e); p.fRx = lerp(p.fRx, -1.75, e); p.aRz = lerp(p.aRz, -0.12, e); p.aLx = lerp(p.aLx, -0.55 - 0.1 * kick, e); p.fLx = lerp(p.fLx, -0.95, e); p.aLz = lerp(p.aLz, -0.5, e); p.hipRx -= (0.1 + 0.1 * kick) * e; p.hipY -= 0.04 * e; p.headRy = 0.2 * e; p.lLx = lerp(p.lLx, -0.25, e); p.lRx = lerp(p.lRx, 0.25, e); break; }
+        p.aRx = lerp(p.aRx, -1.44 - 0.2 * kick, e); p.fRx = lerp(p.fRx, -0.1, e); p.aRz = lerp(p.aRz, 0.1, e); p.aLx = lerp(p.aLx, -1.32 - 0.12 * kick, e); p.fLx = lerp(p.fLx, -0.28, e); p.aLz = lerp(p.aLz, -0.55, e); p.headRy = 0.25 * e; p.headRx = 0.06 * e - 0.1 * kick * e; p.hipRx -= 0.07 * kick * e;
+        if (av === 2) { const kn = e * clamp((v.clipDur - 0.24) / 0.2, 0.35, 1); p.hipRx += 0.1 * kn; p.lLx = lerp(p.lLx, -1.45, kn); p.sLx = lerp(p.sLx, 1.55, kn); p.lRx = lerp(p.lRx, 0.2, kn); p.sRx = lerp(p.sRx, 1.45, kn); p.hipY += footed(p) - 0.78; p.headRx += 0.08 * e; }       // (leaning into the stock)
+        break;
       }
-      case 'hurl':       // an overarm throw: the leaf leaves his hand as the arm comes through (see below: it is gone from the hand until he has a fresh one)
-        p.aRx = tri(A, p.aRx, -2.6, -1.25); p.fRx = tri(A, p.fRx, -1.9, -0.05); p.aRz = tri(A, p.aRz, -0.4, 0.3); p.spRy = tri(A, p.spRy, -0.7, 0.55); p.aLx = tri(A, p.aLx, -1.0, 0.5); p.fLx = tri(A, p.fLx, -0.3, -0.5); p.hipRx += tri(A, 0, -0.1, 0.28); break;
-      case 'cast': p.aRx = tri(A, p.aRx, -0.9, -1.3); p.fRx = tri(A, p.fRx, -1.7, -0.45); p.aLx = tri(A, p.aLx, -0.6, -1.25); p.fLx = tri(A, p.fLx, -0.8, -0.15); p.hipRx += tri(A, 0, -0.06, 0.14); break;
-      case 'orb': p.aRx = tri(A, p.aRx, -0.2, -1.5); p.fRx = tri(A, p.fRx, -1.3, -0.08); p.aLx = tri(A, p.aLx, -0.2, -1.2); p.fLx = tri(A, p.fLx, -1.0, -0.2); orb = tri(A, 0, -0.15, 1); break;
+      case 'hurl':       // an overarm throw; a low sidearm one from the right; and a backhand from across his body. The leaf leaves his hand as the arm comes through (see below: it is gone from the hand until he has a fresh one)
+        if (av === 1) { p.aRx = tri(A, p.aRx, -0.75, -1.3); p.fRx = tri(A, p.fRx, -1.0, -0.05); p.aRz = tri(A, p.aRz, -1.3, 0.35); p.spRy = tri(A, p.spRy, -0.9, 0.7); p.aLx = tri(A, p.aLx, -0.9, 0.3); p.hipRx += tri(A, 0, 0.1, 0.3); p.hipY += tri(A, 0, -0.06, -0.08); }
+        else if (av === 2) { p.aRx = tri(A, p.aRx, -1.0, -1.4); p.fRx = tri(A, p.fRx, -1.9, -0.05); p.aRz = tri(A, p.aRz, 1.0, -0.35); p.spRy = tri(A, p.spRy, 0.75, -0.5); p.aLx = tri(A, p.aLx, 0.3, -0.6); p.hipRx += tri(A, 0, 0.05, 0.2); }
+        else { p.aRx = tri(A, p.aRx, -2.6, -1.25); p.fRx = tri(A, p.fRx, -1.9, -0.05); p.aRz = tri(A, p.aRz, -0.4, 0.3); p.spRy = tri(A, p.spRy, -0.7, 0.55); p.aLx = tri(A, p.aLx, -1.0, 0.5); p.fLx = tri(A, p.fLx, -0.3, -0.5); p.hipRx += tri(A, 0, -0.1, 0.28); }
+        break;
+      case 'cast':       // sent from both hands; swung over and down at them with what she holds; and a third of each one's own
+        if (av === 1) { p.aRx = tri(A, p.aRx, -2.75, -1.25); p.fRx = tri(A, p.fRx, -0.9, -0.1); p.aRz = tri(A, p.aRz, -0.3, 0.25); p.aLx = tri(A, p.aLx, -0.3, 0.2); p.fLx = tri(A, p.fLx, -1.3, -0.9); p.spRy = tri(A, p.spRy, -0.45, 0.4); p.hipRx += tri(A, 0, -0.1, 0.2); }
+        else if (av === 2 && v.key === 'lyra') { p.aLx = tri(A, p.aLx, -0.4, -1.55); p.fLx = tri(A, p.fLx, -1.7, -0.05); p.aLz = tri(A, p.aLz, 0.2, -0.1); p.aRx = tri(A, p.aRx, -0.55, -0.5); p.fRx = tri(A, p.fRx, -1.2, -1.3); p.spRy = tri(A, p.spRy, 0.45, -0.5); p.hipRx += tri(A, 0, -0.05, 0.16); }       // her open left hand sent out, the staff held upright at her side
+        else if (av === 2 && v.key === 'sera') { p.aRx = tri(A, p.aRx, -3.0, -1.5); p.fRx = tri(A, p.fRx, -0.1, -0.05); p.aLx = tri(A, p.aLx, -1.2, -0.9); p.fLx = tri(A, p.fLx, -1.5, -1.3); p.aLz = tri(A, p.aLz, -0.35, -0.3); p.headRx = tri(A, 0, -0.3, 0); bodyY += tri(A, 0, 0.06, 0); }       // the wand lifted high, and brought down to point
+        else if (av === 2 && v.key === 'miel') { p.aRx = tri(A, p.aRx, -0.5, -1.45); p.fRx = tri(A, p.fRx, -1.6, -0.1); p.aLx = tri(A, p.aLx, -0.5, -1.3); p.fLx = tri(A, p.fLx, -1.6, -0.5); p.aLz = tri(A, p.aLz, -0.3, -0.45); p.aRz = tri(A, p.aRz, 0.2, 0.3); p.hipRx += tri(A, 0, -0.08, 0.22); p.lLx = tri(A, p.lLx, 0, -0.4); }       // the crook levelled at them in both hands, a step behind it
+        else if (av === 2) { p.aRx = tri(A, p.aRx, -0.6, -1.5); p.fRx = tri(A, p.fRx, -1.9, -0.1); p.aLx = tri(A, p.aLx, -0.6, -1.5); p.fLx = tri(A, p.fLx, -1.9, -0.1); p.aRz = tri(A, p.aRz, 0.35, 0.3); p.aLz = tri(A, p.aLz, -0.35, -0.3); p.hipRx += tri(A, 0, -0.1, 0.2); }       // (the Heron) both palms sent out together
+        else { p.aRx = tri(A, p.aRx, -0.9, -1.3); p.fRx = tri(A, p.fRx, -1.7, -0.45); p.aLx = tri(A, p.aLx, -0.6, -1.25); p.fLx = tri(A, p.fLx, -0.8, -0.15); p.hipRx += tri(A, 0, -0.06, 0.14); }
+        break;
+      case 'orb':       // pushed out from both hands; swept across with one; and lifted over his head and brought down
+        if (av === 1) { p.aRx = tri(A, p.aRx, -1.3, -1.35); p.fRx = tri(A, p.fRx, -1.2, -0.1); p.aRz = tri(A, p.aRz, 0.9, -0.7); p.aLx = tri(A, p.aLx, -0.3, -0.2); p.spRy = tri(A, p.spRy, 0.5, -0.5); orb = tri(A, 0, -0.1, 1); }
+        else if (av === 2) { p.aRx = tri(A, p.aRx, -2.8, -1.2); p.aLx = tri(A, p.aLx, -2.8, -1.2); p.fRx = tri(A, p.fRx, -0.3, -0.1); p.fLx = tri(A, p.fLx, -0.3, -0.1); p.aRz = tri(A, p.aRz, -0.3, 0.1); p.aLz = tri(A, p.aLz, 0.3, -0.1); bodyY += tri(A, 0, 0.1, -0.04); orb = tri(A, 0, -0.3, 1); }
+        else { p.aRx = tri(A, p.aRx, -0.2, -1.5); p.fRx = tri(A, p.fRx, -1.3, -0.08); p.aLx = tri(A, p.aLx, -0.2, -1.2); p.fLx = tri(A, p.fLx, -1.0, -0.2); orb = tri(A, 0, -0.15, 1); }
+        break;
     }
   }
   if (s.dead > 0) v.clip = null;
@@ -1206,7 +1355,7 @@ function animHero(v, s, t, dt) {
     p.aRx = lerp(p.aRx, -1.05, k); p.fRx = lerp(p.fRx, -0.75, k); p.aRz = lerp(p.aRz, 0.12, k); p.aLx = lerp(p.aLx, -0.55, k); p.fLx = lerp(p.fLx, -1.25, k); p.aLz = lerp(p.aLz, -0.2, k); p.headRx = lerp(p.headRx, 0.32, k);
   }
   if (s.stun) { p.hipRx = 0.14 + Math.sin(t * 9) * 0.04; p.headRx = 0.35; headRz = Math.sin(t * 6) * 0.3; p.aLx = p.aRx = 0.1; p.fLx = p.fRx = -0.2; }
-  let rYaw = null, rSpin = 0, lift = 0, wpT = 0, airRx = 0;
+  let rYaw = null, rSpin = I > 0 ? Q.spin : 0, lift = 0, wpT = I > 0 ? Q.wp : 0, airRx = 0;
   if (s.air > 0) {       // thrown into the air: flung back, arms and legs trailing; gathered in again on the way down
     const e = Math.min(1, s.air * 7) * (1 - smooth(seg01(s.air, 0.82, 1))), w = Math.sin(t * 13 + v.seed) * 0.12; airRx = -0.62 * e;
     p.aLz = lerp(p.aLz, 1.3 + w, e); p.aRz = lerp(p.aRz, -1.3 + w, e); p.aLx = lerp(p.aLx, -0.7, e); p.aRx = lerp(p.aRx, -0.7, e); p.fLx = lerp(p.fLx, -0.5, e); p.fRx = lerp(p.fRx, -0.5, e);
@@ -1246,7 +1395,14 @@ function animHero(v, s, t, dt) {
     B.wings.position.y = 1.36 + (v.hover || 0) + Math.sin(t * 1.9 + v.seed) * 0.05;
     for (let i = 0; i < 4; i++) { const w = B['wb' + i], kk = w.userData.k, hi = w.userData.hi; w.rotation.z = -kk * ((hi ? 0.35 : 0.95) + o * (hi ? 0.5 : 0.55) + Math.sin(t * 2.2 + i * 1.3) * 0.05); w.rotation.x = -0.25 - o * 0.35 + Math.sin(t * 1.7 + i) * 0.04; }
   }
-  if (wpT || v.wpT) { v.wpT = (v.wpT || 0) + (wpT - (v.wpT || 0)) * Math.min(1, dt * 9); if (!wpT && Math.abs(v.wpT) < 0.004) v.wpT = 0; if (v.wr0 == null) v.wr0 = B.wpnR.rotation.x; B.wpnR.rotation.x = v.wr0 + v.wpT; }
+  if (v.style !== 'long') {       // what the right hand holds, turned in the hand (wpT), kept turning (wps: Thorn's hook on its chain) or spun about its own length (wys), and let up out of the hand (wo: Orin's leaf, tossed)
+    const ws = I > 0 ? Q.wps : 0, wy = I > 0 ? Q.wys : 0, wo = I > 0 ? Q.wo : 0, wrap = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
+    if (ws) v.wsA = (v.wsA || 0) + dt * ws; else if (v.wsA) { v.wsA = wrap(v.wsA) * Math.max(0, 1 - dt * 10); if (Math.abs(v.wsA) < 0.01) v.wsA = 0; }
+    if (wy) v.wyA = (v.wyA || 0) + dt * wy; else if (v.wyA) { v.wyA = wrap(v.wyA) * Math.max(0, 1 - dt * 10); if (Math.abs(v.wyA) < 0.01) v.wyA = 0; }
+    if (wpT || v.wpT || v.wsA || v.wsOn) { v.wpT = (v.wpT || 0) + (wpT - (v.wpT || 0)) * Math.min(1, dt * (wpT ? 9 : 18)); if (!wpT && Math.abs(v.wpT) < 0.004) v.wpT = 0; if (v.wr0 == null) v.wr0 = B.wpnR.rotation.x; B.wpnR.rotation.x = v.wr0 + v.wpT + (v.wsA || 0); v.wsOn = !!v.wsA; }
+    if (v.wyA || v.wyOn) { B.wpnR.rotation.y = v.wyA || 0; v.wyOn = !!v.wyA; }
+    if (wo || v.woT) { v.woT = (v.woT || 0) + (wo - (v.woT || 0)) * Math.min(1, dt * 30); if (!wo && Math.abs(v.woT) < 0.004) v.woT = 0; B.wpnR.position.z = v.woT; }
+  }
   if (v.style === 'hurl') {       // what he throws is out of his hand from the moment of release, and a fresh leaf snaps into it soon after
     const w = B.wpnR, out = (A >= 0.6 && A < 0.96) || (!!C && v.clipI === 1 && cu > 0.3 && cu < 0.9);
     if (out) { if (w.visible) w.visible = false; v.wk = 0; }
@@ -1254,7 +1410,7 @@ function animHero(v, s, t, dt) {
   }
   clothStep(v, t, dt, flare + (v.hover ? 0.12 : 0));
   if (B.skorb) { B.skorb.rotation.y = t * 1.7 + v.seed; B.skorb.position.y = 1.12 + Math.sin(t * 2.1 + v.seed) * 0.06; }
-  if (B.orb) { B.orb.position.z = 0.3 + orb * 0.5; B.orb.position.y = 1.22 + Math.sin(t * 2.6) * 0.06 + (v.hover || 0); const sc = 1 + Math.max(0, orb) * 0.6; B.orb.scale.set(sc, sc, sc); B.motes.rotation.y = t * 3.2; B.motes.rotation.x = t * 1.1; }
+  if (B.orb) { const oi = v.orbI = (v.orbI || 0) + ((I > 0 ? Q.orb : 0) - (v.orbI || 0)) * Math.min(1, dt * 6), oa = t * 1.5; B.orb.position.x = Math.sin(oa) * 0.62 * oi; B.orb.position.z = lerp(0.3 + orb * 0.5, Math.cos(oa) * 0.62, oi); B.orb.position.y = 1.22 + Math.sin(t * 2.6) * 0.06 + (v.hover || 0); const sc = 1 + Math.max(0, orb) * 0.6; B.orb.scale.set(sc, sc, sc); B.motes.rotation.y = t * 3.2; B.motes.rotation.x = t * 1.1; }
   if (B.bees) {       // her bees: slow rounds close to her while she tends, fast and wide while she stings (v.sting, 0..1, is set by the view from her temper)
     const q = v.sting || 0, sc = 1 + q * 0.3; v.beeA = (v.beeA == null ? v.seed : v.beeA) + dt * (2.3 + q * 4.8);
     B.bees.rotation.y = v.beeA; B.bees.rotation.z = Math.sin(t * 1.7 + v.seed) * (0.2 + q * 0.25); B.bees.position.y = 1.34 + Math.sin(t * 2.3 + v.seed) * 0.05; B.bees.scale.setScalar(sc);

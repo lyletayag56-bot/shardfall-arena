@@ -852,7 +852,13 @@ function gwStart(h, t, lv) {
   h.gw = { lv, n: 0, t: GW_FIRST, first: t, last: null, got: {}, x0: h.x, y0: h.y, lx: h.x, ly: h.y, out: GW_OUT, c: G.cx };
   h.locked = true; h.away = true; h.atkTarget = null; h.chase = false; h.windT = 0; h.dash = null; h.mvx = h.mvy = 0; h.recallT = 0;
   h.vis[1 - h.team] = false;
+  if (G.kit >= 26) h.re[0] = { until: G.t + GW_FIRST + GW_GAP * (GW_N - 1) + GW_OUT + 0.4, ready: G.t + GW_ARM };       // (kit 26: pressed again in the glass, the skill is her choice of where to step out: gwTurn)
   skfx(h, 'odile0', h.x, h.y, { tx: t.x, ty: t.y, tid: t.id });
+}
+function gwTurn(h) {       // Glasswalk pressed again while she is in the glass: out where she went in; and again: beside them after all
+  const S = h.gw, r = h.re[0]; if (!S || !r) { h.re[0] = null; return false; }
+  S.back = !S.back; h.re[0] = { until: r.until, ready: 0, span: r.span };       // (lit still: she may change her mind until she is out)
+  skfx(h, 'odile0b', S.x0, S.y0, { on: S.back ? 1 : 0 });
 }
 function gwNext(h, S) {       // who is cut next: the nearest not yet cut within a step of the last one; failing that the first of them again, or the nearest of those already cut
   let best = null, bd = 1e9, again = null, ad = 1e9;
@@ -880,16 +886,16 @@ function gwTick(h, dt) {
   }
   if (S.n >= GW_N) { S.out -= dt; if (S.out <= 0) gwEnd(h); }
 }
-function gwEnd(h) {       // out of the glass: beside the first of them if they still stand, else beside the last one cut, else where she went in
-  const S = h.gw; if (!S) return; h.gw = null; h.locked = false; h.away = false;
-  const t = !S.first.dead && !S.first.locked ? S.first : S.last && !S.last.dead && !S.last.locked ? S.last : null;
+function gwEnd(h) {       // out of the glass: beside the first of them if they still stand, else beside the last one cut, else where she went in; or where she went in because she chose to (S.back)
+  const S = h.gw; if (!S) return; h.gw = null; h.locked = false; h.away = false; if (h.re[0]) h.re[0] = null;
+  const who = !S.first.dead && !S.first.locked ? S.first : S.last && !S.last.dead && !S.last.locked ? S.last : null, t = S.back ? null : who;
   if (t) { const a = fatan2(S.y0 - t.y, S.x0 - t.x), p = clampWalk(t.x, t.y, t.x + fcos(a) * (t.r + 52), t.y + fsin(a) * (t.r + 52)); h.x = p.x; h.y = p.y; h.face = fatan2(t.y - h.y, t.x - h.x); }
-  else { h.x = S.x0; h.y = S.y0; }
+  else { h.x = S.x0; h.y = S.y0; if (S.back && who) h.face = fatan2(who.y - h.y, who.x - h.x); }       // (back where she went in, by choice: facing what she left)
   { const w = nearestWalkable(h.x, h.y); h.x = w.x; h.y = w.y; }
   h.revealT = Math.max(h.revealT, G.t + 1.2);
   if (t && canTarget(h, t)) { h.atkTarget = t; h.chase = true; }       // and she goes on at them
   if (h.ai) h.ai.path = null;
-  skfx(h, 'odile0x', h.x, h.y, { cuts: S.n });
+  skfx(h, 'odile0x', h.x, h.y, S.back ? { cuts: S.n, back: 1 } : { cuts: S.n });
 }
 /* Anneal. h.med = { t: time left, acc, lv, k: half seconds knelt }. She kneels where she is: no step, no blow. It ends when its time
    is up, when she moves or is told to attack, when she casts anything (the second press of the skill itself is Rise), or when she
@@ -1139,7 +1145,7 @@ function useItem(h) {
   A.fn(h, A, dur); h.actCd = A.cd; h.actN++; h.revealT = G.t + 1.2; if (h.camo) camoOff(h); return true;
 }
 function castSkill(h, i, tx, ty) {
-  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || h.gw || (h.castLock > 0 && !(h.snipe && i !== 2)) || G.over) return false;       // (in the middle of Four Rounds her other two skills are hers to break it off with, and her battle spell is hers to use)
+  if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || (h.gw && !(i === 0 && recastOf(h, 0))) || (h.castLock > 0 && !(h.snipe && i !== 2)) || G.over) return false;       // (in the middle of Four Rounds her other two skills are hers to break it off with, and her battle spell is hers to use)
   const f0 = h.form;
   if ((h.dash || h.leap) && !(h.def.fluid && i < 3)) return false;       // a fluid hero throws and flashes in the middle of his own dash
   const sp = i === 3, s0 = sp ? SPELLS[h.spell] : skDef(h, i);
@@ -1158,6 +1164,7 @@ function castSkill(h, i, tx, ty) {
   if (h.med && !(i === 1 && (re || !sp))) anEnd(h);       // (anything but Anneal itself, which is how she got there, and Rise, which is how she gets up)
   h.mp -= cost; if (h.camo && !s.hush) camoOff(h);       // (whatever she casts from under her cape, but the cape itself, brings her out from under it)
   if (re) { if (h.re[i] === re) h.re[i] = null; } else if (sp) h.spellCd = s.cd; else h.cds[i] = s0.cdNow != null ? s0.cdNow : skillCd(s0, lv) * (1 - h.cdr);
+  if (s.quiet) return true;       // (a choice made, not a cast: nothing of hers moves, and nothing of it is seen or heard but what its own effect shows)
   if (s.cast !== 'self') h.face = ang;
   if (!re && !sp) h.castT[i] = G.t;
   h.recallT = 0; h.windT = 0; h.castAnim = 0.3; h.castN++; h.castI = re ? i + (s.stage === 3 ? 10 : 4) : f0 && !sp && h.def.skills[i].alt ? i + 7 : i; if (!s.hush) h.revealT = G.t + 1.2; h.lastCombatT = G.t;       // castI 4..6: the second cast of skill 0..2; 10..12: the third
@@ -1294,7 +1301,7 @@ function tickHero(h, dt) {
   const es = MAP.spawn[1 - h.team];
   if (hyp(h.x - es.x, h.y - es.y) < 520) { h.fountT = (h.fountT || 0) + dt; if (h.fountT > 0.25) { h.fountT = 0; dmg(G.crystals[1 - h.team], h, h.maxHp * 0.06, 'true', {}); if (h.dead) return; } }
   // forced movement
-  if (h.gw) { gwTick(h, dt); return; }       // Odile in the glass
+  if (h.gw) { gwTick(h, dt); return; }       // Odile in the glass (nothing of a bot runs while she is in it: where she steps out is a choice only a player makes)
   if (h.leap) {
     const l = h.leap; l.t += dt; const k = Math.min(1, l.t / l.dur);
     h.x = lerp(l.x0, l.x1, k); h.y = lerp(l.y0, l.y1, k); h.z = fsin(k * Math.PI) * (l.h || 130); h.moving = true;
@@ -1503,11 +1510,11 @@ function step(dt) {
    A finished recording: { v, sim, opts: { seed, diff, player }, steps, t, dt, ev, chk, marks, over, winner }.
    pb (while playing one): rec, i: the step to run next, e: read position in ev, next: the step the next event belongs to. */
 const DT_Q = 7200, DU_MAX = 240, MOVE_NONE = 65535, REC_V = 1, ROSTER_0 = 12;
-const KIT_V = 25, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 25: Odile (nothing an older match has is changed by her). 24: Halvar, four more items and the Teleport spell (nothing an older match has is changed by them); an item already held can be bought again. 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
+const KIT_V = 26, KIT_0 = 19;       // which state of the heroes' skills a match is played by (G.kit): a recording says its own, and one that says none is from before there was more than one (KIT_0). 26: Glasswalk pressed again in the glass is Odile's choice of where to step out. 25: Odile (nothing an older match has is changed by her). 24: Halvar, four more items and the Teleport spell (nothing an older match has is changed by them); an item already held can be bought again. 20: Miel's stings. 21: Lyra's Starfall falls for longer, and holds whoever stays under it. 22: Bram's Shield Rush sweeps along what it meets and has a second cast; Hesta's taunt holds longer; Miel's temper is her player's to choose and her Queen's Flight bursts out and lasts longer. 23: the stun of Zephyr's Tempest Beam holds longer, and it and the taunt of Hesta's Brazen Call go through the totem.
 const A_CAST = 1, A_MEND = 2, A_ITEM = 3, A_LEVEL = 4, A_RECALL = 5, A_BUY = 6, A_SELL = 7, A_INPUT = 8, A_MOOD = 9;
 const ITEM_KEYS = Object.keys(ITEMS);
 const SIM_NAME = typeof SIM_ID === 'string' ? SIM_ID : 'dev';       // which build of the sim: a recording only plays on a sim that runs the match exactly as the one that made it did
-const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1, '2b64e130': 1, 'ed914bb2': 1, 'f6b288f8': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
+const SIM_SAME = { '9afb2ff4': 1, '3c2d709d': 1, '454b2863': 1, 'faf86074': 1, '977f94e6': 1, 'c575d909': 1, '7bf6a433': 1, '2b64e130': 1, 'ed914bb2': 1, 'f6b288f8': 1, '19ee9680': 1 };       // older sims that this one runs exactly as, with the heroes they had (test/same_sim.js): Versions 16 to 18 (twelve heroes), Version 19 (thirteen, and its recordings say so), and the two after it, whose recordings say which state of the skills they were played by
 function simPlays(id) { return id === SIM_NAME || SIM_SAME[id] === 1; }
 const _cvF = new Float32Array(1), _cvD = new Float64Array(1), _cvB = new Uint8Array(_cvF.buffer), _cvU = new Uint32Array(_cvD.buffer);
 function bufNew(n) { return { a: new Uint8Array(n), n: 0 }; }
@@ -1579,7 +1586,7 @@ function actFor(h, k, a, b, c) {
 const NET_DU = 240, NET_STEPS = 2, NET_HOLD = { [A_BUY]: 1, [A_SELL]: 1, [A_LEVEL]: 1 };
 function actCan(h, k, a, b, c) {       // would this go through if it were done now? (so that a press is answered at once: it is done a moment later)
   switch (k) {
-    case A_CAST: { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || h.gw || G.over) return false; const sp = a === 3; if (sp) return !(h.spellCd > 0); if (!(h.sk[a] >= 1)) return false; if (recastOf(h, a)) return true; if (chainHold(h, a) || h.cds[a] > 0) return false; const s = skDef(h, a); if (h.mp < skillCost(s, h.sk[a])) return false; return !(s.needs && b != null && !s.needs(h, b, c)); }       // (needs: a skill that is nothing without somebody to go for)
+    case A_CAST: { if (h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.disp || (h.gw && !(a === 0 && recastOf(h, 0))) || G.over) return false; const sp = a === 3; if (sp) return !(h.spellCd > 0); if (!(h.sk[a] >= 1)) return false; if (recastOf(h, a)) return true; if (chainHold(h, a) || h.cds[a] > 0) return false; const s = skDef(h, a); if (h.mp < skillCost(s, h.sk[a])) return false; return !(s.needs && b != null && !s.needs(h, b, c)); }       // (needs: a skill that is nothing without somebody to go for)
     case A_MEND: return !(h.dead || h.reviveT > 0 || h.stunT > 0 || h.tauntT > 0 || h.gw || h.healCd > 0 || G.over || (h.hp >= h.maxHp - 1 && h.mp >= h.maxMp - 1));
     case A_ITEM: return itemReady(h);
     case A_LEVEL: return canLevel(h, a);

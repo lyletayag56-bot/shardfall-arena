@@ -95,6 +95,7 @@ const ICONS = {
   facets: `<path d="M12 2.5l7 6.5-7 12.5L5 9z"/><path d="M5 9h14M9.5 9L12 21.5M14.5 9L12 21.5M9.5 9L12 2.5l2.5 6.5"/>`,
   kneel: `<path ${F} d="M11 2.5h2v11l-1 2.6-1-2.6z"/><path d="M8.2 5.2h7.6"/><path d="M5.5 21c1.4-3.2 3.500-4.800 6.500-4.800s5.100 1.600 6.500 4.800"/><path d="M3.6 14.2c.5-1.700 1.300-3 2.400-3.900M20.4 14.2c-.5-1.700-1.300-3-2.400-3.900"/>`,
   rise: `<path ${F} d="M12 3l5.2 6.6h-3.400V16h-3.600V9.600H6.800z"/><path d="M6 20.500h12"/>`,
+  back: `<path d="M9.500 13.500L5 9l4.500-4.500"/><path d="M5 9h8.500a5.500 5.500 0 0 1 0 11H9.500"/>`,
   quick: `<path ${F} d="M13 3.5l6.500 8.500-6.500 8.500-2.100-1.900 4.700-6.600-4.700-6.600z"/><path d="M3 8.500h5.500M2 12h7M3 15.500h5.500"/>`,
   twin: `<path ${F} d="M7.500 3l1.800 2-.500 11.600-1.300 2.400-1.300-2.400L5.700 5z"/><path d="M16.500 3l1.800 2-.500 11.600-1.300 2.400-1.300-2.400L14.700 5z"/><path d="M12 2.500v19" stroke-dasharray="2 2.4"/><path d="M5 21h5M14 21h5"/>`,
   gate: `<path d="M5.500 21V10.500a6.500 6.500 0 0 1 13 0V21"/><path ${F} d="M12 8.200l3.700 4.800h-2.400v5.200h-2.600V13H8.300z"/>`,
@@ -478,6 +479,7 @@ function updateHud(dt) {
     const hold = ram || qs || (!sp && i === 0 && me.camo ? hasBuff(me, 'camo') : null);       // under her cape: the button shows how long of that is left, and only then its cooldown
     const cd = hold ? hold.t : re ? 0 : sp ? me.spellCd : me.cds[i], full = ram ? BEAST_T : qs ? Math.max(QS_T, qs.t) : hold ? CAMO_T : sp ? s.cd : skillCd(s, Math.max(1, lv)) * (1 - me.cdr);
     if (!sp && i === 2 && me.def.kneel) setCls(b, 'on', !!qs, 'on' + i);
+    if (!sp && i === 0 && me.def.kneel) setCls(b, 'on', !!(me.gw && me.gw.back), 'on' + i);       // in the glass, meaning to step out where she went in
     if (!sp && me.def.lethal) setCls(b, 'on', i === 0 ? !!hold : i === 2 && !!me.snipe, 'on' + i);
     if (!sp && i === 2 && me.def.forms && me.def.forms.beast) setCls(b, 'on', !!ram, 'on' + i);
     const p = cd > 0 ? clamp(cd / full, 0, 1) : 0, pk = Math.round(p * 100);
@@ -882,7 +884,7 @@ function autoTarget(i) {
 }
 function doCast(i, x, y) {
   if (UI.paused || UI.ended) return; const me = G.player;
-  if (act(A_CAST, i, x, y)) { $('tip').hidden = true; UI.q = null; }
+  if (act(A_CAST, i, x, y)) { $('tip').hidden = true; UI.q = null; if (i === 0 && me.gw && recastOf(me, 0)) snd('ui'); }       // (a press in the glass is her choice of where to step out: a click for it)
   else if (!me.dead && (me.dash || me.leap || me.gw || me.castLock > 0) && skillReady(i)) UI.q = { i, x, y, until: G.t + (me.gw ? 1 : 0.45) };       // busy for a moment (or in the glass): it goes off as soon as he can
   else { snd('deny'); if (i < 3 && !me.dead && skillReady(i)) { const s = skillOf(i); if (s.needs && !s.needs(me, x, y) && $('hint').hidden) hint('No enemy in reach', 1.2); } }
 }

@@ -313,6 +313,7 @@ function heroSize(v, u, dt, cut) {
   if (b !== v.big) { v.big = b; v.o.scale.setScalar(v.sc * b * (v.ramS || 1)); v.ring.scale.set(0.58 * (0.4 + 0.6 * b), 1, 0.58 * (0.4 + 0.6 * b)); v.top = v.top0 * (0.12 + 0.88 * b); }
   return b;
 }
+const ATK_STR = 2.4;       // a hero that has not attacked for this long (or, if its attacks come slower than that, for most of two of them) starts its string of attacks over
 function syncViews(t, dt) {
   const tick = ++V.tick, st = _st, low = V.q === 0, cut = V.cut; V.cut = false;
   for (const u of G.units) {
@@ -330,7 +331,7 @@ function syncViews(t, dt) {
     const tf = HP2 - (mine && AH.moving ? AH.face : u.face); v.face = v.face == null || cut ? tf : angLerp(v.face, tf, Math.min(1, dt * 15)); v.o.rotation.y = v.face;
     { const kn = u.km && u.km.until > G.t ? u.km.n : 0; if (kn || v.kmG) kmSync(v, u, kn, t); }
     { const sn = u.sg && !u.dead ? u.sg.n : 0; if (sn || v.sgG) sgSync(v, u, sn, t); }
-    if (u.atkAnim > v.lastAtk + 0.25 && !cut) { v.clipT = 0; v.clipDur = clamp((u.windup || 0.26) / 0.6, 0.2, 0.8); v.alt ^= 1; }
+    if (u.atkAnim > v.lastAtk + 0.25 && !cut) { v.clipT = 0; v.clipDur = clamp((u.windup || 0.26) / 0.6, 0.2, 0.8); v.alt ^= 1; v.av = t - (v.avT == null ? -9 : v.avT) > Math.max(ATK_STR, 1.8 / (u.asp || 1)) ? 0 : ((v.av || 0) + 1) % 3; v.avT = t; }       // (v.av: which of the three motions of this hero's string the attack is; the first again when it has not attacked for a while)
     v.lastAtk = u.atkAnim; v.clipT += dt;
     st.moving = (u.moving || (mine && AH.moving)) && !u.dead; st.speed = Math.max(1.4, u.ms * S3); st.atk = v.clipT < v.clipDur ? v.clipT / v.clipDur : -1;
     v.blob.visible = low && !(hero && u.dead);
@@ -344,6 +345,7 @@ function syncViews(t, dt) {
       st.cast = u.castAnim > 0 ? Math.min(1, u.castAnim / 0.3) : 0; st.dash = !!u.dash; st.leap = !!u.leap; st.spin = !!hasBuff(u, 'whirl'); st.stun = u.stunT > 0 || u.reviveT > 0; st.air = u.air && !u.dead ? clamp(u.air.t / u.air.dur, 0.001, 1) : 0; st.recall = u.recallT > 0 ? Math.max(0.001, 1 - u.recallT / 6) : 0; st.dead = u.dead ? v.deadT : 0;
       if (v.rcK > 0.9 && !st.recall && !u.dead && hyp(u.x - v.rcX, u.y - v.rcY) > 400) v.arrT = 0.001;       // the recall went through: play the setting-down at the fountain
       v.rcK = st.recall; if (st.recall) { v.rcX = u.x; v.rcY = u.y; } if (v.arrT > 0) { v.arrT += dt / 0.6; if (v.arrT >= 1) v.arrT = 0; } st.arrive = v.arrT || 0;
+      st.busy = t - (v.avT == null ? -9 : v.avT) < Math.max(1.2, 1.25 / (u.asp || 1)) || G.t - u.lastDmgT < 1.5;       // still in its fight: its next blow may be on its way, or it has just been struck
       animHero(v, st, t, dt); if (v.rb && v.form) animRam(v, u, st, t, dt);
       if (v.style === 'rifle') { if (st.atk >= 0.6 && v.a0 >= 0 && v.a0 < 0.6 && !cut) rifleFlash(v, u); v.a0 = st.atk; }
       if (v.style === 'long') { if (st.atk >= 0.42 && v.a0 >= 0 && v.a0 < 0.42 && !cut) { const sw = 0.3 * v.clipDur + 0.03, kn = !!hasBuff(u, 'keen'); bladeTrail(v, skinColor(u.key, u.skin, 0), sw, 0.2, { op: kn ? 0.6 : 0.42 }); bladeTrail(v, '#ffffff', sw, 0.12, { y0: kn ? 1.1 : 1.24, op: kn ? 0.7 : 0.45 }); } v.a0 = st.atk; }       // the path of her blade through each cut (and of its keen edge, when it has one)
@@ -680,7 +682,7 @@ function makePortraits() {
   r.setPixelRatio(1); r.setSize(sz, sz, false);
   for (const k of HERO_KEYS) for (let sk = 0; sk < SKINS[k].length; sk++) {
     const v = heroInstance(k, sk), body = heroLook(k, sk).body;
-    for (let i = 0; i < 40; i++) animHero(v, { moving: false, speed: 2, atk: -1, cast: 0 }, i * 0.03, 0.03);
+    for (let i = 0; i < 40; i++) animHero(v, { moving: false, speed: 2, atk: -1, cast: 0, busy: true }, i * 0.03, 0.03);       // (busy: as it stands, not as it idles)
     v.o.rotation.y = -0.42; sc.add(v.o); sc.background = new THREE.Color(shade(body, -0.5));
     const bg = halo(shade(body, 0.35), 5.5, 0.55); bg.position.set(0, 1.75, -1.4); sc.add(bg);
     cam.position.set(0.34, 1.78 + v.hover, 2.5); cam.lookAt(0, 1.58 + v.hover, 0);
@@ -713,13 +715,13 @@ function showcaseRender(dt) {
   const el = SHOW.el || (SHOW.el = document.getElementById('show')), v = SHOW.v; if (!el || !v) return;
   const w = el.clientWidth, h = el.clientHeight; if (w < 8 || h < 8) return;
   const r = GX.r, pr = r.getPixelRatio(), t = (SHOW.t += dt);
-  const ph = Math.floor((t % 7.2) / 1.2);      // attack, the three skill moves, then a short walk
-  if (ph !== SHOW.ph) { SHOW.ph = ph; SHOW.sub = 0; if (ph === 0) { v.clipT = 0; v.clipDur = 0.62; v.alt ^= 1; } else if (ph <= 3) startClip(v, ph - 1); }
-  if (ph === 1 && HEROES[v.key].skills[0].chain) { const sub = Math.min(2, Math.floor((t % 1.2) / 0.4)); if (sub !== SHOW.sub) { SHOW.sub = sub; startClip(v, sub === 1 ? 3 : 9); } }       // a chain of three: all three, one after the other
-  v.clipT += dt; _st.moving = ph >= 4; _st.speed = 2.5; _st.atk = v.clipT < v.clipDur ? v.clipT / v.clipDur : -1; _st.cast = 0; _st.dash = _st.leap = _st.spin = _st.stun = _st.recall = false; _st.air = 0; _st.dead = 0; SHOW.kn = (SHOW.kn || 0) + ((ph === 2 && HEROES[v.key].kneel && (t % 1.2) < 0.95 ? 1 : 0) - (SHOW.kn || 0)) * Math.min(1, dt * 9); _st.kneel = SHOW.kn > 0.003 ? SHOW.kn : 0; _st.spin = ph === 3 && !v.clip && (t % 1.2) < 0.9 && HERO_CLIPS[v.key][2] === null;
+  const ph = Math.floor((t % 16.8) / 1.2);      // the three attacks of its string, the three skill moves, a short walk, and then what it does standing idle
+  if (ph !== SHOW.ph) { SHOW.ph = ph; SHOW.sub = 0; if (ph <= 2) { v.clipT = 0; v.clipDur = 0.62; v.alt ^= 1; v.av = ph; } else if (ph <= 5) startClip(v, ph - 3); else if (ph === 8) v.idle = IDLE_AT; }
+  if (ph === 3 && HEROES[v.key].skills[0].chain) { const sub = Math.min(2, Math.floor((t % 1.2) / 0.4)); if (sub !== SHOW.sub) { SHOW.sub = sub; startClip(v, sub === 1 ? 3 : 9); } }       // a chain of three: all three, one after the other
+  v.clipT += dt; _st.moving = ph === 6 || ph === 7; _st.speed = 2.5; _st.atk = v.clipT < v.clipDur ? v.clipT / v.clipDur : -1; _st.cast = 0; _st.dash = _st.leap = _st.spin = _st.stun = _st.recall = _st.busy = false; _st.air = 0; _st.dead = 0; SHOW.kn = (SHOW.kn || 0) + ((ph === 4 && HEROES[v.key].kneel && (t % 1.2) < 0.95 ? 1 : 0) - (SHOW.kn || 0)) * Math.min(1, dt * 9); _st.kneel = SHOW.kn > 0.003 ? SHOW.kn : 0; _st.spin = ph === 5 && !v.clip && (t % 1.2) < 0.9 && HERO_CLIPS[v.key][2] === null;
   animHero(v, _st, t, dt); v.o.rotation.y = -0.35 + Math.sin(t * 0.55) * 0.55;
   if (HEROES[v.key].wings) {       // an ultimate that gives wings: they open for its turn and a little beyond
-    const q = (t % 7.2) - 3.6, on = q >= 0 && q < 2.1;
+    const q = (t % 16.8) - 6.0, on = q >= 0 && q < 2.1;
     if (on) { const W = v.wg || (v.wg = wingsMake(skinColor(v.key, v.skin, 2))); if (!W.g.parent) v.b.spine.add(W.g); const op = Math.min(1, q / 0.36), snap = 1 + 2.4 * Math.pow(op - 1, 3) + 1.4 * Math.pow(op - 1, 2); W.g.visible = true; wingsPose(W, snap * smooth(Math.min(1, (2.1 - q) / 0.45)), t, { run: v.runK || 0, beat: 0, dash: false, dim: 1 }); }
     else if (v.wg) v.wg.g.visible = false;
   }

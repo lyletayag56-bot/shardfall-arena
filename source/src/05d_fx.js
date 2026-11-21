@@ -792,7 +792,11 @@ const SKFX = {
   sorrel1h(e, x, z, c) { flash3(x, 1.0, z, 1.6, 0.18, c); sparks(x, 1.0, z, 7, '#ffe2b0', 3.4, 0.13, 0.35, 1); smoke(x, 0.2, z, 3, '#d8cfb4', 0.4, 0.4, 0.3); },
   /* ---- Odile ---- */
   odile0(e, x, z, c) {       // into the glass: she breaks up where she stood, and a line of light runs to the one she goes for
-    const tx = e.tx * S3, tz = e.ty * S3; flash3(x, 1.0, z, 2.4, 0.16, '#ffffff'); shards3(x, 1.0, z, 12, c, 4.2, 0.5); ring3(x, z, 0.9, 0.15, 0.22, c, 0.8, true); glint3(x, 1.25, z, 1.7, 0.25, '#ffffff'); trail3(x, z, tx, tz, 0.5, 0.24, c, 0.9, 0.7); trail3(x, z, tx, tz, 0.16, 0.3, '#ffffff', 0.92, 0.8); },
+    const tx = e.tx * S3, tz = e.ty * S3; flash3(x, 1.0, z, 2.4, 0.16, '#ffffff'); shards3(x, 1.0, z, 12, c, 4.2, 0.5); ring3(x, z, 0.9, 0.15, 0.22, c, 0.8, true); glint3(x, 1.25, z, 1.7, 0.25, '#ffffff'); trail3(x, z, tx, tz, 0.5, 0.24, c, 0.9, 0.7); trail3(x, z, tx, tz, 0.16, 0.3, '#ffffff', 0.92, 0.8); glassDoor(e.id, x, z, c); },
+  odile0b(e, x, z, c) {       // Glasswalk pressed again in the glass: where she went in answers, for her own side (the other is not told which way she will come)
+    const h = heroById(e.id); if (!h || !(V.team < 0 || h.team === V.team)) return;
+    if (e.on) { ring3(x, z, 1.5, 0.6, 0.22, '#ffffff', 0.9, true); glint3(x, 1.4, z, 1.5, 0.25, '#ffffff'); sparks(x, 0.4, z, 6, c, 1.6, 0.12, 0.4, 2, -1); } else ring3(x, z, 0.6, 1.3, 0.24, c, 0.6, true);
+    if (h === G.player) text3(x, 2.5, z, e.on ? 'BACK HERE' : 'TO THEM', e.on ? '#ffffff' : c, false, 0.7); },
   odile0h(e, x, z, c) {       // a cut: a stroke of light through them, a streak from where the last one fell, splinters off it, and for an instant her shape beside them
     const x0 = e.x0 * S3, z0 = e.y0 * S3, a = e.ang, k = e.again ? 0.62 : 1, ca = Math.cos(a), sa = Math.sin(a), rot = (e.ix % 2 ? 0.75 : -0.75) + (Math.random() - .5) * 0.4, v = V.views.get(e.id);
     if (e.ix > 0) trail3(x0, z0, x, z, 0.26 * k, 0.22, c, 1.0, 0.55);
@@ -801,7 +805,8 @@ const SKFX = {
     if (v) { if (!v.root.visible) { longSnap(v, e.again ? 2 : e.ix % 2); v.face = HP2 - a; v.o.rotation.y = v.face; } ghost3(v, c, 0.26, 0.55, x - ca * 0.95, z - sa * 0.95, true); }       // (the shape of her making this cut, turned to them: nobody sees her just now, so she can be set to it)
     FX.shake = Math.max(FX.shake, 0.08 * k); },
   odile0x(e, x, z, c) { ring3(x, z, 0.2, 1.3, 0.26, c, 0.8, true); flash3(x, 1.0, z, 1.8, 0.14, '#ffffff'); shards3(x, 0.9, z, 6, c, 2.6, 0.35); glint3(x, 1.3, z, 1.3, 0.22, '#ffffff');       // out of it again, at the end of a cut across
-    const v = V.views.get(e.id); if (v && v.lg) { longSnap(v, 1); v.lg.out = 0.36; later(0.02, () => { bladeTrail(v, c, 0.2, 0.22); bladeTrail(v, '#ffffff', 0.2, 0.13, { y0: 1.24, op: 0.5 }); }); } },
+    const v = V.views.get(e.id); if (v && v.lg) { if (e.back) { longSnap(v, 2); lgSet(v.lg.c, LONG.guard); longSolve(v, 1); }       // (back where she went in: she steps out standing to her guard)
+      else { longSnap(v, 1); v.lg.out = 0.36; later(0.02, () => { bladeTrail(v, c, 0.2, 0.22); bladeTrail(v, '#ffffff', 0.2, 0.13, { y0: 1.24, op: 0.5 }); }); } } },
   odile1(e, x, z, c) { ring3(x, z, 1.7, 0.5, 0.5, c, 0.6, true); later(0.12, () => ring3(x, z, 0.3, 1.2, 0.4, '#ffffff', 0.45, true)); glint3(x, 0.4, z, 1.0, 0.3, '#ffffff'); },       // Anneal: down on one knee (what rises round her while she kneels is drawn with her: annealExtras)
   odile1x(e, x, z, c) { flash3(x, 1.2, z, 2.0, 0.18, '#ffffff'); ring3(x, z, 0.3, 1.5, 0.3, c, 0.8); glint3(x, 1.7, z, 1.9, 0.3, '#ffffff'); sparks(x, 1.2, z, 9, c, 3, 0.12, 0.35, 1);       // up, with a keen edge
     const v = V.views.get(e.id); if (v && v.lg) later(0.1, () => { if (v.clip && v.clipX === 4) { bladeTrail(v, c, 0.13, 0.24); bladeTrail(v, '#ffffff', 0.13, 0.14, { y0: 1.24, op: 0.5 }); } }); },       // (pressed to rise: the path of the cut she comes up with)
@@ -968,6 +973,15 @@ function tpFx(e, there) {
   });
 }
 function heroById(id) { for (const h of G.heroes) if (h.id === id) return h; return null; }
+/* Where Odile went into the glass, marked for as long as she is in it: a ring on the ground that anyone may see; and, for her own
+   side only, a pane of light standing on it for as long as she means to step out by it (gw.back: the skill pressed again). */
+function glassDoor(id, x, z, c) {
+  const h = heroById(id), mine = !!h && (V.team < 0 || h.team === V.team), m = flat(FG.ringThin, c, 0.5, x, 0.07, z);
+  fxAdd(m, 1.4, (k, e) => { const on = !!(h && h.gw); if (!on && e.end == null) e.end = e.t; const f = e.end != null ? Math.max(0, 1 - (e.t - e.end) / 0.15) : Math.min(1, e.t / 0.1), back = mine && on && !!h.gw.back, r = (back ? 0.66 : 0.5) + Math.sin(e.t * 9) * 0.03; m.scale.set(r, 1, r); m.material.opacity = (back ? 0.95 : 0.45) * f; m.visible = f > 0; });
+  if (!mine) return;
+  const p = flat(FG.cyl, '#ffffff', 0, x, 0.02, z, { map: GX.tex.pillar }); p.visible = false;
+  fxAdd(p, 1.4, (k, e) => { const back = !!(h && h.gw && h.gw.back); e.a = (e.a || 0) + ((back ? 1 : 0) - (e.a || 0)) * Math.min(1, (FX.dt || 0.016) * 22); p.visible = e.a > 0.02; p.scale.set(0.46, 2.7, 0.46); p.material.opacity = 0.6 * e.a; });
+}
 
 /* sim effect events -> visuals */
 function ingestFx() {
